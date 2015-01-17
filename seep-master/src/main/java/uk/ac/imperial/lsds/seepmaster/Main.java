@@ -1,16 +1,8 @@
 package uk.ac.imperial.lsds.seepmaster;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executors;
-
 import joptsimple.OptionParser;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
@@ -26,12 +18,18 @@ import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 import uk.ac.imperial.lsds.seepmaster.ui.UI;
 import uk.ac.imperial.lsds.seepmaster.ui.UIFactory;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+
 
 public class Main {
 	
 	final private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	private void executeMaster(String[] args, MasterConfig mc){
+	private void executeMaster(String[] args, MasterConfig mc, String[] queryArgs){
 		int infType = mc.getInt(MasterConfig.DEPLOYMENT_TARGET_TYPE);
 		LOG.info("Deploy target of type: {}", InfrastructureManagerFactory.nameInfrastructureManagerWithType(infType));
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
@@ -51,7 +49,7 @@ public class Main {
 		String queryPathFile = mc.getString(MasterConfig.QUERY_FILE);
 		String baseClass = mc.getString(MasterConfig.BASECLASS_NAME);
 		LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
-		qm.loadQueryFromFile(queryPathFile, baseClass);
+		qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs);
 		LOG.info("Loading query...OK");
 		ui.start();		
 	}
@@ -60,6 +58,8 @@ public class Main {
 		// Get Properties with command line configuration 
 		List<ConfigKey> configKeys = MasterConfig.getAllConfigKey();
 		OptionParser parser = new OptionParser();
+		// Unrecognized options are passed through to the query
+		parser.allowsUnrecognizedOptions();
 		parser.accepts(MasterConfig.QUERY_FILE, "Jar file with the compiled SEEP query").withRequiredArg().required();
 		parser.accepts(MasterConfig.BASECLASS_NAME, "Name of the Base Class").withRequiredArg().required();
 		CommandLineArgs cla = new CommandLineArgs(args, parser, configKeys);
@@ -77,7 +77,7 @@ public class Main {
 		}
 		MasterConfig mc = new MasterConfig(validatedProperties);
 		Main instance = new Main();
-		instance.executeMaster(args, mc);
+		instance.executeMaster(args, mc, cla.getQueryArgs());
 	}
 	
 	private static boolean validateProperties(Properties validatedProperties){
