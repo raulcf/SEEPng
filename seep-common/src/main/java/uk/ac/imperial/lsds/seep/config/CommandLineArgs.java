@@ -1,13 +1,13 @@
 package uk.ac.imperial.lsds.seep.config;
 
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import uk.ac.imperial.lsds.seep.config.ConfigDef.Type;
+
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 public class CommandLineArgs {
 
@@ -81,4 +81,13 @@ public class CommandLineArgs {
     	}
     	return value;
     }
+
+	/**
+	 * Gets the command line arguments that are for the query
+	 * (all the arguments that were not specified to the parser to accept)
+	 * @return array of query command line arguments
+	 */
+	public String[] getQueryArgs() {
+		return options.nonOptionArguments().toArray(new String[0]);
+	}
 }
