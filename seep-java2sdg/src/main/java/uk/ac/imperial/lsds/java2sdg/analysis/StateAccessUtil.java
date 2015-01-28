@@ -8,7 +8,7 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.flowanalysis;
+package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.util.Iterator;
 import java.util.List;

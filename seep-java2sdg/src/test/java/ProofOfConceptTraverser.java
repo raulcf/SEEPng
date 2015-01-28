@@ -139,14 +139,14 @@ public class ProofOfConceptTraverser extends Traverser {
     private int fieldCount;
     
     //field accesses
-    @Override 
+    @Override
     public void traverseFieldAccessExpression(Java.FieldAccessExpression fa){
     	System.out.println("FA: "+fa.toString());
     	super.traverseFieldAccessExpression(fa);
     }
 
     // Count local variables.
-    @Override 
+    @Override
     public void traverseLocalVariableDeclarationStatement(Java.LocalVariableDeclarationStatement lvds) {
         this.localVariableCount += lvds.variableDeclarators.length;
         System.out.println("lineNumber: "+lvds.getLocation().getLineNumber()+ " type: "+lvds.type.toString());

@@ -3,12 +3,16 @@ import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.NetworkSource;
+import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
 
 public class Fake {
 
 	@Partitioned
 	private int iteration;
+	
+	@Partial
+	private List<Double> weights;
 	
 	public double train(){
 		iteration = 5;

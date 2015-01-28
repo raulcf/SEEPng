@@ -8,7 +8,7 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.flowanalysis;
+package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,15 +30,13 @@ import soot.jimple.FieldRef;
 import soot.jimple.InvokeExpr;
 import soot.tagkit.SourceLnPosTag;
 import soot.tagkit.StringTag;
-import soot.tagkit.Tag;
 import soot.toolkits.graph.UnitGraph;
 import uk.ac.imperial.lsds.java2sdg.Main;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement.TaskElementBuilder;
 import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
 import uk.ac.imperial.lsds.java2sdg.bricks.Variable;
-import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr.StateLabel;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement.TaskElementBuilder;
 import uk.ac.imperial.lsds.java2sdg.input.SourceCodeHandler;
 
 public class TEBoundaryAnalysis {
@@ -141,9 +139,9 @@ public class TEBoundaryAnalysis {
 						poi.setStateName(fieldName);
 						// If there is a ref to partial state and no annotation, then it's local access
 						InternalStateRepr isr = stateElements.get(fieldName);
-						if(isr.getStateLabel().equals(StateLabel.PARTIAL) && ann == null){
-							poi.setAnnotation(SDGAnnotation.LOCAL);
-						}
+//						if(isr.getStateLabel().equals(StateLabel.PARTIAL) && ann == null){
+//							poi.setAnnotation(SDGAnnotation.LOCAL);
+//						}
 					}
 				}
 				else if(v instanceof InvokeExpr){
@@ -154,18 +152,18 @@ public class TEBoundaryAnalysis {
 						SootClass aux = m.getMethod().getDeclaringClass();
 						if(ann == null || !ann.equals(SDGAnnotation.GLOBAL_READ) || !ann.equals(SDGAnnotation.GLOBAL_WRITE)){
 							InternalStateRepr isr = stateElements.get(poi.getStateName());
-							StateLabel sl = isr.getStateLabel();
-							SootClass sc = isr.getStateClass();
-							if(aux.toString().equals(sc.toString())){
-								// If it's partitioned state then we get the key
-								if(sl.equals(StateLabel.PARTITIONED)){
-									SootMethod originM = aux.getMethodByName(methodName);
-									List<Tag> tags = originM.getTags();
-									int partitioningKeyPosition = util.getPartitioningKey(tags);
-									Value partitioningKey = m.getArg(partitioningKeyPosition);
-									poi.setPartitioningKey(partitioningKey.toString());
-								}
-							}
+//							StateLabel sl = isr.getStateLabel();
+//							SootClass sc = isr.getStateClass();
+//							if(aux.toString().equals(sc.toString())){
+//								// If it's partitioned state then we get the key
+//								if(sl.equals(StateLabel.PARTITIONED)){
+//									SootMethod originM = aux.getMethodByName(methodName);
+//									List<Tag> tags = originM.getTags();
+//									int partitioningKeyPosition = util.getPartitioningKey(tags);
+//									Value partitioningKey = m.getArg(partitioningKeyPosition);
+//									poi.setPartitioningKey(partitioningKey.toString());
+//								}
+//							}
 						}
 					}
 				}
@@ -397,6 +395,6 @@ public class TEBoundaryAnalysis {
 	
 	private int getStateElementId(String stateName){
 		InternalStateRepr isr = stateElements.get(stateName);
-		return isr.getSeId(); 
+		return isr.getStateId(); 
 	}
 }
