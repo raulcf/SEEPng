@@ -1,0 +1,23 @@
+subprojects {
+
+	apply plugin: 'java'
+	sourceCompatibility = JavaVersion.VERSION_1_8
+    	targetCompatibility = JavaVersion.VERSION_1_8
+	apply plugin: 'eclipse'
+
+	repositories {
+		mavenCentral()
+	}
+
+	dependencies {
+		compile 'org.slf4j:slf4j-api:1.7.5'
+		compile 'ch.qos.logback:logback-classic:1.0.13'
+		compile 'commons-cli:commons-cli:1.2' // remove later
+		compile 'net.sf.jopt-simple:jopt-simple:4.8'
+		compile 'com.esotericsoftware:kryo:3.0.0'
+	}
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.1'
+}
