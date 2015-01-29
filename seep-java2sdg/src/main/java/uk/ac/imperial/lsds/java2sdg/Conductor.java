@@ -6,8 +6,10 @@ import org.codehaus.janino.Java;
 
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 
 public class Conductor {
 
@@ -32,50 +34,12 @@ public class Conductor {
 		Map<String, InternalStateRepr> fields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
+		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(compilationUnit);
 		
 	}
 	
 }
-//		// Get java.home to access rt.jar, required by soot
-//		String javaHome = System.getProperty("java.home");
-//		String sootClassPath = javaHome + "/lib/rt.jar:" + pathToSeepJar + ":"
-//				+ "../seep-worker/build/libs/seep-worker-0.1.jar" + ":./"; //FIXME: Ra. It should not need seep-worker anymore
-//		String pathToSourceCode = pathToDriverFile + "/" + className;
-
 		
-		
-//		/**
-//		 * Parse input program source code. This stage performs operations at source code only
-//		 * 
-//		 **/
-//
-//		// Parse original source code
-//		LOG.info("Parsing source code...");
-//		SourceCodeHandler sch = SourceCodeHandler.getInstance(pathToSourceCode);
-//		sch.printLineAnnotation();
-//		LOG.info("Parsing source code...OK");
-//
-//		/** Initialise soot and load input program **/
-//
-//		// With the class loaded, we can then get the SootClass wrapper to work
-//		LOG.info("Setting soot classpath: " + sootClassPath);
-//		Scene.v().setSootClassPath(sootClassPath);
-//		Options.v().setPhaseOption("jb", "preserve-source-annotations");
-//		LOG.info("Loading class: " + className);
-//
-//		SootClass c = null;
-//		try {
-//			System.out.println();
-//			c = Scene.v().loadClassAndSupport(className);
-//			c.setApplicationClass();
-//		} 
-//		catch (CompilationDeathException cde) {
-//			System.out.println();
-//			LOG.error(cde.getMessage());
-//			System.exit(1);
-//		}
-//		LOG.info("Loading class...OK");
-//
 //		/** Extract fields and workflows **/
 //
 //		PhaseOptions.v().setPhaseOption("tag.ln", "on"); // tell compiler to include line numbers

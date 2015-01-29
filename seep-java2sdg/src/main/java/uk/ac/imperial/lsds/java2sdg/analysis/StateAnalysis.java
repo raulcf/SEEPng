@@ -30,14 +30,13 @@ public class StateAnalysis extends Traverser {
 		Type t = fd.type;
 		String name = null;
 		VariableDeclarator[] decls = fd.variableDeclarators;
-		if(decls.length > 1){
-			throw new LimitationException("Only one field/variable declared per line is supported");
-		}
+		if(decls.length > 1) throw new LimitationException("Only one field/variable declared per line is supported");
 		for(VariableDeclarator vd : decls){
 			name = vd.name;
 		}
 		SDGAnnotation annotation = null;
 		Annotation[] annotations = fd.getAnnotations();
+		if(annotations.length > 1) throw new LimitationException("Only one annotation supported per annotated entity");
 		for(Annotation ann : annotations){
 			annotation = au.identifyAnnotation(ann);
 		}

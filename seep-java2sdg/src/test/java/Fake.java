@@ -14,6 +14,13 @@ public class Fake {
 	@Partial
 	private List<Double> weights;
 	
+	public void main(){
+		int[] data = new int[10];
+		train();
+		float datatotest = 5;
+		test(datatotest);
+	}
+	
 	public double train(){
 		iteration = 5;
 		List<Double> weights = new ArrayList<Double>();
@@ -25,7 +32,7 @@ public class Fake {
 		return weights.get(0);
 	}
 	
-	public void test(float ogt){
+	public void test(float data){
 		int a = 0;
 		@NetworkSource(endpoint="kafka://localhost:5555")
 		int b = 1;

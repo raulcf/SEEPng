@@ -27,8 +27,8 @@ public class Main {
 	private final static Logger LOG = LoggerFactory.getLogger(Main.class.getSimpleName());
 
 	public static void main(String args[]) {
-		/** Parse input parameters **/
 		
+		/** Parse input parameters **/
 		List<ConfigKey> configKeys = WorkerConfig.getAllConfigKey();
 		OptionParser parser = new OptionParser();
 		CommandLineArgs cla = new CommandLineArgs(args, parser, configKeys);
