@@ -40,7 +40,7 @@ public class CustomCollectionParser extends Parser {
 		while (this.peek(".") && this.peekNextButOne().type == Token.IDENTIFIER) {
 			this.read();
 			String tmp =this.readIdentifier();
-			System.out.println("Recieved: "+ tmp);
+			System.out.println("Got Indentifier: "+ tmp);
 			if(tmp != null)
 				l.add(tmp);
 
@@ -61,11 +61,13 @@ public class CustomCollectionParser extends Parser {
         Token t = this.read();
         System.out.println(t.toString());
         if(t.toString().contains( "@") && this.peekRead("Collection")){
-        	System.out.println("Finally Found Collection Annotation! Line: "+ t.getLocation().getLineNumber() + " Val: "+ t.value + t.toString());
+        	System.out.println("Found Collection Annotation! Line: "+ t.getLocation().getLineNumber() + " Val: "+ t.value + " : "+ t.toString());
         	//this.read();
         	return this.read().value;
         }
-        else if (t.type != Token.IDENTIFIER) throw this.compileException("Identifier expected instead of '" + t.value + "'");
+        
+        if (t.type != Token.IDENTIFIER) throw this.compileException("Identifier expected instead of '" + t.value + "'");
+        
         return t.value;
     }
 
