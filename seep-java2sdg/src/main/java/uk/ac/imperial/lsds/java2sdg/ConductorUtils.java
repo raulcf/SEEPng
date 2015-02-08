@@ -5,8 +5,9 @@ import java.io.IOException;
 
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.Java;
-import org.codehaus.janino.Parser;
 import org.codehaus.janino.Scanner;
+
+import uk.ac.imperial.lsds.java2sdg.analysis.CustomParser;
 
 public class ConductorUtils {
 
@@ -14,7 +15,7 @@ public class ConductorUtils {
 		Java.CompilationUnit cu = null;
 		try{
 			FileReader r = new FileReader(inputFile);
-			cu = new Parser(new Scanner(inputFile, r)).parseCompilationUnit();
+			cu = new CustomParser(new Scanner(inputFile, r)).parseCompilationUnit();
 		}
 		catch(IOException io) {
 			io.printStackTrace();
