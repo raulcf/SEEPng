@@ -1,9 +1,14 @@
-package uk.ac.imperial.lsds.seep.api;
+package uk.ac.imperial.lsds.seepmaster.query;
 
-import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.QueryBuilder;
+import uk.ac.imperial.lsds.seep.api.QueryComposer;
+import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.api.sources.SimpleNetworkSource;
 
 public class BaseTest implements QueryComposer {
 

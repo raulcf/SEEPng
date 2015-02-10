@@ -25,100 +25,100 @@ import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class BasicWorkerWorkerCommunicationTest {
 
-	@Test
-	public void testSendTuples() {
-		// Create inputAdapter map that is used to configure networkselector
-		int opId = 99;
-		int clientId = 100;
-		int streamId = 101;
-		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
-		Map<Integer, InputAdapter> iapMap = null;
-		iapMap = new HashMap<>();
-		Properties p = new Properties();
-		p.setProperty("master.ip", "127.0.0.1");
-		p.setProperty("batch.size", "10");
-		p.setProperty("properties.file", "");
-		WorkerConfig fake = new WorkerConfig(p);
-		NetworkDataStream nds = new NetworkDataStream(new WorkerConfig(p), opId, clientId, s);
-		iapMap.put(opId, nds);
-		// TODO: build this
-		NetworkSelector ds = NetworkSelector.makeNetworkSelectorWithMap(opId, iapMap);
-		// Create client and server that will be interchanging data
-		InetAddress myIp = null;
-		try {
-			myIp = InetAddress.getByName("127.0.0.1");
-		} 
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		int listeningPort = 5555;
-		ds.configureAccept(myIp, listeningPort);
-		
-		// create outputbuffer for the client
-		Connection c = new Connection(new EndPoint(clientId, myIp, listeningPort));
-		OutputBuffer ob = new OutputBuffer(fake, opId, c, streamId);
-		Set<OutputBuffer> obs = new HashSet<>();
-		obs.add(ob);
-		ds.configureConnect(obs);
-		
-		ds.initNetworkSelector();
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		/** 1 send **/
-		
-		// Create tuple and send it to the other worker
-		byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{3, 23423L});
-		//byte[] serializedData2 = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{4, 8384L});
-		System.out.println("Tuple length: "+serializedData.length);
-		//ob.write(serializedData);
-		ob.write(serializedData);
-//		if(canSend){
-//			System.out.println("Notifying to send");
-//			((EventAPI)ds).readyForWrite(clientId);
-//		} else{
-//			System.out.println("CANNOT send yet");
+//	@Test
+//	public void testSendTuples() {
+//		// Create inputAdapter map that is used to configure networkselector
+//		int opId = 99;
+//		int clientId = 100;
+//		int streamId = 101;
+//		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+//		Map<Integer, InputAdapter> iapMap = null;
+//		iapMap = new HashMap<>();
+//		Properties p = new Properties();
+//		p.setProperty("master.ip", "127.0.0.1");
+//		p.setProperty("batch.size", "10");
+//		p.setProperty("properties.file", "");
+//		WorkerConfig fake = new WorkerConfig(p);
+//		NetworkDataStream nds = new NetworkDataStream(new WorkerConfig(p), opId, clientId, s);
+//		iapMap.put(opId, nds);
+//		// TODO: build this
+//		NetworkSelector ds = NetworkSelector.makeNetworkSelectorWithMap(opId, iapMap);
+//		// Create client and server that will be interchanging data
+//		InetAddress myIp = null;
+//		try {
+//			myIp = InetAddress.getByName("127.0.0.1");
+//		} 
+//		catch (UnknownHostException e) {
+//			e.printStackTrace();
 //		}
-		
-		ITuple incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
-		System.out.println(incomingTuple.toString());
-		
-//		ITuple incomingTuple2 = nds.pullDataItem(); // blocking until there's something to receive
+//		int listeningPort = 5555;
+//		ds.configureAccept(myIp, listeningPort);
+//		
+//		// create outputbuffer for the client
+//		Connection c = new Connection(new EndPoint(clientId, myIp, listeningPort));
+//		OutputBuffer ob = new OutputBuffer(fake, opId, c, streamId);
+//		Set<OutputBuffer> obs = new HashSet<>();
+//		obs.add(ob);
+//		ds.configureConnect(obs);
+//		
+//		ds.initNetworkSelector();
+//		
+//		try {
+//			Thread.sleep(1000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		/** 1 send **/
+//		
+//		// Create tuple and send it to the other worker
+//		byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{3, 23423L});
+//		//byte[] serializedData2 = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{4, 8384L});
+//		System.out.println("Tuple length: "+serializedData.length);
+//		//ob.write(serializedData);
+//		ob.write(serializedData);
+////		if(canSend){
+////			System.out.println("Notifying to send");
+////			((EventAPI)ds).readyForWrite(clientId);
+////		} else{
+////			System.out.println("CANNOT send yet");
+////		}
+//		
+//		ITuple incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
+//		System.out.println(incomingTuple.toString());
+//		
+////		ITuple incomingTuple2 = nds.pullDataItem(); // blocking until there's something to receive
+////		System.out.println(incomingTuple2.toString());
+//		
+//		/** 2 send **/
+//		// Create tuple and send it to the other worker
+//		byte[] serializedData2 = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{4, 848448L});
+//		System.out.println("Tuple length: "+serializedData2.length);
+//		ob.write(serializedData2);
+////		if(canSend2){
+////			System.out.println("Notifying to send");
+////			((EventAPI)ds).readyForWrite(clientId);
+////		} else{
+////			System.out.println("CANNOT send yet");
+////		}
+//		
+//		ITuple incomingTuple2 = nds.pullDataItem(500); // blocking until there's something to receive
 //		System.out.println(incomingTuple2.toString());
-		
-		/** 2 send **/
-		// Create tuple and send it to the other worker
-		byte[] serializedData2 = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{4, 848448L});
-		System.out.println("Tuple length: "+serializedData2.length);
-		ob.write(serializedData2);
-//		if(canSend2){
-//			System.out.println("Notifying to send");
-//			((EventAPI)ds).readyForWrite(clientId);
-//		} else{
-//			System.out.println("CANNOT send yet");
+//		
+//		ITuple incomingTuple3 = nds.pullDataItem(500); // blocking until there's something to receive
+//		System.out.println(incomingTuple3.toString());
+//		
+//		while(true){
+//			try {
+//				Thread.sleep(1000);
+//			} 
+//			catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 //		}
-		
-		ITuple incomingTuple2 = nds.pullDataItem(500); // blocking until there's something to receive
-		System.out.println(incomingTuple2.toString());
-		
-		ITuple incomingTuple3 = nds.pullDataItem(500); // blocking until there's something to receive
-		System.out.println(incomingTuple3.toString());
-		
-		while(true){
-			try {
-				Thread.sleep(1000);
-			} 
-			catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-	}
+//		
+//	}
 	
 	public void basicSocketCommTest(){
 		

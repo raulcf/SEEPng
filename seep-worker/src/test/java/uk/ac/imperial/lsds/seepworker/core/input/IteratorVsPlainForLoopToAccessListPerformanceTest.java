@@ -16,7 +16,7 @@ public class IteratorVsPlainForLoopToAccessListPerformanceTest {
 		List<String> list = new LinkedList<>();
 		List<String> alist = new ArrayList<>();
 		
-		int size = 500000;
+		int size = 500;
 		// Full list
 		for(int i = 0; i < size; i++){
 			list.add(new Integer(i).toString());

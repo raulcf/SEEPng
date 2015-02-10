@@ -24,78 +24,78 @@ import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class WorkerWorkerDataCommunicationTest {
 
-	@Test
-	public void test() {
-		// Create inputAdapter map that is used to configure networkselector
-		//int clientId = 100;
-		int opId = 99;
-		int streamId = 100;
-		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
-		Map<Integer, InputAdapter> iapMap = null;
-		iapMap = new HashMap<>();
-		Properties p = new Properties();
-		p.setProperty("master.ip", "127.0.0.1");
-		p.setProperty("batch.size", "10000"); // 25 - 25 - 400
-		p.setProperty("rx.buffer.size", "100000"); // 66 - 116 - 817
-		p.setProperty("tx.buffer.size", "100000"); // 66 - 116 - 817
-		p.setProperty("properties.file", "");
-		WorkerConfig fake = new WorkerConfig(p);
-		NetworkDataStream nds = new NetworkDataStream(new WorkerConfig(p), opId, streamId, s);
-		iapMap.put(opId, nds);
-		// TODO: build this
-		NetworkSelector ds = NetworkSelector.makeNetworkSelectorWithMap(opId, iapMap);
-		// Create client and server that will be interchanging data
-		InetAddress myIp = null;
-		try {
-			myIp = InetAddress.getByName("127.0.0.1");
-		}
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		int listeningPort = 5555;
-		int dataPort = listeningPort;
-		ds.configureAccept(myIp, listeningPort);
-		
-		// create outputbuffer for the client
-		Connection c = new Connection(new EndPoint(streamId, myIp, listeningPort, dataPort));
-		OutputBuffer ob = new OutputBuffer(fake, opId, c, streamId);
-		Set<OutputBuffer> obs = new HashSet<>();
-		obs.add(ob);
-		ds.configureConnect(obs);
-		
-		ds.initNetworkSelector();
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		ds.startNetworkSelector();
-		
-		/** Continuous sending **/
-		int interWriteTime = -1;
-		Writer w = new Writer(streamId, ob, ds, interWriteTime);
-		Thread writer = new Thread(w);
-		writer.setName("ImTheWriter");
-		
-		Reader r = new Reader(nds);
-		Thread reader = new Thread(r);
-		reader.setName("ImTheReader");
-		
-		reader.start();
-		writer.start();
-		
-		while(true){
-			try {
-				Thread.sleep(1000);
-			}
-			catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+//	@Test
+//	public void test() {
+//		// Create inputAdapter map that is used to configure networkselector
+//		//int clientId = 100;
+//		int opId = 99;
+//		int streamId = 100;
+//		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+//		Map<Integer, InputAdapter> iapMap = null;
+//		iapMap = new HashMap<>();
+//		Properties p = new Properties();
+//		p.setProperty("master.ip", "127.0.0.1");
+//		p.setProperty("batch.size", "10000"); // 25 - 25 - 400
+//		p.setProperty("rx.buffer.size", "100000"); // 66 - 116 - 817
+//		p.setProperty("tx.buffer.size", "100000"); // 66 - 116 - 817
+//		p.setProperty("properties.file", "");
+//		WorkerConfig fake = new WorkerConfig(p);
+//		NetworkDataStream nds = new NetworkDataStream(new WorkerConfig(p), opId, streamId, s);
+//		iapMap.put(opId, nds);
+//		// TODO: build this
+//		NetworkSelector ds = NetworkSelector.makeNetworkSelectorWithMap(opId, iapMap);
+//		// Create client and server that will be interchanging data
+//		InetAddress myIp = null;
+//		try {
+//			myIp = InetAddress.getByName("127.0.0.1");
+//		}
+//		catch (UnknownHostException e) {
+//			e.printStackTrace();
+//		}
+//		int listeningPort = 5555;
+//		int dataPort = listeningPort;
+//		ds.configureAccept(myIp, listeningPort);
+//		
+//		// create outputbuffer for the client
+//		Connection c = new Connection(new EndPoint(streamId, myIp, listeningPort, dataPort));
+//		OutputBuffer ob = new OutputBuffer(fake, opId, c, streamId);
+//		Set<OutputBuffer> obs = new HashSet<>();
+//		obs.add(ob);
+//		ds.configureConnect(obs);
+//		
+//		ds.initNetworkSelector();
+//		
+//		try {
+//			Thread.sleep(1000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		ds.startNetworkSelector();
+//		
+//		/** Continuous sending **/
+//		int interWriteTime = -1;
+//		Writer w = new Writer(streamId, ob, ds, interWriteTime);
+//		Thread writer = new Thread(w);
+//		writer.setName("ImTheWriter");
+//		
+//		Reader r = new Reader(nds);
+//		Thread reader = new Thread(r);
+//		reader.setName("ImTheReader");
+//		
+//		reader.start();
+//		writer.start();
+//		
+//		while(true){
+//			try {
+//				Thread.sleep(1000);
+//			}
+//			catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 	
 	class Writer implements Runnable{
 

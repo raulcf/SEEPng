@@ -13,7 +13,7 @@ public class ConsistentHashingRoutingTest {
 		
 		int horizon = min + max;
 		
-		assert(horizon == max);
+		assert(horizon == Long.MAX_VALUE);
 	}
 
 }

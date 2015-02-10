@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 
@@ -25,7 +24,7 @@ public class BasicAsyncConTest {
 			InetSocketAddress address = c.getInetSocketAddressForData();
 		    Socket socket = channel.socket();
 		    
-				socket.setKeepAlive(true);
+			socket.setKeepAlive(true);
 			// Unlikely in non-production scenarios we'll be up for more than 2 hours but...
 		    socket.setTcpNoDelay(true); // Disabling Nagle's algorithm
 		    try {

@@ -17,7 +17,7 @@ public class ByteComparisonOverheadToChooseDataStructurePerformanceTest {
 	@Test
 	public void test() {
 		// initialize structures
-		int size = 8000000;
+		int size = 800;
 		single = new ArrayBlockingQueue<>(size);
 		list = new ArrayBlockingQueue<>(size);
 		// Full single
