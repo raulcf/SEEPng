@@ -33,13 +33,8 @@ public enum SDGAnnotation{
 	public String getValue(){
 		return value;
 	}
-	/*
-	 * Method to automatically identify  annotation from its representation
-	 * Partial seems to be the same case as Partial_State so there is an extra condition
-	 * This methods throws an IllegalArgumentException if the value is not an acceptable Annotation  
-	 */
+	
 	public static SDGAnnotation getAnnotation(String value) {
-		
 		if(value.equalsIgnoreCase("Partial"))
 			return SDGAnnotation.PARTIAL_STATE;
 		
