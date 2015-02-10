@@ -33,6 +33,18 @@ task deploySeep(type: Copy){
 	into 'deploy'
 }
 
+task dist() << {
+    File dist = mkdir("$customDistDir/dist")
+    subprojects.each {project ->
+        project.tasks.withType(Jar).each {archiveTask ->
+            copy {
+                from archiveTask.archivePath
+                into dist 
+            }
+        }
+    }
+}
+
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.1'
 }
