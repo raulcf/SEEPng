@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.codehaus.janino.Java;
 import org.codehaus.janino.Java.Annotation;
+import org.codehaus.janino.Java.FunctionDeclarator.FormalParameters;
 import org.codehaus.janino.util.Traverser;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
@@ -40,6 +41,14 @@ public class AnnotationAnalysis extends Traverser {
         }
 	}
 	
-	// TODO: write a visitor for methods so that we can retrieve Collection annotation
+	@Override
+	public void traverseMethodDeclarator(Java.MethodDeclarator md){
+		Java.Modifiers mods = md.modifiers;
+		for(Annotation ann : mods.annotations){
+        	SDGAnnotation a = au.identifyAnnotation(ann);
+        	int line = md.getLocation().getLineNumber();
+			anns.put(line, a);
+        }
+	}
 	
 }

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.ac.imperial.lsds.seep.api.annotations.Collection;
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.NetworkSource;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
@@ -36,5 +37,10 @@ public class Fake {
 		int a = 0;
 		@NetworkSource(endpoint="kafka://localhost:5555")
 		int b = 1;
+	}
+	
+	@Collection
+	public void merge(List<Integer> numbers){
+		
 	}
 }

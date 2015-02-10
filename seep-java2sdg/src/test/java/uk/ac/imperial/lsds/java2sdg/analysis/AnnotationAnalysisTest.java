@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
-import static org.junit.Assert.*;
-
 import java.util.Map;
 import java.util.Map.Entry;
 
