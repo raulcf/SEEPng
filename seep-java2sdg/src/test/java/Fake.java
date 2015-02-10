@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.ac.imperial.lsds.seep.api.annotations.Collection;
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.NetworkSource;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
@@ -32,7 +33,7 @@ public class Fake {
 		return weights.get(0);
 	}
 	
-	public void test(float data){
+	public void test(@Collection float data){
 		int a = 0;
 		@NetworkSource(endpoint="kafka://localhost:5555")
 		int b = 1;

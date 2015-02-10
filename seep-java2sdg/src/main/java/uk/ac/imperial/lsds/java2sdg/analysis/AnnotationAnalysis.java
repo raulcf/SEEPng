@@ -12,7 +12,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 public class AnnotationAnalysis extends Traverser {
 
 	private AnalysisUtils au = new AnalysisUtils();
-	private Map<Integer, SDGAnnotation> anns = new HashMap<>();
+	private static Map<Integer, SDGAnnotation> anns = new HashMap<>();
 	
 	public static Map<Integer, SDGAnnotation> getAnnotations(Java.CompilationUnit cu){
 		AnnotationAnalysis aa = new AnnotationAnalysis();
@@ -40,6 +40,14 @@ public class AnnotationAnalysis extends Traverser {
         }
 	}
 	
-	// TODO: write a visitor for methods so that we can retrieve Collection annotation
+	
+	public static void addCustomParserCollectionAnnotation(int line, String annotation){
+		/*
+		 * The line should be replaced after the merge with:
+		 * AnnotationAnalysis.anns.put(line, SDGAnnotation.getAnnotation(annotation));
+		 */
+		AnnotationAnalysis.anns.put(line, SDGAnnotation.COLLECTION);
+		
+	}
 	
 }
