@@ -1,13 +1,20 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
+import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.annotations.Collection;
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
-import uk.ac.imperial.lsds.seep.api.annotations.NetworkSource;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.data.Type;
+import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 
-public class Fake {
+public class Fake implements SeepProgram {
 
 	@Partitioned
 	private int iteration;
@@ -15,11 +22,23 @@ public class Fake {
 	@Partial
 	private List<Double> weights;
 	
-	public void main(){
-		int[] data = new int[10];
-		train();
-		float datatotest = 5;
-		test(datatotest);
+	@Override
+	public SeepProgramConfiguration configure(){
+		
+		SeepProgramConfiguration spc = new SeepProgramConfiguration();
+		
+		// declare train workflow
+		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+		DataOrigin trainSrc = new DataOrigin(DataOriginType.NETWORK, "localhost:5555", SerializerType.NONE, sch, null);
+		spc.newWorkflow("train", trainSrc);
+		
+		// declare test workflow
+		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+		DataOrigin testSrc = new DataOrigin(DataOriginType.NETWORK, "localhost:5556", SerializerType.NONE, sch2, null);
+		DataOrigin testSnk = new DataOrigin(DataOriginType.CONSOLE, "System.out", SerializerType.NONE, null, null);
+		spc.newWorkflow("test", testSrc, testSnk);
+
+		return spc;
 	}
 	
 	public double train(){
@@ -35,7 +54,6 @@ public class Fake {
 	
 	public void test(float data){
 		int a = 0;
-		@NetworkSource(endpoint="kafka://localhost:5555")
 		int b = 1;
 	}
 	

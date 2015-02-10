@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg;
 
+import java.io.File;
 import java.util.Map;
 
 import org.codehaus.janino.Java;
@@ -24,17 +25,19 @@ public class Conductor {
 	public void start(){
 		
 		/** Get Compilation Unit **/
-		String inputFile = cc.getString(CompilerConfig.INPUT_FILE);
-		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFile);
+		String inputFilePath = cc.getString(CompilerConfig.INPUT_FILE);
+		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFilePath);
 		
-		/** Get all annotations and map them to a line **/
+		/** Extract annotations **/
 		Map<Integer, SDGAnnotation> annotations = AnnotationAnalysis.getAnnotations(compilationUnit);
 		
 		/** Extract fields **/
 		Map<String, InternalStateRepr> fields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
-		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(compilationUnit);
+		File inputFile = cu.getFile(inputFilePath);
+		String className = cu.getClassName(inputFile);
+		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFile, className);
 		
 	}
 	

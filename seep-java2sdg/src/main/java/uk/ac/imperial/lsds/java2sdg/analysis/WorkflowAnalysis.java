@@ -1,53 +1,34 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
-import java.util.HashMap;
+import java.io.File;
 import java.util.Map;
 
-import org.codehaus.janino.Java;
-import org.codehaus.janino.util.Traverser;
+import org.codehaus.janino.JavaSourceClassLoader;
 
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 
-public class WorkflowAnalysis extends Traverser {
-
-	private Map<String, WorkflowRepr> workflows = new HashMap<>();
+public class WorkflowAnalysis {
 	
-	public static Map<String, WorkflowRepr> getWorkflows(Java.CompilationUnit cu){
+	public static Map<String, WorkflowRepr> getWorkflows(File inputFile, String className){
 		WorkflowAnalysis wa = new WorkflowAnalysis();
-		wa.traverseCompilationUnit(cu);
-		return wa.workflows;
+		SeepProgramConfiguration spc = compileAndExecuteMain(wa, inputFile, className);
+		return spc.getWorkflows();
 	}
 	
-	@Override
-	public void traverseMethodInvocation(Java.MethodInvocation mi){
-		String scope = mi.getEnclosingBlockStatement().getEnclosingScope().toString();
-		if(scope.equals("main()")){
-			System.out.println("NAME: "+mi.methodName);
+	private static SeepProgramConfiguration compileAndExecuteMain(WorkflowAnalysis wa, File inputFile, String className){
+		SeepProgramConfiguration spc = null;
+		ClassLoader cl = new JavaSourceClassLoader(wa.getClass().getClassLoader());
+		((JavaSourceClassLoader)cl).setSourcePath(new File[] {inputFile});
+		try {
+			Object o = cl.loadClass(className).newInstance();
+			spc = ((SeepProgram) o).configure();
+		} 
+		catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			e.printStackTrace();
 		}
-		
-		// workflowrepr (name, source-annotation, sink-annotation, inputparameters-schema)
-		// name - we get it from here
-		// srcann - do we need to do a points-to analysis?
-		// snkann - here the annotation annotates the method invocation
-		// inputparameters - get method declaration and then read inputparameters (to avoid point-to)
+		return spc;
 	}
-	
-//	@Override
-//	public void traverseMethodDeclarator(Java.MethodDeclarator md){
-//		if(md.name.equals("main")){
-//			List<? extends BlockStatement> statements = md.optionalStatements;
-//			for(BlockStatement stmt : statements){
-//				if(stmt instanceof Java.ExpressionStatement){
-//					Java.ExpressionStatement expr = (Java.ExpressionStatement)stmt;
-//					System.out.println("Expr: "+expr.toString());
-//					System.out.println("RVALUE: "+expr.rvalue.toString());
-//				}
-////				System.out.println("SCOPE: "+stmt.getEnclosingScope().toString());
-////				System.out.println("STMT: "+stmt.toString());
-////				System.out.println("class: "+stmt.getClass().getSimpleName());
-//			}
-//			
-//		}
-//	}
 
 }

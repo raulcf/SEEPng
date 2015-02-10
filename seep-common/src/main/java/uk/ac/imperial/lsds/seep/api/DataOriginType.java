@@ -8,7 +8,8 @@ public enum DataOriginType {
 	IPC((short)2), // ??
 	RDD((short)3),
 	KAFKA((short)4),
-	HDFS((short)5);
+	HDFS((short)5), 
+	CONSOLE((short)6);
 	
 	private short type;
 	

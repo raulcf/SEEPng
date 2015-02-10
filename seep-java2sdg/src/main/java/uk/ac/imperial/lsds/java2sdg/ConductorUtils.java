@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -23,6 +24,16 @@ public class ConductorUtils {
 			ce.printStackTrace();
 		}
 		return cu;
+	}
+
+	public File getFile(String inputFilePath) {
+		return new File(inputFilePath);
+	}
+
+	public String getClassName(File inputFile) {
+		String inputFileName = inputFile.getName();
+		String className = inputFileName.substring(0, inputFileName.indexOf("."));
+		return className;
 	}
 	
 }

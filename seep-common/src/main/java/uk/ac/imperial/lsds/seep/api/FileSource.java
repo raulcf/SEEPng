@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import java.util.Properties;
+
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
@@ -11,6 +13,9 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 	private static LogicalOperator lo;
 	private String path;
 	private SerializerType serde;
+	// FIXME: for compatibility with DataOriginDescriptor. Are they needed?
+	private Schema schema;
+	private Properties properties;
 	
 	private FileSource(int opId, String path, SerializerType serde){
 		this.path = path;
@@ -47,13 +52,15 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 	
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema){
-		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde);
+		// FIXME: schema and properties as null ?
+		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde, null, null);
 		lo.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dO);
 	}
 
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
-		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde);
+		// FIXME: schema and properties as null ?
+		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde, null, null);
 		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);
 	}
 
@@ -71,6 +78,16 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 		public void processDataGroup(ITuple dataBatch, API api) {		}
 		@Override
 		public void close() {		}
+	}
+
+	@Override
+	public Schema getSchema() {
+		return schema;
+	}
+
+	@Override
+	public Properties getProperties() {
+		return properties;
 	}
 
 }
