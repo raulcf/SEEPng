@@ -40,3 +40,4 @@ examples/simple-pipeline-stateless-barrier-query/.settings/*
 examples/simple-pipeline-stateless-barrier-query/build/*
 deploy/
 dist/
+install/

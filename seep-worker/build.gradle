@@ -1,3 +1,6 @@
+apply plugin: 'application'
+mainClassName = 'uk.ac.imperial.lsds.seepworker.Main'
+
 dependencies {
 	compile project(':seep-common')
 	compile 'com.codahale.metrics:metrics-core:3.0.1'
@@ -9,7 +12,7 @@ dependencies {
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.1.4'
 }
 
-task fatJar(type: Jar){
+task distStandaloneJar(type: Jar){
 	description "Builds and creates one Fat Jar that includes all \
 dependencies"
         from { 
@@ -27,3 +30,8 @@ dependencies"
 		attributes 'Main-Class': 'uk.ac.imperial.lsds.seepworker.Main'
 	}
 }
+
+// Configure the output directory of the installApp task of application plugin
+def customDestinationDir = 
+installApp.destinationDir = file("$projectDir.parent/install/$project.name") 
+distZip.destinationDir = file("$projectDir.parent/dist/$project.name") 
