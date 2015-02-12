@@ -22,7 +22,7 @@ Worker
 ./install/seep-worker/bin/seep-worker <worker params>
 
 ### Create distro for distribution
-If you want to distribute master and worker to distributed nodes just
+If you want to package the system, for example, for distribution, just:
 
 ./gradlew distZip
 
