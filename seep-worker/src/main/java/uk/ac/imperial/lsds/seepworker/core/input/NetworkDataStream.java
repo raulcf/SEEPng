@@ -7,15 +7,16 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkDataStream implements InputAdapter{
 
 	final private short RETURN_TYPE = InputAdapterReturnType.ONE.ofType();
-	final private boolean REQUIRES_NETWORK = true;
-	final private boolean REQUIRES_FILE = false;
+	final private DataOriginType TYPE = DataOriginType.NETWORK;
 	
 	private InputBuffer buffer;
 	private BlockingQueue<byte[]> queue;
@@ -36,13 +37,8 @@ public class NetworkDataStream implements InputAdapter{
 	}
 	
 	@Override
-	public boolean requiresNetwork() {
-		return REQUIRES_NETWORK;
-	}
-
-	@Override
-	public boolean requiresFile() {
-		return REQUIRES_FILE;
+	public DataOriginType getDataOriginType() {
+		return TYPE;
 	}
 
 	@Override

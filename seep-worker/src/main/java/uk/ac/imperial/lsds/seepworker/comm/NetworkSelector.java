@@ -26,11 +26,12 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class NetworkSelector implements EventAPI {
@@ -66,7 +67,7 @@ public class NetworkSelector implements EventAPI {
 		this.iapMap = iapMap;
 		int expectedUpstream = 0;
 		for(InputAdapter ia : iapMap.values()){
-			if(ia.requiresNetwork()) expectedUpstream++;
+			if(ia.getDataOriginType().equals(DataOriginType.NETWORK)) expectedUpstream++;
 		}
 		this.numUpstreamConnections  = expectedUpstream;
 		LOG.info("Expecting {} upstream connections", numUpstreamConnections);

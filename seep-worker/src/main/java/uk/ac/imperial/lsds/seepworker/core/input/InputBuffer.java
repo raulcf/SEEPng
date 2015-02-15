@@ -8,6 +8,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class InputBuffer {
 	

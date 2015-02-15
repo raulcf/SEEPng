@@ -3,6 +3,7 @@ mainClassName = 'uk.ac.imperial.lsds.seepworker.Main'
 
 dependencies {
 	compile project(':seep-common')
+	compile project(':seep-contrib')
 	compile 'com.codahale.metrics:metrics-core:3.0.1'
 	compile 'com.codahale.metrics:metrics-jvm:3.0.1'
 	compile 'com.outr.javasysmon:javasysmon_2.10:0.3.4'

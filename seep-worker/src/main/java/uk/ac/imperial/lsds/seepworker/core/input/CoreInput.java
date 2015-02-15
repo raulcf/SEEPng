@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataOrigin;
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class CoreInput {
 	
@@ -34,18 +35,11 @@ public class CoreInput {
 		return inputAdapters;
 	}
 	
-	public boolean requiresConfiguringNetworkWorker(){
+	public boolean requiresConfigureSelectorOfType(DataOriginType type){
 		for(InputAdapter ia : inputAdapters){
-			if(ia.requiresNetwork())
+			if(ia.getDataOriginType().equals(type)){
 				return true;
-		}
-		return false;
-	}
-	
-	public boolean requiresConfiguringFileWorker(){
-		for(InputAdapter ia : inputAdapters){
-			if(ia.requiresFile())
-				return true;
+			}
 		}
 		return false;
 	}
