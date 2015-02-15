@@ -16,6 +16,8 @@ subprojects {
 		compile 'ch.qos.logback:logback-classic:1.0.13'
 		compile 'net.sf.jopt-simple:jopt-simple:4.8'
 		compile 'com.esotericsoftware:kryo:3.0.0'
+
+		testCompile 'junit:junit:4.11'
 	}
 }
 
