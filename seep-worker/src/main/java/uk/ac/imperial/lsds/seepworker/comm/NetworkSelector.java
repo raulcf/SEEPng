@@ -310,7 +310,7 @@ public class NetworkSelector implements EventAPI {
 								InputAdapter ia = (InputAdapter)key.attachment();
 								SocketChannel channel = (SocketChannel) key.channel();
 								int id = readerKeys.get(key);
-								ia.readFrom(channel, id);
+								ia._readFrom(channel, id);
 							}
 						}
 						if(! key.isValid()){

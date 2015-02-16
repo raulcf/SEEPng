@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepworker.core.input;
+package uk.ac.imperial.lsds.seep.integration.performance.microbenchmarks;
 
 import static org.junit.Assert.*;
 
