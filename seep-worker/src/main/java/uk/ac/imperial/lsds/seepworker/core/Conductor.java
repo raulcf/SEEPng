@@ -25,6 +25,7 @@ import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
+import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class Conductor {
 
@@ -85,7 +86,10 @@ public class Conductor {
 		
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
+<<<<<<< HEAD
 		// Get KafkaConfig from 
+=======
+>>>>>>> Kafka Integration
 		this.ks = maybeConfigureKafkaSelector();
 		
 		coreOutput.setEventAPI(ns);
@@ -145,10 +149,17 @@ public class Conductor {
 	private KafkaSelector maybeConfigureKafkaSelector(){
 		KafkaSelector ks = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
-			// TODO: implement
+			// TODO: move this were apropiate
+			String kafkaServer = "localhost:9092";
+			String zookeeperServer = "localhost:2181";
+			String consumerTopic = "seep";
+			LOG.info("Configuring kafkaSelector for input");
+			ks = new KafkaSelector(wc.getInt(WorkerConfig.NUM_NETWORK_READER_THREADS), consumerTopic, kafkaServer, zookeeperServer);
+			ks.configureAccept(coreInput.getInputAdapterProvider());
+			
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
-			// TODO: implement
+			throw new NotImplementedException("not implemented yet...");
 		}
 		return ks;
 	}

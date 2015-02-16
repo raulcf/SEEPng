@@ -1,3 +1,6 @@
+import uk.ac.imperial.lsds.seep.api.ConnectionType;
+import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
@@ -18,8 +21,8 @@ public class Base implements QueryComposer {
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		
-		src.connectTo(processor, 0, schema);
-		processor.connectTo(snk, 0, schema);
+		src.connectTo(processor, 0, schema, new DataOrigin(DataOriginType.KAFKA, null, null));
+		processor.connectTo(snk, 0, schema, new DataOrigin(DataOriginType.KAFKA, null, null));
 		
 		System.out.println("###### Build query finished");
 		return queryAPI.build();
