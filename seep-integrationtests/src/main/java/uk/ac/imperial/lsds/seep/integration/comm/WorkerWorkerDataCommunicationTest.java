@@ -23,14 +23,25 @@ import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class WorkerWorkerDataCommunicationTest {
 
-	public static void main(String args[]) {
+	public static void main(String args[]){
+		WorkerWorkerDataCommunicationTest wwdct = new WorkerWorkerDataCommunicationTest();
+		
+		Schema intLong = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+		Schema string3 = SchemaBuilder.getInstance().newField(Type.STRING, "sentence")
+				.newField(Type.STRING, "word").newField(Type.STRING,  "pos").build();
+		
+		
+		wwdct.execute(string3);
+	}
+	
+	public void execute(Schema s) {
 		WorkerWorkerDataCommunicationTest wwdct = new WorkerWorkerDataCommunicationTest();
 		
 		// Create inputAdapter map that is used to configure networkselector
 		//int clientId = 100;
 		int opId = 99;
 		int streamId = 100;
-		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+//		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 		Map<Integer, InputAdapter> iapMap = null;
 		iapMap = new HashMap<>();
 		Properties p = new Properties();
@@ -75,7 +86,7 @@ public class WorkerWorkerDataCommunicationTest {
 		
 		/** Continuous sending **/
 		int interWriteTime = -1;
-		Writer w = wwdct.new Writer(streamId, ob, ds, interWriteTime);
+		Writer w = wwdct.new Writer(streamId, ob, ds, interWriteTime, s);
 		Thread writer = new Thread(w);
 		writer.setName("ImTheWriter");
 		
@@ -103,23 +114,27 @@ public class WorkerWorkerDataCommunicationTest {
 		OutputBuffer ob;
 		NetworkSelector ds;
 		int sleep;
+		Schema s;
 		
-		public Writer(int clientId, OutputBuffer ob, NetworkSelector ds, int sleep){
+		public Writer(int clientId, OutputBuffer ob, NetworkSelector ds, int sleep, Schema s){
 			this.clientId = clientId;
 			this.ob = ob;
 			this.ds = ds;
 			this.sleep = sleep;
+			this.s = s;
 		}
 		
 		@Override
 		public void run() {
-			Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+			//Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 			int userId = 0;
 			long ts = System.currentTimeMillis();
 			while(true){
 				ts = System.currentTimeMillis();
 				userId++;
-				byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{userId, ts});
+				//byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{userId, ts});
+				byte[] serializedData = OTuple.create(s, new String[]{"sentence", "word", "pos"}, 
+						new Object[]{"This is an example sentence used to make a point about a buggy system", "system", "UNR"});
 				boolean complete = ob.write(serializedData);
 				if(complete){
 					ds.readyForWrite(ob.id());
