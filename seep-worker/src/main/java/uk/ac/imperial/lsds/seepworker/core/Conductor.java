@@ -85,7 +85,8 @@ public class Conductor {
 		
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
-		this.ks = maybeConfigureKafkaSelector(); // TODO: just create
+		// Get KafkaConfig from 
+		this.ks = maybeConfigureKafkaSelector();
 		
 		coreOutput.setEventAPI(ns);
 		

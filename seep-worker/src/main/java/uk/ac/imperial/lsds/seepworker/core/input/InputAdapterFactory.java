@@ -79,7 +79,7 @@ public class InputAdapterFactory {
 			LOG.info("Creating KAFKA inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.ONE_AT_A_TIME.withName());
 			for(UpstreamConnection uc : upc){
 				int opId = uc.getUpstreamOperator().getOperatorId();
-				// FIXME: get required configs from workerconfig and pass to the constructor as necessary
+				// FIXME: get worker configs from WorkerConfig and KAFKA-specific configs from (KafkaConfig)uc.getDataOrigin().getConfig()
 				InputAdapter ia = new KafkaDataStream(opId, streamId, expectedSchema);
 				ias.add(ia);
 			}
