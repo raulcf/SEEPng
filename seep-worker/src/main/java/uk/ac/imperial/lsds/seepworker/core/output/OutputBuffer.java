@@ -83,7 +83,7 @@ public class OutputBuffer {
 			if(writtenBytes == totalBytesToWrite){
 				// prepare buffer to be filled again
 				tuplesInBatch = 0;
-				currentBatchSize = TupleInfo.PER_BATCH_OVERHEAD_SIZE;
+				currentBatchSize = 0; //TupleInfo.PER_BATCH_OVERHEAD_SIZE;
 				buf.clear();
 				buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 				completed = false;

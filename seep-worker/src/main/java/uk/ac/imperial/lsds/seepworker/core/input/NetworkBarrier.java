@@ -138,5 +138,4 @@ public class NetworkBarrier implements InputAdapter {
 		// TODO non-defined
 		return null;
 	}
-
 }

@@ -1,23 +1,21 @@
-package uk.ac.imperial.lsds.seepworker.comm;
+package uk.ac.imperial.lsds.seep.integration.performance.microbenchmarks;
 
 import java.nio.ByteBuffer;
 
-import org.junit.Test;
-
 public class ProducerConsumerTest {
 	
-//	@Test
-//	public void test(){
-//	
-//		Buffer b = new Buffer(6);
-//		Thread p = new Thread(new Producer(b));
-//		Thread c = new Thread(new Consumer(b));
-//		
-//		c.start();
-//		p.start();
-//		
-//		while(true);
-//	}
+
+	public static void main(String args[]){
+	
+		Buffer b = new Buffer(6);
+		Thread p = new Thread(new Producer(b));
+		Thread c = new Thread(new Consumer(b));
+		
+		c.start();
+		p.start();
+		
+		while(true);
+	}
 	
 }
 
