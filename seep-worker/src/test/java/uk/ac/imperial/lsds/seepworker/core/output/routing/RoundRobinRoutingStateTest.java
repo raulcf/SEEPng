@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seepworker.core.output.routing;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,10 +9,8 @@ import java.util.Properties;
 import org.junit.Test;
 
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepQueryPhysicalOperator;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class RoundRobinRoutingStateTest {
 
@@ -34,7 +30,8 @@ public class RoundRobinRoutingStateTest {
 		for(int i = 0; i < 3; i++){
 			DownstreamConnection con = new DownstreamConnection(null, i, null, null, null);
 			cons.add(con);
-			obufs.put(i, new OutputBuffer(fake, i, null, 0));
+			int batch_size = fake.getInt(WorkerConfig.BATCH_SIZE);
+			obufs.put(i, new OutputBuffer(i, null, 0, batch_size));
 		}
 		Router r = RouterFactory.buildRouterFor(cons, false);
 		

@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
-import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 
 

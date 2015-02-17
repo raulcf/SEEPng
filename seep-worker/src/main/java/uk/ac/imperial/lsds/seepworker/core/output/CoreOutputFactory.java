@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class CoreOutputFactory {
@@ -49,6 +50,11 @@ public class CoreOutputFactory {
 				// Create outputAdapter
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "NETWORK");
 				oa = OutputAdapterFactory.buildOutputAdapterOfTypeNetworkForOps(wc, streamId, doCon, query);
+			}
+			else if(dOriginType == DataOriginType.KAFKA){
+				// Create outputAdapter to send data to Kafka, and *not* to the downstream operator
+				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");
+				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(wc, streamId, doCon, query);
 			}
 			outputAdapters.add(oa);
 		}

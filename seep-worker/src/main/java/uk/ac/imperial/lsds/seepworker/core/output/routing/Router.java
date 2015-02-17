@@ -2,7 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core.output.routing;
 
 import java.util.Map;
 
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 
 public interface Router {
 

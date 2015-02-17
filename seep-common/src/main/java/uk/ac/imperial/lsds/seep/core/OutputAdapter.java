@@ -1,10 +1,9 @@
-package uk.ac.imperial.lsds.seepworker.core.output;
+package uk.ac.imperial.lsds.seep.core;
 
 import java.util.Map;
 
 import uk.ac.imperial.lsds.seep.api.CommAPI;
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
-import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
 
 public interface OutputAdapter extends CommAPI{
 	

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.zip.CRC32;
 
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 
 
 public class ConsistentHashingRoutingState implements Router {

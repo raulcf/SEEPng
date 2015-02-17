@@ -15,11 +15,11 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.NetworkDataStream;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class WorkerWorkerDataCommunicationTest {
 
@@ -69,7 +69,8 @@ public class WorkerWorkerDataCommunicationTest {
 		
 		// create outputbuffer for the client
 		Connection c = new Connection(new EndPoint(streamId, myIp, listeningPort, dataPort));
-		OutputBuffer ob = new OutputBuffer(fake, opId, c, streamId);
+		int batch_size = fake.getInt(WorkerConfig.BATCH_SIZE);
+		OutputBuffer ob = new OutputBuffer(opId, c, streamId, batch_size);
 		Set<OutputBuffer> obs = new HashSet<>();
 		obs.add(ob);
 		ds.configureConnect(obs);

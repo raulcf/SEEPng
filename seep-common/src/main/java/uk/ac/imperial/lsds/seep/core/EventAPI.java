@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepworker.comm;
+package uk.ac.imperial.lsds.seep.core;
 
 import java.util.List;
 

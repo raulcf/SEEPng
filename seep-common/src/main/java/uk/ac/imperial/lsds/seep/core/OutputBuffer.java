@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepworker.core.output;
+package uk.ac.imperial.lsds.seep.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -6,7 +6,6 @@ import java.nio.channels.SocketChannel;
 
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class OutputBuffer {
 	
@@ -19,11 +18,11 @@ public class OutputBuffer {
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
 		
-	public OutputBuffer(WorkerConfig wc, int opId, Connection c, int streamId){
+	public OutputBuffer(int opId, Connection c, int streamId, int batch_size){
 		this.opId = opId;
 		this.c = c;
 		this.streamId = streamId;
-		buf = ByteBuffer.allocate(wc.getInt(WorkerConfig.BATCH_SIZE));
+		buf = ByteBuffer.allocate(batch_size);
 		buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	}
 	
