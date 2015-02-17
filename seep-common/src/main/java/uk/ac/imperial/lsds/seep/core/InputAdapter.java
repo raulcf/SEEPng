@@ -15,7 +15,6 @@ public interface InputAdapter {
 	public DataOriginType getDataOriginType();
 	
 	public void readFrom(ReadableByteChannel channel, int id);
-	public boolean _readFrom(ReadableByteChannel channel, int id);
 	
 	public void pushData(byte[] data);
 	public void pushData(List<byte[]> data);

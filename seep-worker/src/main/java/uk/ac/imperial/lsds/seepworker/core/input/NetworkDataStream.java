@@ -62,12 +62,6 @@ public class NetworkDataStream implements InputAdapter{
 	}
 	
 	@Override
-	public boolean _readFrom(ReadableByteChannel channel, int id){
-		buffer._readFrom(channel, this);
-		return true;
-	}
-	
-	@Override
 	public void pushData(byte[] data){
 		try {
 			queue.put(data);

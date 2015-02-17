@@ -138,11 +138,4 @@ public class NetworkBarrier implements InputAdapter {
 		// TODO non-defined
 		return null;
 	}
-
-	@Override
-	public boolean _readFrom(ReadableByteChannel channel, int id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }

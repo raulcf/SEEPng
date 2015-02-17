@@ -13,6 +13,10 @@ import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class InputBuffer {
 	
+	private ByteBuffer header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
+	private ByteBuffer payload = null;
+	int nTuples = 0;
+	
 	private ByteBuffer buffer;
 	// Used only for barrier, smells like refactoring...
 	private Deque<byte[]> completedReads;
@@ -100,134 +104,27 @@ public class InputBuffer {
 		return false;
 	}
 	
-	/**
-	 * Safer, probably higher-overhead method.
-	 * START
-	 */
-	
-	
-	private ByteBuffer _header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
-	private ByteBuffer _payload = null;
-	int nTuples = 0;
-	
-	public void _readFrom(ReadableByteChannel channel, InputAdapter ia){
-		if(_header.remaining() > 0){
-			this.read(channel, _header);
+	public void readFrom(ReadableByteChannel channel, InputAdapter ia) {
+		if(header.remaining() > 0){
+			int reads = this.read(channel, header);
 		}
-		if(_payload == null && !_header.hasRemaining()){
-			_header.flip();
-			byte control = _header.get();
-			nTuples = _header.getInt();
-			int payloadSize = _header.getInt(); // payload size
-			_payload = ByteBuffer.allocate(payloadSize);
+		if(payload == null && !header.hasRemaining()){
+			header.flip();
+			byte control = header.get();
+			nTuples = header.getInt();
+			int payloadSize = header.getInt(); // payload size
+			payload = ByteBuffer.allocate(payloadSize);
 		}
 		
-		if(_payload != null){
-			this.read(channel, _payload);
-			if(!_payload.hasRemaining()){
-				System.out.println("buf.size: "+_payload.capacity()+" ntuples: "+nTuples);
-				this.forwardTuples(_payload, nTuples, ia);
-				_payload = null;
-				_header.clear();
+		if(payload != null){
+			this.read(channel, payload);
+			if(!payload.hasRemaining()){
+				this.forwardTuples(payload, nTuples, ia);
+				payload = null;
+				header.clear();
 				nTuples = 0;
 			}
 		}
-	}
-	
-	private void read(ReadableByteChannel src, ByteBuffer dst){
-		try {
-			src.read(dst);
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private boolean headerComplete = false;
-	private ByteBuffer header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
-	private int numTuples = 0;
-	private ByteBuffer content;
-	
-	public boolean __readFrom(ReadableByteChannel channel, InputAdapter ia) {
-		boolean moreToRead = true;
-		int readBytes = 0;
-		
-		
-		// Make no progress if header is not complete
-		if(!headerComplete) {
-			try {
-				channel.read(header);
-				if(header.remaining() == 0){
-					headerComplete = true;
-				}
-				else{
-					System.out.println("more data to fill header");
-					return moreToRead;
-				}
-			}
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		// Check for incomplete reads
-		if(content != null){
-			int fake = 9;
-			fake++;
-			try {
-				readBytes = channel.read(content);
-				if(readBytes < 0) System.out.println("ERROR HERE");
-				if(content.remaining() == 0){
-					moreToRead = false;
-					header.clear();
-					forwardTuples(content, numTuples, ia);
-					content = null;
-					headerComplete = false;
-					return moreToRead;
-				}
-				else{
-					return moreToRead; // still more to read
-				}
-			} 
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		// New read
-		
-		// Read payload
-		header.flip();
-		byte control = header.get();
-		numTuples = header.getInt();
-		int size = header.getInt(); // payload size
-		System.out.println("SIze: "+size);
-		content = ByteBuffer.allocate(size); // allocate a new buffer
-		readBytes = 0;
-		try{
-			readBytes = channel.read(content);
-			if(readBytes == size) {
-				moreToRead = false; // complete read
-				header.clear();
-				// Get tuples and forward
-				forwardTuples(content, numTuples, ia);
-				numTuples = 0;
-				content = null;
-				headerComplete = false;
-				return moreToRead;
-			}
-			else {
-				System.out.println("Read-bytes: "+readBytes+" size: "+size);
-				return moreToRead;
-			}
-		}
-		catch(IOException io){
-			// TODO: implement
-		}
-		
-		return moreToRead;
 	}
 	
 	private void forwardTuples(ByteBuffer buf, int numTuples, InputAdapter ia) {
@@ -240,11 +137,19 @@ public class InputBuffer {
 		}
 		buf.clear();
 	}
-	// #######
-	// END
-	// #######
+
+	private int read(ReadableByteChannel src, ByteBuffer dst){
+		try {
+			return src.read(dst);
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
 	
-	public boolean readFrom(ReadableByteChannel channel, InputAdapter ia){
+	@Deprecated
+	public boolean _readFrom(ReadableByteChannel channel, InputAdapter ia){
 		boolean dataRemainingInBuffer = true;
 		int readBytes = 0;
 		try {

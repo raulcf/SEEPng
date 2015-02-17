@@ -68,10 +68,4 @@ public class KafkaDataStream implements InputAdapter {
 		return null;
 	}
 
-	@Override
-	public boolean _readFrom(ReadableByteChannel channel, int id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }

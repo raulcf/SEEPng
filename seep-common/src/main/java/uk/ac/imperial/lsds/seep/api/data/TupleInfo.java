@@ -6,7 +6,7 @@ public class TupleInfo {
 	public static final int CONTROL_OFFSET = 0;
 	public static final int NUM_TUPLES_BATCH_OVERHEAD = 4;
 	public static final int NUM_TUPLES_BATCH_OFFSET = CONTROL_OVERHEAD;
-	public static final int BATCH_SIZE_OVERHEAD = 4; // Batch size is the size of the payload
+	public static final int BATCH_SIZE_OVERHEAD = 4; // Batch size is the size of the payload *only*
 	public static final int BATCH_SIZE_OFFSET = NUM_TUPLES_BATCH_OFFSET + NUM_TUPLES_BATCH_OVERHEAD;
 	
 	public static final int TUPLE_SIZE_OVERHEAD = 4;
