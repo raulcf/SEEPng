@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
+import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
@@ -35,6 +36,7 @@ public class Conductor {
 	private InetAddress myIp;
 	private NetworkSelector ns;
 	private FileSelector fs;
+	private KafkaSelector ks;
 	
 	private PhysicalOperator o;
 	private CoreInput coreInput;
@@ -58,6 +60,7 @@ public class Conductor {
 		LOG.info("Starting processing engine...");
 		if(ns != null) ns.startNetworkSelector();
 		if(fs != null) fs.startFileSelector();
+		if(ks != null) ks.startKafkaSelector();
 		engine.start();
 	}
 	
@@ -82,6 +85,7 @@ public class Conductor {
 		
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
+		this.ks = maybeConfigureKafkaSelector(); // TODO: just create
 		
 		coreOutput.setEventAPI(ns);
 		
@@ -100,12 +104,14 @@ public class Conductor {
 	
 	private NetworkSelector maybeConfigureNetworkSelector(){
 		NetworkSelector ns = null;
-		if(coreInput.requiresConfiguringNetworkWorker()){
+//		if(coreInput.requiresConfiguringNetworkWorker()){
+		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
-		if(coreOutput.requiresConfiguringNetworkWorker()){
+//		if(coreOutput.requiresConfiguringNetworkWorker()){
+		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
 			LOG.info("Configuring networkSelector for output");
 			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
@@ -116,7 +122,8 @@ public class Conductor {
 	
 	private FileSelector maybeConfigureFileSelector(){
 		FileSelector fs = null;
-		if(coreInput.requiresConfiguringFileWorker()){
+//		if(coreInput.requiresConfiguringFileWorker()){
+		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
 			fs = new FileSelector(wc);
 			Map<Integer, DataOrigin> fileOrigins = new HashMap<>();
 			for(UpstreamConnection uc : o.upstreamConnections()){
@@ -127,10 +134,22 @@ public class Conductor {
 			}
 			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
 		}
-		if(coreOutput.requiresConfiguringFileWorker()){
+//		if(coreOutput.requiresConfiguringFileWorker()){
+		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
 			throw new NotImplementedException("not implemented yet...");
 		}
 		return fs;
+	}
+	
+	private KafkaSelector maybeConfigureKafkaSelector(){
+		KafkaSelector ks = null;
+		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
+			// TODO: implement
+		}
+		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
+			// TODO: implement
+		}
+		return ks;
 	}
 	
 	public void plugSeepTask(SeepTask task){

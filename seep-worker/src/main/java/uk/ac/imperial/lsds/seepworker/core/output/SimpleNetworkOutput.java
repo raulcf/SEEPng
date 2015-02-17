@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 
@@ -12,8 +13,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 
 	private final boolean SINGLE_SEND_NOT_DEFINED;
 	
-	final private boolean requiresNetworkWorker = true;
-	final private boolean requiresFileWorker = false;
+	final private DataOriginType TYPE = DataOriginType.NETWORK;
 	
 	private int streamId;
 	private Router router;
@@ -40,13 +40,8 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	}
 	
 	@Override
-	public boolean requiresNetwork() {
-		return requiresNetworkWorker;
-	}
-	
-	@Override
-	public boolean requiresFile() {
-		return requiresFileWorker;
+	public DataOriginType getDataOriginType() {
+		return TYPE;
 	}
 	
 	@Override

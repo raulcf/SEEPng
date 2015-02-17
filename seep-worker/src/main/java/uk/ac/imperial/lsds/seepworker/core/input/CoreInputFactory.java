@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class CoreInputFactory {
@@ -59,6 +60,9 @@ public class CoreInputFactory {
 			} 
 			else if(dOriginType.equals(DataOriginType.FILE)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeFileForOps(wc, streamId, upCon);
+			}
+			else if(dOriginType.equals(DataOriginType.KAFKA)){
+				ias = InputAdapterFactory.buildInputAdapterOfTypeKafkaForOps(wc, streamId, upCon);
 			}
 			if(ias != null){
 				inputAdapters.addAll(ias);

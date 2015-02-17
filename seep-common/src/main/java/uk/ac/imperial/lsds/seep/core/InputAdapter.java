@@ -1,10 +1,10 @@
-package uk.ac.imperial.lsds.seepworker.core.input;
+package uk.ac.imperial.lsds.seep.core;
 
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
+import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
-
 
 public interface InputAdapter {
 
@@ -12,8 +12,7 @@ public interface InputAdapter {
 	public int getStreamId();
 	public short returnType();
 	
-	public boolean requiresNetwork();
-	public boolean requiresFile();
+	public DataOriginType getDataOriginType();
 	
 	public void readFrom(ReadableByteChannel channel, int id);
 	
