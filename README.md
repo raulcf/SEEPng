@@ -28,5 +28,17 @@ If you want to package the system, for example, for distribution, just:
 
 Then find the distribution in zip files in dist/
 
+### Create fat, standalone Jars with all dependencies
+If you want to package all dependencies within jar, for standalone deployment
+and execution do:
+
+./gradlew distStandaloneJar
+
+If you want later to copy those standalone jars to a standaloneDist directory in
+the root do:
+
+./gradlew standaloneDist
+
 ### Clean repo
 ./gradlew clean
+
