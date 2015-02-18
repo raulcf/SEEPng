@@ -17,7 +17,7 @@ public class OutputBuffer {
 	private boolean completed;
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
-		
+
 	public OutputBuffer(int opId, Connection c, int streamId, int batch_size){
 		this.opId = opId;
 		this.c = c;

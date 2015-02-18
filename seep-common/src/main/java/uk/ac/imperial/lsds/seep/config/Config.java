@@ -43,7 +43,8 @@ public class Config {
     protected Object get(String key) {
         if (!values.containsKey(key))
             throw new ConfigException(String.format("Unknown configuration '%s'", key));
-        used.add(key);
+        // TODO: Remove null pointer exception 
+        //used.add(key);
         return values.get(key);
     }
 

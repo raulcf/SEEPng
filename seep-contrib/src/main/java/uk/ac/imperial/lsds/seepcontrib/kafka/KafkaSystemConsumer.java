@@ -25,8 +25,9 @@ public class KafkaSystemConsumer {
 	
 	public KafkaSystemConsumer(String zookeeperServer, String consumerId, SeepTask seepTask, Schema schema) {
 		Properties props = new Properties();
+		// TODO: put thease were apropiate
 		props.put("zookeeper.connect", zookeeperServer);
-		props.put("group.id", consumerId);
+		props.put("group.id", 0);
 		
 		this.seepTask = seepTask;
 		this.schema = schema;

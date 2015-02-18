@@ -4,10 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.apache.kafka.clients.producer.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,44 +20,45 @@ public class KafkaSelector {
 	final private static Logger LOG = LoggerFactory.getLogger(KafkaSelector.class);
 	
 	private final ConsumerConnector consumer;
-	private final String consumerTopic;
 	private Reader[] readers;
-	private Writer writer;
 	
 	private int numReaderWorkers;
 	private Thread[] readerWorkers;
-	private Thread writerWorker;
 	
 	private Map<Integer, InputAdapter> dataAdapters;
 	
-	public KafkaSelector(int numReaderWorkers, String consumerTopic, String kafkaServer, String zookeeperServer) {
+	public KafkaSelector(String baseTopic, String zookeeperServer, String groupId, Map<Integer, InputAdapter> dataAdapters) {
 		Properties consumerProps = new Properties();
 		consumerProps.put("zookeeper.connect", zookeeperServer);
-		consumerProps.put("group.id", 0);
-		
+		consumerProps.put("group.id", groupId);
+		consumerProps.put("client.id", groupId);
+				
 		this.consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProps));
-		this.consumerTopic = consumerTopic;
 		
-		this.numReaderWorkers = numReaderWorkers;
+		this.dataAdapters = dataAdapters;
+		numReaderWorkers = dataAdapters.size();
 		readers = new Reader[numReaderWorkers];
 		readerWorkers = new Thread[numReaderWorkers];
 		
 		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-     	topicCountMap.put(consumerTopic, new Integer(numReaderWorkers));
+     	for (InputAdapter input : dataAdapters.values()) {
+     		// Use one consumer thread per stream
+     		topicCountMap.put(baseTopic + String.valueOf(input.getStreamId()), new Integer(1));
+     	}
         Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
-        List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(consumerTopic);
- 
-        // Create pool of reader thread
+        
+        // Create pool of reader thread to serve each topic
         int threadNumber = 0;
-        for (final KafkaStream<byte[], byte[]> stream : streams) {
-            readers[threadNumber] = new Reader(stream);
-            Thread reader = new Thread(readers[threadNumber]);
-            reader.setName("Kafka-Reader-"+threadNumber);
-        	readerWorkers[threadNumber] = reader;
+        for (Map.Entry<Integer, InputAdapter> entry : dataAdapters.entrySet()) {
+        	String topic = baseTopic + String.valueOf(entry.getValue().getStreamId());
+        	List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
+ 
+        	readers[threadNumber] = new Reader(streams.get(0), entry.getKey());
+    		Thread reader = new Thread(readers[threadNumber]);
+    		reader.setName("Kafka-Reader-"+threadNumber);
+    		readerWorkers[threadNumber] = reader;
+    		threadNumber = threadNumber + 1;
         }
-		
-		writer = new Writer();
-		writerWorker = new Thread();
 	}
 	
 	public void startKafkaSelector() {
@@ -69,20 +67,17 @@ public class KafkaSelector {
 			LOG.info("Starting reader: {}", r.getName());
 			r.start();
 		}
-		// TODO Start writer
 	}
 
-	public void configureAccept(Map<Integer, InputAdapter> dataAdapters){
-		this.dataAdapters = dataAdapters;
-	}
-	
 	class Reader implements Runnable {
 		
 		private final KafkaStream<byte[], byte[]> stream;
+		private final int opId;
 		private boolean working;
 		
-		public Reader(KafkaStream<byte[], byte[]> stream) {
+		public Reader(KafkaStream<byte[], byte[]> stream, int opId) {
 			this.stream = stream;
+			this.opId = opId;
 		}
 		
 		public void stop() {
@@ -95,23 +90,10 @@ public class KafkaSelector {
 	        while (it.hasNext()) {
 	        	byte[] data = it.next().message();
 
-	        	// TODO something with data
-	        	System.out.println("[" + Thread.currentThread().getName() + "] got message: " + data);
-	        	
 	        	// TODO check mapping between dataAdapters and what?
-	        	InputAdapter ia = dataAdapters.get(stream.clientId());
+	        	InputAdapter ia = dataAdapters.get(opId);
 	        	ia.pushData(data);
 	        }
-		}
-		
-	}
-	
-	class Writer implements Runnable {
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			
 		}
 		
 	}
