@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepworker.comm;
+package uk.ac.imperial.lsds.seep.integration.comm;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -8,25 +8,24 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.junit.Test;
-
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapter;
+import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.NetworkDataStream;
 import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 
 public class BasicWorkerWorkerCommunicationTest {
 
-	@Test
-	public void testSendTuples() {
+
+	public static void main(String args[]) {
 		// Create inputAdapter map that is used to configure networkselector
 		int opId = 99;
 		int clientId = 100;
@@ -117,10 +116,6 @@ public class BasicWorkerWorkerCommunicationTest {
 				e.printStackTrace();
 			}
 		}
-		
-	}
-	
-	public void basicSocketCommTest(){
 		
 	}
 

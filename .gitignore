@@ -1,16 +1,6 @@
-build/*
-dist/*
-old/*
-target/*
-scripts/*
-log.out
-examples/*/lib/*.jar
-.settings/*
-*/.settings/*
-*/.settings/
 .project
 .classpath
-.codepro
+*/.settings
 .gradle
 query.jar
 examples/stateless-simple-query/bin/*
@@ -20,11 +10,10 @@ seep-common/build/*
 seep-master/build/*
 seep-worker/build/*
 seep-java2sdg/build/*
+seep-contrib/build/*
 seep-java2sdg/target/seep-java2sdg-0.0.1-SNAPSHOT.jar
 seep-java2sdg/target/
-seep-contribs/target/
-seep-streamsql/target/
-seep-java2sdg/showGraph.sh
+seep-contrib/target/
 .DS_Store
 /bin/
 /build
@@ -50,3 +39,5 @@ examples/simple-pipeline-stateless-barrier-query/.gitignore
 examples/simple-pipeline-stateless-barrier-query/.settings/*
 examples/simple-pipeline-stateless-barrier-query/build/*
 deploy/
+dist/
+install/

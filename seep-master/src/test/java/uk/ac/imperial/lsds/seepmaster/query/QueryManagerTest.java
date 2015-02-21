@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 
 import org.junit.Test;
 
-import uk.ac.imperial.lsds.seep.api.BaseTest;
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
