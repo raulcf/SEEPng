@@ -1,9 +1,8 @@
 package uk.ac.imperial.lsds.seep.api;
 
-import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.api.sources.SimpleNetworkSource;
 
 public class BaseTest implements QueryComposer {
 
@@ -11,7 +10,6 @@ public class BaseTest implements QueryComposer {
 	public LogicalSeepQuery compose() {
 		// Declare Source
 		LogicalOperator src = queryAPI.newStatelessSource(new Source(), -1);
-		
 		// Declare processor
 		LogicalOperator p = queryAPI.newStatelessOperator(new Processor(), 1);
 		// Declare sink
