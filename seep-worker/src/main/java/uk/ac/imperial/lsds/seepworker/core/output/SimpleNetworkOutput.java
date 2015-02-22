@@ -8,12 +8,6 @@ import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 
-/**
- * FIXME: only send is correct. i.e. retries the send when completed was true. The pattern used there must be applied
- * to the other send implementations
- * @author ra
- *
- */
 
 public class SimpleNetworkOutput implements OutputAdapter {
 
@@ -66,12 +60,9 @@ public class SimpleNetworkOutput implements OutputAdapter {
 		if(SINGLE_SEND_NOT_DEFINED){
 			outB = this.router.route(outputBuffers);
 		}
-		boolean completed = true;
-		while(completed){
-			completed = outB.write(o);
-			if(completed){
-				eAPI.readyForWrite(outB.id());
-			}
+		boolean completed = outB.write(o);
+		if(completed){
+			eAPI.readyForWrite(outB.id());
 		}
 	}
 
