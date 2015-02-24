@@ -1,4 +1,34 @@
+apply from: file("../gradle/dependency-versions.gradle")
+
+configurations {
+  // Remove transitive dependencies from Zookeeper that we don't want.
+  compile.exclude group: 'javax.jms', module: 'jms'
+  compile.exclude group: 'com.sun.jdmk', module: 'jmxtools'
+  compile.exclude group: 'com.sun.jmx', module: 'jmxri'
+}
 
 dependencies {
-	compile project(':seep-common')
+  compile project(':seep-common')
+  compile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion"
+  compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+  testCompile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test"
+}
+
+task fatJar(type: Jar){
+  description "Builds and creates one Fat Jar that includes all \
+  dependencies"
+    from {
+      configurations.compile.collect {
+        it.isDirectory() ? it : zipTree(it)
+      }
+    }
+  {
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+  } 
+  with jar
+  manifest {
+    attributes 'Main-Class': 'uk.ac.imperial.lsds.seepcontrib.Main'
+  }
 }

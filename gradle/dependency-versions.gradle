@@ -1,0 +1,4 @@
+ext {
+  scalaVersion = "2.10"
+  kafkaVersion = "0.8.2-beta"
+}
