@@ -105,7 +105,7 @@ public class OutputBuffer {
 	}
 	
 	private boolean bufferIsFull(int size){
-		return BATCH_SIZE > size + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		return buf.position() > BATCH_SIZE;
 	}
 	
 	private void notifyHere(){
