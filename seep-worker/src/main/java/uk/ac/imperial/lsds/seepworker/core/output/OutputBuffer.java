@@ -10,6 +10,8 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class OutputBuffer {
 	
+	private final int BATCH_SIZE;
+	
 	private int opId;
 	private Connection c;
 	private int streamId;
@@ -23,7 +25,9 @@ public class OutputBuffer {
 		this.opId = opId;
 		this.c = c;
 		this.streamId = streamId;
-		buf = ByteBuffer.allocate(wc.getInt(WorkerConfig.BATCH_SIZE));
+		this.BATCH_SIZE = wc.getInt(WorkerConfig.BATCH_SIZE);
+		int headroomSize = this.BATCH_SIZE * 2;
+		buf = ByteBuffer.allocate(headroomSize);
 		buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	}
 	
@@ -48,14 +52,12 @@ public class OutputBuffer {
 			waitHere(); // block
 		}
 		int tupleSize = data.length;
-		if(enoughSpaceInBuffer(tupleSize)){
-			buf.putInt(tupleSize);
-			buf.put(data);
-			tuplesInBatch++;
-			currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
-			return completed;
-		}
-		else{
+		buf.putInt(tupleSize);
+		buf.put(data);
+		tuplesInBatch++;
+		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		if(bufferIsFull(tupleSize)){
 			int currentPosition = buf.position();
 			int currentLimit = buf.limit();
 			buf.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);
@@ -65,8 +67,8 @@ public class OutputBuffer {
 			buf.limit(currentLimit);
 			buf.flip(); // leave the buffer ready to be read
 			completed = true;
-			return completed;
 		}
+		return completed;
 	}
 	
 	public boolean drain(SocketChannel channel){
@@ -102,8 +104,8 @@ public class OutputBuffer {
 		return fullyWritten;
 	}
 	
-	private boolean enoughSpaceInBuffer(int size){
-		return buf.remaining() > size + TupleInfo.TUPLE_SIZE_OVERHEAD;
+	private boolean bufferIsFull(int size){
+		return BATCH_SIZE > size + TupleInfo.TUPLE_SIZE_OVERHEAD;
 	}
 	
 	private void notifyHere(){
