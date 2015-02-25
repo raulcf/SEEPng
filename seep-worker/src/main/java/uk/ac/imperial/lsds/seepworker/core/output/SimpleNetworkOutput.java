@@ -58,7 +58,8 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	public void send(byte[] o) {
 		OutputBuffer outB = ob;
 		if(SINGLE_SEND_NOT_DEFINED){
-			outB = this.router.route(outputBuffers);
+			int opId = this.router.route();
+			outB = outputBuffers.get(opId);
 		}
 		boolean completed = outB.write(o);
 		if(completed){
@@ -82,7 +83,8 @@ public class SimpleNetworkOutput implements OutputAdapter {
 
 	@Override
 	public void sendKey(byte[] o, int key) {
-		OutputBuffer ob = router.route(outputBuffers, key);
+		int opId = router.route(key);
+		ob = outputBuffers.get(opId);
 		ob.write(o);
 	}
 
