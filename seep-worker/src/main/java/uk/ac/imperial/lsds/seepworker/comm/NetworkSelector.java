@@ -395,6 +395,7 @@ public class NetworkSelector implements EventAPI {
 		
 		// buffer id - outputbuffer
 		private Map<Integer, OutputBuffer> outputBufferMap;
+		private Map<Integer, Boolean> needsConfigureOutputConnection;
 		
 		private Selector writeSelector;
 		
@@ -402,6 +403,7 @@ public class NetworkSelector implements EventAPI {
 			this.id = id;
 			this.working = true;
 			this.outputBufferMap = new HashMap<>();
+			this.needsConfigureOutputConnection = new HashMap<>();
 			this.pendingConnections = new ArrayDeque<OutputBuffer>();
 			try {
 				this.writeSelector = Selector.open();
@@ -427,7 +429,6 @@ public class NetworkSelector implements EventAPI {
 		@Override
 		public void run(){
 			LOG.info("Started Writer worker: {}", Thread.currentThread().getName());
-			boolean needsToSendIdentifier = true;
 			while(working){
 				// First handle potential new connections that have been queued up
 				handleNewConnections();
@@ -458,10 +459,10 @@ public class NetworkSelector implements EventAPI {
 							OutputBuffer ob = (OutputBuffer)key.attachment();
 							SocketChannel channel = (SocketChannel)key.channel();
 							
-							if(needsToSendIdentifier){
+							if(needsConfigureOutputConnection.get(ob.id())){
 								handleSendIdentifier(myId, channel);
 								unsetWritable(key);
-								needsToSendIdentifier = false;
+								needsConfigureOutputConnection.put(ob.id(), false);
 								// Notify of a new configured connection
 								writersConfiguredLatch.countDown();
 								LOG.trace("CountDown to configure all output conns: {}", writersConfiguredLatch.getCount());
@@ -542,6 +543,7 @@ public class NetworkSelector implements EventAPI {
 					SelectionKey key = channel.register(writeSelector, interestSet);
 					key.attach(ob);
 					outputBufferMap.put(ob.id(), ob);
+					needsConfigureOutputConnection.put(ob.id(), true);
 					LOG.info("Configured new output connection with OP: {} at {}", ob.id(), address.toString());
 					// Associate id - key in the networkSelectorMap
 					writerKeys.put(ob.id(), key);

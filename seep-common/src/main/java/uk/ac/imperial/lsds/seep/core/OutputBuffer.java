@@ -3,18 +3,21 @@ package uk.ac.imperial.lsds.seep.core;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 
 public class OutputBuffer {
 	
+	private final int BATCH_SIZE;
+	
 	private int opId;
 	private Connection c;
 	private int streamId;
 	
 	private ByteBuffer buf;
-	private boolean completed;
+	private AtomicBoolean completed = new AtomicBoolean(false);
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
 		
@@ -22,7 +25,9 @@ public class OutputBuffer {
 		this.opId = opId;
 		this.c = c;
 		this.streamId = streamId;
-		buf = ByteBuffer.allocate(batch_size);
+		this.BATCH_SIZE = wc.getInt(WorkerConfig.BATCH_SIZE);
+		int headroomSize = this.BATCH_SIZE * 2;
+		buf = ByteBuffer.allocate(headroomSize);
 		buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	}
 	
@@ -39,22 +44,20 @@ public class OutputBuffer {
 	}
 	
 	public boolean ready(){
-		return completed;
+		return completed.get();
 	}
-	
+
 	public boolean write(byte[] data){
-		if(completed){
+		if(completed.get()){
 			waitHere(); // block
 		}
 		int tupleSize = data.length;
-		if(enoughSpaceInBuffer(tupleSize)){
-			buf.putInt(tupleSize);
-			buf.put(data);
-			tuplesInBatch++;
-			currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
-			return completed;
-		}
-		else{
+		buf.putInt(tupleSize);
+		buf.put(data);
+		tuplesInBatch++;
+		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		if(bufferIsFull()){
 			int currentPosition = buf.position();
 			int currentLimit = buf.limit();
 			buf.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);
@@ -63,14 +66,18 @@ public class OutputBuffer {
 			buf.position(currentPosition);
 			buf.limit(currentLimit);
 			buf.flip(); // leave the buffer ready to be read
-			completed = true;
-			return completed;
+			boolean success = completed.compareAndSet(false, true);
+			if(!success){
+				System.out.println("PROB when writing");
+				System.exit(0);
+			}
 		}
+		return completed.get();
 	}
 	
 	public boolean drain(SocketChannel channel){
 		boolean fullyWritten = false;
-		if(completed){
+		if(completed.get()){
 			int totalBytesToWrite = buf.remaining();
 			int writtenBytes = 0;
 			try {
@@ -85,7 +92,11 @@ public class OutputBuffer {
 				currentBatchSize = 0; //TupleInfo.PER_BATCH_OVERHEAD_SIZE;
 				buf.clear();
 				buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
-				completed = false;
+				boolean success = completed.compareAndSet(true, false);
+				if(!success){
+					System.out.println("PROB WHEN DRAINING");
+					System.exit(0);
+				}
 				notifyHere();
 				return true;
 			}
@@ -93,16 +104,11 @@ public class OutputBuffer {
 				return false;
 			}
 		}
-		else{
-			// FIXME: remove this once tested
-			System.out.println("Race Condition alert");
-			System.exit(0);
-		}
 		return fullyWritten;
 	}
 	
-	private boolean enoughSpaceInBuffer(int size){
-		return buf.remaining() > size + TupleInfo.TUPLE_SIZE_OVERHEAD;
+	private boolean bufferIsFull(){
+		return buf.position() >= BATCH_SIZE;
 	}
 	
 	private void notifyHere(){
@@ -114,7 +120,7 @@ public class OutputBuffer {
 	private void waitHere(){
 		try {
 			synchronized(this){
-				while(completed){
+				while(completed.get()){
 					wait();
 				}
 			}

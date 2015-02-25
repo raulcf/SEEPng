@@ -9,7 +9,8 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 
 public class Source implements SeepTask {
 
-	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
+	private Schema schema1 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
+	private Schema schema2 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 	
 	@Override
 	public void setUp() {
@@ -20,16 +21,15 @@ public class Source implements SeepTask {
 	public void processData(ITuple data, API api) {
 		int userId = 0;
 		long ts = 0;
+		waitHere(2000);
 		while(true){
-			byte[] d = OTuple.create(schema, new String[]{"userId", "ts", "text"}, new Object[]{userId, ts, "some text"});
+//			byte[] d = OTuple.create(schema1, new String[]{"userId", "ts", "text"}, new Object[]{userId, ts, "some text"});
+			byte[] d = OTuple.create(schema2, new String[]{"userId", "ts"}, new Object[]{userId, ts});
 			api.send(d);
 			
 			userId++;
 			ts++;
-			
-			waitHere(1000);
 		}
-
 	}
 	
 	private void waitHere(int time){

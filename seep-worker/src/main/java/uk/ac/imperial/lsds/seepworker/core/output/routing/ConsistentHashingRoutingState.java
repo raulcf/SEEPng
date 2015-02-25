@@ -2,58 +2,43 @@ package uk.ac.imperial.lsds.seepworker.core.output.routing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.CRC32;
-
-import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
-
 
 public class ConsistentHashingRoutingState implements Router {
 
-	private CRC32 crc32;
-	
-	private List<DownstreamConnection> cons;
-	
+	private CRC32 crc32;	
 	// each downstream id
-	private List<Integer> ids;
+	private List<Integer> opIds;
 	// subspace per downstream id
 	private List<Integer> subspaceFrontiers;
 	
-	public ConsistentHashingRoutingState(List<DownstreamConnection> cons){
+	public ConsistentHashingRoutingState(List<Integer> opIds){
 		this.crc32 = new CRC32();
-		this.cons = cons;
-		this.ids = new ArrayList<>();
+		this.opIds = opIds;
 		this.subspaceFrontiers = new ArrayList<>();
-		int numSpaces = cons.size();
-		// split initial space into the number of cons
-		int numSplits = (numSpaces > 1) ? numSpaces - 1 : 1;
+		int numSpaces = opIds.size();
 		// calculate span of each subrange of the space
-		int entireSpace = Integer.MAX_VALUE;
-		
-		int initialSubspaceSize = entireSpace/numSplits;
+		long entireSpace = (long)Integer.MAX_VALUE * 2;
+		long initialSubspaceSize = (numSpaces > 0) ? entireSpace/numSpaces : entireSpace;
 
-		int horizon = Integer.MIN_VALUE;
+		int frontier = Integer.MAX_VALUE;
 		for(int i = 0; i < numSpaces; i++){
-			// get id to which we'll assign this subspace
-			int id = cons.get(i).getDownstreamOperator().getOperatorId();
-			int frontier = horizon + initialSubspaceSize;
-			ids.add(id);
 			subspaceFrontiers.add(frontier);
+			frontier -= initialSubspaceSize;
 		}
 	}
 
 	@Override
-	public OutputBuffer route(Map<Integer, OutputBuffer> obufs, int key) {
+	public int route(int key) {
 		int hashedKey = hashKey(key);
-		for(int i = 0; i<subspaceFrontiers.size(); i++){
+		int subspaceFrontiersSize = subspaceFrontiers.size();
+		for(int i = subspaceFrontiersSize-1; i >= 0; i--){
 			int frontier = subspaceFrontiers.get(i);
-			if(hashedKey < frontier){
-				int id = ids.get(i);
-				return obufs.get(id);
+			if(hashedKey <= frontier){
+				return opIds.get(i);
 			}
 		}
-		return null;
+		return -1;
 	}
 	
 	private int hashKey(int value){
@@ -69,9 +54,9 @@ public class ConsistentHashingRoutingState implements Router {
 	}
 
 	@Override
-	public OutputBuffer route(Map<Integer, OutputBuffer> obufs) {
+	public int route() {
 		// TODO Auto-generated method stub
-		return null;
+		return -1;
 	}
 	
 }

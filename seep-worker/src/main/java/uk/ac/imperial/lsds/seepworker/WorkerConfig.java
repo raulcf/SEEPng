@@ -57,10 +57,11 @@ public class WorkerConfig extends Config {
     public static final String BATCH_SIZE = "batch.size";
     private static final String BATCH_SIZE_DOC = "Recommended maximum batch size in bytes. Note that this is not enforced, the system"
     													+ "will try to achieve this size on a best effort basis";
-    
+    @Deprecated
     public static final String SEND_APP_BUFFER_SIZE = "tx.buffer.size";
     private static final String SEND_APP_BUFFER_SIZE_DOC = "Sets the size for the buffer used to send data";
     
+    @Deprecated
     public static final String RECEIVE_APP_BUFFER_SIZE = "rx.buffer.size";
     private static final String RECEIVE_APP_BUFFER_SIZE_DOC = "Set the receive buffer for the app to receive data";
     

@@ -31,17 +31,15 @@ public class WorkerWorkerDataCommunicationTest {
 				.newField(Type.STRING, "word").newField(Type.STRING,  "pos").build();
 		
 		
-		wwdct.execute(string3);
+		wwdct.execute(intLong);
 	}
 	
 	public void execute(Schema s) {
 		WorkerWorkerDataCommunicationTest wwdct = new WorkerWorkerDataCommunicationTest();
 		
 		// Create inputAdapter map that is used to configure networkselector
-		//int clientId = 100;
 		int opId = 99;
 		int streamId = 100;
-//		Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 		Map<Integer, InputAdapter> iapMap = null;
 		iapMap = new HashMap<>();
 		Properties p = new Properties();
@@ -127,15 +125,14 @@ public class WorkerWorkerDataCommunicationTest {
 		
 		@Override
 		public void run() {
-			//Schema s = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 			int userId = 0;
 			long ts = System.currentTimeMillis();
 			while(true){
 				ts = System.currentTimeMillis();
 				userId++;
-				//byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{userId, ts});
-				byte[] serializedData = OTuple.create(s, new String[]{"sentence", "word", "pos"}, 
-						new Object[]{"This is an example sentence used to make a point about a buggy system", "system", "UNR"});
+				byte[] serializedData = OTuple.create(s, new String[]{"userId", "ts"}, new Object[]{userId, ts});
+				//byte[] serializedData = OTuple.create(s, new String[]{"sentence", "word", "pos"}, 
+				//		new Object[]{"This is an example sentence used to make a point about a buggy system", "system", "UNR"});
 				boolean complete = ob.write(serializedData);
 				if(complete){
 					ds.readyForWrite(ob.id());
@@ -164,7 +161,6 @@ public class WorkerWorkerDataCommunicationTest {
 			while(true){
 				ITuple incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
 				if(incomingTuple != null){
-//					System.out.println(incomingTuple.toString());
 					counter++;
 				}
 				if((System.currentTimeMillis()) - ts > 1000){
