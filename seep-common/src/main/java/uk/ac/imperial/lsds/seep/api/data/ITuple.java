@@ -11,9 +11,8 @@ import java.util.Map.Entry;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 /**
- * Tuple is a class that contains data in a byte[] form and an accompanying schema. Data will be deserialized only when
- * is explicitly needed, which will reduce overhead in many cases. All overhead is then pushed to the application, not part
- * of the system.
+ * Tuple is a class that contains data in a byte[] form and an accompanying schema. Data will be deserialized lazily
+ * which will reduce overhead in many cases. All overhead is then pushed to the application, not part of the system.
  * @author ra
  */
 
