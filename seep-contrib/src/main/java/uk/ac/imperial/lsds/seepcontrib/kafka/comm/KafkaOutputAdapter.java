@@ -6,13 +6,24 @@ import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
+import uk.ac.imperial.lsds.seepcontrib.kafka.KafkaSystemProducer;
 
 public class KafkaOutputAdapter implements OutputAdapter {
 
+	final private DataOriginType TYPE = DataOriginType.KAFKA;
+	final private KafkaSystemProducer producer;
+	
+	private int streamId;
+
+	public KafkaOutputAdapter(String kafkaServer, String producerId, String baseTopic, int streamId) {
+		this.streamId = streamId;
+		producer = new KafkaSystemProducer(kafkaServer, producerId);
+		producer.register(baseTopic + String.valueOf(streamId) );
+	}
+	
 	@Override
 	public void send(byte[] o) {
-		// TODO Auto-generated method stub
-		
+		producer.send("key", o);
 	}
 
 	@Override
@@ -30,7 +41,6 @@ public class KafkaOutputAdapter implements OutputAdapter {
 	@Override
 	public void sendKey(byte[] o, String key) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -71,8 +81,7 @@ public class KafkaOutputAdapter implements OutputAdapter {
 
 	@Override
 	public int getStreamId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return streamId;
 	}
 
 	@Override
@@ -84,13 +93,11 @@ public class KafkaOutputAdapter implements OutputAdapter {
 	@Override
 	public void setEventAPI(EventAPI eAPI) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public DataOriginType getDataOriginType() {
-		// TODO Auto-generated method stub
-		return null;
+		return TYPE;
 	}
 
 }

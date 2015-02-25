@@ -8,12 +8,12 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class CoreOutputFactory {
@@ -53,8 +53,9 @@ public class CoreOutputFactory {
 			}
 			else if(dOriginType == DataOriginType.KAFKA){
 				// Create outputAdapter to send data to Kafka, and *not* to the downstream operator
+				KafkaConfig kc = (KafkaConfig) doCon.get(0).getExpectedDataOriginOfDownstream().getConfig();
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");
-				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(wc, streamId, doCon, query);
+				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(kc, streamId, doCon, query);
 			}
 			outputAdapters.add(oa);
 		}

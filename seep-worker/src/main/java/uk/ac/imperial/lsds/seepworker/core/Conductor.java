@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
+import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
@@ -85,7 +86,6 @@ public class Conductor {
 		
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
-		// Get KafkaConfig from 
 		this.ks = maybeConfigureKafkaSelector();
 		
 		coreOutput.setEventAPI(ns);
@@ -105,13 +105,11 @@ public class Conductor {
 	
 	private NetworkSelector maybeConfigureNetworkSelector(){
 		NetworkSelector ns = null;
-//		if(coreInput.requiresConfiguringNetworkWorker()){
 		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
-//		if(coreOutput.requiresConfiguringNetworkWorker()){
 		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
 			LOG.info("Configuring networkSelector for output");
 			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
@@ -123,7 +121,6 @@ public class Conductor {
 	
 	private FileSelector maybeConfigureFileSelector(){
 		FileSelector fs = null;
-//		if(coreInput.requiresConfiguringFileWorker()){
 		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
 			fs = new FileSelector(wc);
 			Map<Integer, DataOrigin> fileOrigins = new HashMap<>();
@@ -135,7 +132,6 @@ public class Conductor {
 			}
 			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
 		}
-//		if(coreOutput.requiresConfiguringFileWorker()){
 		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
 			throw new NotImplementedException("not implemented yet...");
 		}
@@ -145,10 +141,13 @@ public class Conductor {
 	private KafkaSelector maybeConfigureKafkaSelector(){
 		KafkaSelector ks = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
-			// TODO: implement
+			KafkaConfig kc = (KafkaConfig) o.upstreamConnections().get(0).getDataOrigin().getConfig();
+			LOG.info("Configuring kafkaSelector for input");
+			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
+					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
-			// TODO: implement
+			// Not needed
 		}
 		return ks;
 	}
