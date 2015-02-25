@@ -21,11 +21,11 @@ public class OutputBuffer {
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
 		
-	public OutputBuffer(int opId, Connection c, int streamId, int batch_size){
+	public OutputBuffer(int opId, Connection c, int streamId, int batchSize){
 		this.opId = opId;
 		this.c = c;
 		this.streamId = streamId;
-		this.BATCH_SIZE = wc.getInt(WorkerConfig.BATCH_SIZE);
+		this.BATCH_SIZE = batchSize;
 		int headroomSize = this.BATCH_SIZE * 2;
 		buf = ByteBuffer.allocate(headroomSize);
 		buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
@@ -48,6 +48,7 @@ public class OutputBuffer {
 	}
 
 	public boolean write(byte[] data){
+		
 		if(completed.get()){
 			waitHere(); // block
 		}
