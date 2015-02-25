@@ -92,6 +92,10 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	}
 
 	@Override
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataOrigin dSrc) {
+		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dSrc);
+	}
+	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
 		DataOrigin dO = new DataOrigin(DataOriginType.NETWORK, null, null, null);
 		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);

@@ -53,6 +53,11 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 	}
 
 	@Override
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataOrigin dO){
+		throw new NotSupportedException("Cannot override DataOrigin");
+	}
+
+	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
 		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde, null);
 		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);

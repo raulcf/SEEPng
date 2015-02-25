@@ -11,6 +11,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaOutputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
@@ -38,12 +39,10 @@ public class OutputAdapterFactory {
 		return oa;
 	}
 	
-	public static OutputAdapter buildOutputAdapterOfTypeKafkaForOps(WorkerConfig wc, int streamId, 
+	public static OutputAdapter buildOutputAdapterOfTypeKafkaForOps(KafkaConfig kc, int streamId, 
 			List<DownstreamConnection> cons, PhysicalSeepQuery query){
-		// TODO: Pass necessary parameters to kafkaoutputadapter
-		
-		// FIXME: sketched creation of kafkaoutputadapter, create the real one
-		OutputAdapter oa = new KafkaOutputAdapter();
+		OutputAdapter oa = new KafkaOutputAdapter(kc.getString(KafkaConfig.KAFKA_SERVER), kc.getString(KafkaConfig.BASE_TOPIC),
+				kc.getString(KafkaConfig.PRODUCER_CLIENT_ID), streamId);
 		return oa;
 	}
 
