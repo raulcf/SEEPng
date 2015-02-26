@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seep.infrastructure;
+package uk.ac.imperial.lsds.seep.util;
 import java.net.URL;
 import java.net.URLClassLoader;
 
