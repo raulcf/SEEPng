@@ -6,23 +6,16 @@ import java.util.List;
 
 public class RowBatchITuple implements DataItem {
 
-	private List<byte[]> batch;
-	private Iterator<byte[]> it;
-	private ITuple iTuple;
-	private int streamId;
+	private final List<byte[]> batch;
+	private final Iterator<byte[]> it;
+	private final ITuple iTuple;
+	private final int streamId;
 	
-	public RowBatchITuple(int size, ITuple iTuple, int streamId){
-		batch = new ArrayList<>(size);
-		this.iTuple = iTuple;
-		this.streamId = streamId;
-	}
-	
-	public void add(byte[] data){
-		this.batch.add(data);
-	}
-	
-	public void close(){
+	private RowBatchITuple(RowBatchITupleBuilder builder){
+		batch = new ArrayList<>(builder.batch);
 		it = batch.iterator();
+		this.iTuple = builder.iTuple;
+		this.streamId = builder.streamId;
 	}
 	
 	@Override
@@ -34,6 +27,36 @@ public class RowBatchITuple implements DataItem {
 			return iTuple;
 		}
 		return null;
+	}
+	
+	public static class RowBatchITupleBuilder{
+		
+		private ITuple iTuple;
+		private int streamId;
+		
+		private final int BATCH_SIZE;
+		private List<byte[]> batch;
+		
+		public RowBatchITupleBuilder(int batchSize, ITuple iTuple, int streamId){
+			this.iTuple = iTuple;
+			this.streamId = streamId;
+			this.BATCH_SIZE = batchSize;
+			this.batch = new ArrayList<>(batchSize);
+		}
+		
+		public boolean add(byte[] data) {
+			this.batch.add(data);
+			return (batch.size() == BATCH_SIZE);
+		}
+		
+		public RowBatchITuple build(){
+			return new RowBatchITuple(this);
+		}
+		
+		public void reset(){
+			this.batch.clear();
+		}
+		
 	}
 
 }

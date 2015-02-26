@@ -57,6 +57,9 @@ public class WorkerConfig extends Config {
     public static final String BATCH_SIZE = "batch.size";
     private static final String BATCH_SIZE_DOC = "Recommended maximum batch size in bytes. Note that this is not enforced, the system"
     													+ "will try to achieve this size on a best effort basis";
+    
+    public static final String APP_BATCH_SIZE = "app.batch.size";
+    private static final String APP_BATCH_SIZE_DOC = "The total number of tuples batched at the application level";
     @Deprecated
     public static final String SEND_APP_BUFFER_SIZE = "tx.buffer.size";
     private static final String SEND_APP_BUFFER_SIZE_DOC = "Sets the size for the buffer used to send data";
@@ -79,7 +82,8 @@ public class WorkerConfig extends Config {
 				.define(NUM_NETWORK_WRITER_THREADS, Type.INT, 2, Importance.MEDIUM, NUM_NETWORK_WRITER_THREADS_DOC)
 				.define(MAX_PENDING_NETWORK_CONNECTION_PER_THREAD, Type.INT, 10, Importance.LOW, MAX_PENDING_NETWORK_CONNECTION_PER_THREAD_DOC)
 				.define(SIMPLE_INPUT_QUEUE_LENGTH, Type.INT, 100, Importance.MEDIUM, SIMPLE_INPUT_QUEUE_LENGTH_DOC)
-				.define(BATCH_SIZE, Type.INT, 100, Importance.HIGH, BATCH_SIZE_DOC) // small so one tuple at-at-time
+				.define(BATCH_SIZE, Type.INT, 100, Importance.HIGH, BATCH_SIZE_DOC)
+				.define(APP_BATCH_SIZE, Type.INT, 100, Importance.HIGH, APP_BATCH_SIZE_DOC)
 				.define(SEND_APP_BUFFER_SIZE, Type.INT, 1000, Importance.HIGH, SEND_APP_BUFFER_SIZE_DOC)
 				.define(RECEIVE_APP_BUFFER_SIZE, Type.INT, 1000, Importance.HIGH, RECEIVE_APP_BUFFER_SIZE_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
