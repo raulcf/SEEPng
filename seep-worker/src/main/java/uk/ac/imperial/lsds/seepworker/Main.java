@@ -30,7 +30,7 @@ import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.RuntimeClassLoader;
+import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;

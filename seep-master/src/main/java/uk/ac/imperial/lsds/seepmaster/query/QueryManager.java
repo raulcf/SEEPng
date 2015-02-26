@@ -1,8 +1,22 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
-import com.esotericsoftware.kryo.Kryo;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.Operator;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
@@ -18,20 +32,7 @@ import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import com.esotericsoftware.kryo.Kryo;
 
 public class QueryManager {
 
@@ -58,8 +59,7 @@ public class QueryManager {
 		return runtimeQuery;
 	}
 	
-	public QueryManager(LogicalSeepQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint,
-			Comm comm){
+	public QueryManager(LogicalSeepQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
 		this.lsq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
@@ -94,7 +94,6 @@ public class QueryManager {
 		// get logical query
 		this.lsq = executeComposeFromQuery(pathToJar, definitionClass, queryArgs);
 		LOG.debug("Logical query loaded: {}", lsq.toString());
-		// get *all* classes required by that query and store their names
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
 	}
@@ -141,38 +140,10 @@ public class QueryManager {
 				LOG.debug("LogicalOperator: {} will run on: {}", pOpId, ep.getId());
 				opToEndpointMapping.put(pOpId, ep);
 				physicalOperators.add(po);
-//				// get number of replicas
-//				int numInstances = lsq.getInitialPhysicalInstancesForLogicalOperator(lso.getOperatorId());
-//				LOG.debug("LogicalOperator: {} requires {} executionUnits", lso.getOperatorId(), numInstances);
-//				int originalOpId = lso.getOperatorId();
-//				// Start with 1 because that's the minimum anyway
-//				for(int i = 1; i < numInstances; i++) {
-//					int instanceOpId = getNewOpIdForInstance(originalOpId, i);
-//					ExecutionUnit euInstance = inf.getExecutionUnit();
-//					SeepQueryPhysicalOperator poInstance = SeepQueryPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(instanceOpId, lso, euInstance.getEndPoint());
-//					physicalOperators.add(poInstance);
-//					addInstanceForOriginalOp(po, poInstance, instancesPerOriginalOp);
-//				}
 			}
 		}
 		PhysicalSeepQuery psq = PhysicalSeepQuery.buildPhysicalQueryFrom(physicalOperators, instancesPerOriginalOp, lsq);
 		return psq;
-	}
-	
-	private void addInstanceForOriginalOp(SeepQueryPhysicalOperator po, SeepQueryPhysicalOperator newInstance, 
-			Map<PhysicalOperator, List<PhysicalOperator>> instancesPerOriginalOp) {
-		if(instancesPerOriginalOp.containsKey(po)) {
-			instancesPerOriginalOp.get(po).add(newInstance);
-		}
-		else{
-			List<PhysicalOperator> newInstances = new ArrayList<>();
-			newInstances.add(newInstance);
-			instancesPerOriginalOp.put((PhysicalOperator)po, newInstances);
-		}
-	}
-	
-	private int getNewOpIdForInstance(int opId, int it){
-		return opId * it + 1000;
 	}
 	
 	private void sendQueryInformationToNodes(Set<Connection> connections){

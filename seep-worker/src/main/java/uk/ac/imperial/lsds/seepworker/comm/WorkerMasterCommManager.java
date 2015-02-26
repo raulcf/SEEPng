@@ -19,7 +19,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
-import uk.ac.imperial.lsds.seep.infrastructure.RuntimeClassLoader;
+import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 import com.esotericsoftware.kryo.Kryo;
