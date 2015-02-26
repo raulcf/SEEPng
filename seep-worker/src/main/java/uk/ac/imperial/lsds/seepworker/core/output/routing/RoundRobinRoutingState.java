@@ -22,7 +22,11 @@ public class RoundRobinRoutingState implements Router {
 
 	@Override
 	public int route() {
-		int seekIdx = (idx++)%totalRoutes;
+		idx++;
+		if(idx < 0){
+			idx = 0;
+		}
+		int seekIdx = (idx)%totalRoutes;
 		return opIds.get(seekIdx);
 	}
 
