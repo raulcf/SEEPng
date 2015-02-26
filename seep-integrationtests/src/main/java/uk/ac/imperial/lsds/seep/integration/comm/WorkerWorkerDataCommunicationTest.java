@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -159,9 +160,18 @@ public class WorkerWorkerDataCommunicationTest {
 			int counter = 0;
 			long ts = System.currentTimeMillis();
 			while(true){
-				ITuple incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
-				if(incomingTuple != null){
-					counter++;
+				DataItem dataItem = nds.pullDataItem(500); // blocking until there's something to receive
+				if(dataItem != null){
+					boolean consume = true;
+					while(consume){
+						ITuple incomingTuple = dataItem.consume();
+						if(incomingTuple != null){
+							counter++;
+						}
+						else{
+							consume = false;
+						}
+					}
 				}
 				if((System.currentTimeMillis()) - ts > 1000){
 					System.out.println("e/s: "+counter);

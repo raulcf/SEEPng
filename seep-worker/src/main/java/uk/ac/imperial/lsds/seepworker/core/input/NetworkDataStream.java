@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -74,7 +75,7 @@ public class NetworkDataStream implements InputAdapter{
 	}
 
 	@Override
-	public ITuple pullDataItem(int timeout) {
+	public DataItem pullDataItem(int timeout) {
 		byte[] data = null;
 		try {
 			if(timeout > 0){
@@ -97,7 +98,7 @@ public class NetworkDataStream implements InputAdapter{
 	}
 
 	@Override
-	public ITuple pullDataItems(int timeout) {
+	public DataItem pullDataItems(int timeout) {
 		// TODO batching oriented, or window, or barrier, etc...
 		return null;
 	}

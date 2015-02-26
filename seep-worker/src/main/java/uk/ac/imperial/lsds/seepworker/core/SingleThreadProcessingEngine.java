@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -86,19 +87,30 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			List<OutputAdapter> outputAdapters = coreOutput.getOutputAdapters();
 			LOG.info("Configuring SINGLETHREAD processing engine with {} outputAdapters", outputAdapters.size());
 			API api = new Collector(id, outputAdapters);
-			while(working){
+			while(working) {
 				while(it.hasNext()){
 					InputAdapter ia = it.next();
 					if(ia.returnType() == one){
-						ITuple d = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(d != null){
-							task.processData(d, api);
+						DataItem di = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
+						if(di != null){
+							boolean consume = true;
+							while(consume) {
+								ITuple d = di.consume();
+								if(d != null) task.processData(d, api);
+								else consume = false;
+							}
 						}
 					}
 					else if(ia.returnType() == many){
-						ITuple ld = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
+						DataItem ld = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
 						if(ld != null){
-							task.processDataGroup(ld, api);
+							boolean consume = true;
+							while(consume) {
+								ITuple d = ld.consume();
+								if(d != null) task.processDataGroup(d, api);
+								else consume = false;
+							}
+							
 						}
 					}
 					if(!it.hasNext()){

@@ -16,8 +16,10 @@ import uk.ac.imperial.lsds.seep.util.Utils;
  * @author ra
  */
 
-public class ITuple {
+public class ITuple implements DataItem{
 
+	private boolean consumed = false;
+	
 	private final Schema schema;
 	private int streamId;
 	private Map<String, Integer> mapFieldToOffset;
@@ -35,6 +37,18 @@ public class ITuple {
 			this.populateOffsets();
 		}
 	}
+
+	@Override
+	public ITuple consume() {
+		if(!consumed){
+			consumed = true;
+			return this;
+		}
+		else{
+			consumed = true;
+			return null;
+		}
+	}
 	
 	public void setStreamId(int streamId){
 		this.streamId = streamId;
@@ -45,6 +59,7 @@ public class ITuple {
 	}
 	
 	public void setData(byte[] data){
+		consumed = false;
 		this.data = data;
 		// greedily populate offsets for lazy deserialisation
 		if(schema.isVariableSize()){
@@ -54,6 +69,7 @@ public class ITuple {
 	}
 	
 	public void setData(List<byte[]> dataCol){
+		consumed = false;
 		this.dataCol = new ArrayList<>();
 		for(byte[] el : dataCol){
 			ITuple i = new ITuple(schema);
@@ -209,4 +225,5 @@ public class ITuple {
 		}
 		return sb.toString();
 	}
+	
 }

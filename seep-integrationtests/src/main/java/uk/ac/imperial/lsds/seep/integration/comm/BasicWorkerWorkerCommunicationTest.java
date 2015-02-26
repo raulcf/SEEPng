@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -84,7 +85,8 @@ public class BasicWorkerWorkerCommunicationTest {
 //			System.out.println("CANNOT send yet");
 //		}
 		
-		ITuple incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
+		DataItem _incomingTuple = nds.pullDataItem(500); // blocking until there's something to receive
+		ITuple incomingTuple = _incomingTuple.consume();
 		System.out.println(incomingTuple.toString());
 		
 //		ITuple incomingTuple2 = nds.pullDataItem(); // blocking until there's something to receive
@@ -102,10 +104,12 @@ public class BasicWorkerWorkerCommunicationTest {
 //			System.out.println("CANNOT send yet");
 //		}
 		
-		ITuple incomingTuple2 = nds.pullDataItem(500); // blocking until there's something to receive
+		DataItem _incomingTuple2 = nds.pullDataItem(500); // blocking until there's something to receive
+		ITuple incomingTuple2 = _incomingTuple2.consume();
 		System.out.println(incomingTuple2.toString());
 		
-		ITuple incomingTuple3 = nds.pullDataItem(500); // blocking until there's something to receive
+		DataItem _incomingTuple3 = nds.pullDataItem(500); // blocking until there's something to receive
+		ITuple incomingTuple3 = _incomingTuple3.consume();
 		System.out.println(incomingTuple3.toString());
 		
 		while(true){
