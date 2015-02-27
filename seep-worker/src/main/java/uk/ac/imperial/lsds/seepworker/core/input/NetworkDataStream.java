@@ -7,10 +7,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.codahale.metrics.Counter;
+import static com.codahale.metrics.MetricRegistry.name;
+
 import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkDataStream implements InputAdapter{
@@ -26,6 +30,9 @@ public class NetworkDataStream implements InputAdapter{
 	final private int streamId;
 	private ITuple iTuple;
 	
+	// Metrics
+	final Counter qSize;
+	
 	public NetworkDataStream(WorkerConfig wc, int opId, int streamId, Schema expectedSchema) {
 		this.representedIds = new ArrayList<>();
 		this.representedIds.add(opId);
@@ -35,6 +42,7 @@ public class NetworkDataStream implements InputAdapter{
 		this.queue = new ArrayBlockingQueue<byte[]>(queueSize);
 		int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
 		this.buffer = new InputBuffer(headroom);
+		qSize = SeepMetrics.REG.counter(name(NetworkDataStream.class, "queue", "size"));
 	}
 	
 	@Override
@@ -66,6 +74,7 @@ public class NetworkDataStream implements InputAdapter{
 	public void pushData(byte[] data){
 		try {
 			queue.put(data);
+			qSize.inc();
 		} 
 		catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -91,6 +100,7 @@ public class NetworkDataStream implements InputAdapter{
 		if(data == null){
 			return null;
 		}
+		qSize.dec(); // decrement only when is not null
 		iTuple.setData(data);
 		iTuple.setStreamId(streamId);
 		return iTuple;

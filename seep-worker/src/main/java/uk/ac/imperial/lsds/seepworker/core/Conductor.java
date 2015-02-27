@@ -51,8 +51,7 @@ public class Conductor {
 		this.myIp = myIp;
 		this.wc = wc;
 		this.dataPort = wc.getInt(WorkerConfig.DATA_PORT);
-		int engineType = wc.getInt(WorkerConfig.ENGINE_TYPE);
-		engine = ProcessingEngineFactory.buildProcessingEngine(engineType);
+		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
 		// Use config to get all parameters that configure input, output and engine
 		// TODO:
 	}

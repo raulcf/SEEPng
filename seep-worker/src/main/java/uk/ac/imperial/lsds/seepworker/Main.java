@@ -30,6 +30,7 @@ import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
@@ -78,9 +79,14 @@ public class Main {
 		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(wwPort, apiWorker);
 		wwcm.start();
 		
-		// bootstrap
+		// Bootstrap
 		String myIp = Utils.getStringRepresentationOfLocalIp();
 		api.bootstrap(masterConnection, myIp, myPort, dataPort);
+		
+		// Start serving metrics
+		// TODO: get from config what should be reported
+		SeepMetrics.startJMXReporter();
+		SeepMetrics.startConsoleReporter();
 	}
 	
 	public static void main(String args[]){
