@@ -3,7 +3,7 @@ package uk.ac.imperial.lsds.seep.core;
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
 public interface InputAdapter {
@@ -12,7 +12,7 @@ public interface InputAdapter {
 	public int getStreamId();
 	public short returnType();
 	
-	public DataOriginType getDataOriginType();
+	public DataStoreType getDataOriginType();
 	
 	public void readFrom(ReadableByteChannel channel, int id);
 	

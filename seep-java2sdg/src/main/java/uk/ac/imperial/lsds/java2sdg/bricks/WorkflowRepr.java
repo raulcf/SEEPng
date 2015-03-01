@@ -2,14 +2,14 @@ package uk.ac.imperial.lsds.java2sdg.bricks;
 
 import java.util.List;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 
 public class WorkflowRepr {
 
 	// Workflow name. this is what we were storing previously
 	private String name;
 	// data origin type, told by the annotation, file, network, etc...
-	private DataOrigin dOrigin;
+	private DataStore dOrigin;
 	// whether it has a sink annotation, and in that case, what type. will need to become a enum in the future
 	private boolean hasSink;
 	/**
@@ -18,7 +18,7 @@ public class WorkflowRepr {
 	 */
 	private List<Object> inputParameters;
 	
-	public WorkflowRepr(String name, DataOrigin dOrigin, boolean hasSink, List<Object> inputParameters){
+	public WorkflowRepr(String name, DataStore dOrigin, boolean hasSink, List<Object> inputParameters){
 		// TODO: perhaps we want to pass other information here and transform it to the above attributes
 	}
 	

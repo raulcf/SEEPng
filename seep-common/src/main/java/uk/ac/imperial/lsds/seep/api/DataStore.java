@@ -3,9 +3,9 @@ package uk.ac.imperial.lsds.seep.api;
 import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 import uk.ac.imperial.lsds.seep.config.Config;
 
-public class DataOrigin implements DataOriginDescriptor{
+public class DataStore implements DataStoreDescriptor {
 
-	private DataOriginType type;
+	private DataStoreType type;
 	@Deprecated
 	private String resource;
 	@Deprecated
@@ -13,7 +13,7 @@ public class DataOrigin implements DataOriginDescriptor{
 	// Config will incorporate (in the future) resource and serde
 	private Config config;
 		
-	public DataOrigin(DataOriginType type, String resource, SerializerType serde, Config config){
+	public DataStore(DataStoreType type, String resource, SerializerType serde, Config config){
 		this.type = type;
 		this.resource = resource;
 		this.serde = serde;
@@ -21,7 +21,7 @@ public class DataOrigin implements DataOriginDescriptor{
 	}
 		
 	@Override
-	public DataOriginType type(){
+	public DataStoreType type(){
 		return type;
 	}
 	

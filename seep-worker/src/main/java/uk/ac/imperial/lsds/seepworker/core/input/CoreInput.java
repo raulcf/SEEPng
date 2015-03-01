@@ -8,8 +8,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class CoreInput {
@@ -35,7 +35,7 @@ public class CoreInput {
 		return inputAdapters;
 	}
 	
-	public boolean requiresConfigureSelectorOfType(DataOriginType type){
+	public boolean requiresConfigureSelectorOfType(DataStoreType type){
 		for(InputAdapter ia : inputAdapters){
 			if(ia.getDataOriginType().equals(type)){
 				return true;
@@ -48,8 +48,8 @@ public class CoreInput {
 		return iapMap;
 	}
 	
-	public List<DataOrigin> getDataOriginOfType(DataOriginType type){
-		List<DataOrigin> orgs = new ArrayList<>();
+	public List<DataStore> getDataOriginOfType(DataStoreType type){
+		List<DataStore> orgs = new ArrayList<>();
 		
 		return orgs;
 	}

@@ -7,7 +7,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
@@ -35,7 +35,7 @@ public class CoreOutput {
 		return cons;
 	}
 	
-	public boolean requiresConfigureSelectorOfType(DataOriginType type){
+	public boolean requiresConfigureSelectorOfType(DataStoreType type){
 		for(OutputAdapter oa : outputAdapters){
 			if(oa.getDataOriginType().equals(type)){
 				return true;

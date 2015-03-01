@@ -7,7 +7,7 @@ import uk.ac.imperial.lsds.seep.config.Config;
 import uk.ac.imperial.lsds.seep.errors.NotSupportedException;
 
 
-public class FileSource implements Connectable, DataOriginDescriptor {
+public class FileSource implements Connectable, DataStoreDescriptor {
 
 	private static LogicalOperator lo;
 	private String path;
@@ -30,8 +30,8 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 	/** Implement DataOriginDescriptor **/
 	
 	@Override
-	public DataOriginType type() {
-		return DataOriginType.FILE;
+	public DataStoreType type() {
+		return DataStoreType.FILE;
 	}
 
 	@Override
@@ -48,23 +48,23 @@ public class FileSource implements Connectable, DataOriginDescriptor {
 	
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema){
-		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde, null);
+		DataStore dO = new DataStore(DataStoreType.FILE, path, serde, null);
 		lo.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dO);
 	}
 
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataOrigin dO){
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dO){
 		throw new NotSupportedException("Cannot override DataOrigin");
 	}
 
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
-		DataOrigin dO = new DataOrigin(DataOriginType.FILE, path, serde, null);
+		DataStore dO = new DataStore(DataStoreType.FILE, path, serde, null);
 		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);
 	}
 
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataOrigin dSrc) {
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc) {
 		throw new NotSupportedException("Cannot override DataOrigin");
 	}
 	

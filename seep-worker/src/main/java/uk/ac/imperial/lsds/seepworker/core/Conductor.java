@@ -8,8 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -104,12 +104,12 @@ public class Conductor {
 	
 	private NetworkSelector maybeConfigureNetworkSelector(){
 		NetworkSelector ns = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.NETWORK)){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
 			LOG.info("Configuring networkSelector for output");
 			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
@@ -120,18 +120,18 @@ public class Conductor {
 	
 	private FileSelector maybeConfigureFileSelector(){
 		FileSelector fs = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			fs = new FileSelector(wc);
-			Map<Integer, DataOrigin> fileOrigins = new HashMap<>();
+			Map<Integer, DataStore> fileOrigins = new HashMap<>();
 			for(UpstreamConnection uc : o.upstreamConnections()){
 				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataOriginType() == DataOriginType.FILE){
+				if(uc.getDataOriginType() == DataStoreType.FILE){
 					fileOrigins.put(opId, uc.getDataOrigin());
 				}
 			}
 			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
 		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.FILE)){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			throw new NotImplementedException("not implemented yet...");
 		}
 		return fs;
@@ -139,13 +139,13 @@ public class Conductor {
 	
 	private KafkaSelector maybeConfigureKafkaSelector(){
 		KafkaSelector ks = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
 			KafkaConfig kc = (KafkaConfig) o.upstreamConnections().get(0).getDataOrigin().getConfig();
 			LOG.info("Configuring kafkaSelector for input");
 			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
 					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			
 		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataOriginType.KAFKA)){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
 			// Not needed
 		}
 		return ks;

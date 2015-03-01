@@ -7,14 +7,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class KafkaDataStream implements InputAdapter {
 	
-	final private DataOriginType TYPE = DataOriginType.KAFKA;
+	final private DataStoreType TYPE = DataStoreType.KAFKA;
 			
 	final private int streamId;
 	private ITuple iTuple;
@@ -47,7 +47,7 @@ public class KafkaDataStream implements InputAdapter {
 	}
 	
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 

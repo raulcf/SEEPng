@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import com.codahale.metrics.Counter;
 import static com.codahale.metrics.MetricRegistry.name;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -20,7 +20,7 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 public class NetworkDataStream implements InputAdapter{
 
 	final private short RETURN_TYPE = InputAdapterReturnType.ONE.ofType();
-	final private DataOriginType TYPE = DataOriginType.NETWORK;
+	final private DataStoreType TYPE = DataStoreType.NETWORK;
 	
 	private InputBuffer buffer;
 	private BlockingQueue<byte[]> queue;
@@ -46,7 +46,7 @@ public class NetworkDataStream implements InputAdapter{
 	}
 	
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 

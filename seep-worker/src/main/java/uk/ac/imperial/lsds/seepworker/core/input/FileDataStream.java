@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -17,7 +17,7 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 public class FileDataStream implements InputAdapter {
 
 	final private short RETURN_TYPE = InputAdapterReturnType.ONE.ofType();
-	final private DataOriginType TYPE = DataOriginType.FILE;
+	final private DataStoreType TYPE = DataStoreType.FILE;
 	
 	final private int streamId;
 	final private List<Integer> representedIds;
@@ -67,7 +67,7 @@ public class FileDataStream implements InputAdapter {
 	}
 
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 
