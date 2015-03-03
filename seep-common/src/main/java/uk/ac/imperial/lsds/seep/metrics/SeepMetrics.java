@@ -28,13 +28,13 @@ public class SeepMetrics extends MetricRegistry {
 		jmxReporter.start();
 	}
 	
-	public static void startConsoleReporter() {
+	public static void startConsoleReporter(int period) {
 		// TODO: implement console reporter, useful for debugging
 		consoleReporter = ConsoleReporter.forRegistry(REG)
 				.convertRatesTo(TimeUnit.SECONDS)
 				.convertDurationsTo(TimeUnit.MILLISECONDS)
 				.build();
-		consoleReporter.start(5, TimeUnit.SECONDS);
+		consoleReporter.start(period, TimeUnit.SECONDS);
 	}
 	
 	public static void startCSVReporter() {

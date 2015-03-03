@@ -83,10 +83,20 @@ public class Main {
 		String myIp = Utils.getStringRepresentationOfLocalIp();
 		api.bootstrap(masterConnection, myIp, myPort, dataPort);
 		
-		// Start serving metrics
-		// TODO: get from config what should be reported
-		SeepMetrics.startJMXReporter();
-		SeepMetrics.startConsoleReporter();
+		// Configure metrics serving
+		this.configureMetricsReporting(wc);
+		
+	}
+	
+	private void configureMetricsReporting(WorkerConfig wc){
+		int reportConsole = wc.getInt(WorkerConfig.REPORT_METRICS_CONSOLE_PERIOD);
+		int reportJMX = wc.getInt(WorkerConfig.REPORT_METRICS_JMX);
+		if(reportJMX == 1){
+			SeepMetrics.startJMXReporter();
+		}
+		if(reportConsole > 0){
+			SeepMetrics.startConsoleReporter(reportConsole);
+		}
 	}
 	
 	public static void main(String args[]){
