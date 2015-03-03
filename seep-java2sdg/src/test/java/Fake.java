@@ -30,13 +30,13 @@ public class Fake implements SeepProgram {
 		// declare train workflow
 		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
 		DataStore trainSrc = new DataStore(DataStoreType.NETWORK, "localhost:5555", SerializerType.NONE, null);
-		spc.newWorkflow("train", trainSrc);
+		spc.newWorkflow("train", trainSrc, sch);
 		
 		// declare test workflow
 		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
 		DataStore testSrc = new DataStore(DataStoreType.NETWORK, "localhost:5556", SerializerType.NONE, null);
 		DataStore testSnk = new DataStore(DataStoreType.CONSOLE, "System.out", SerializerType.NONE, null);
-		spc.newWorkflow("test", testSrc, testSnk);
+		spc.newWorkflow("test", testSrc, sch2, testSnk, sch2); // input and output schema are the same
 
 		return spc;
 	}

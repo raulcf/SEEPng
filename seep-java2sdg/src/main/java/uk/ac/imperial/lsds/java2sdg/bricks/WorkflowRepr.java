@@ -1,22 +1,32 @@
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
-import java.util.List;
-
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 
+
+/**
+ * WorkflowRepr is an internal representation of a workflow in SEEP.
+ * @author ra
+ */
 public class WorkflowRepr {
 
-	// Workflow name. this is what we were storing previously
+	// Workflow name. The name of the workflow
 	private String name;
-	// data origin type, told by the annotation, file, network, etc...
+	// The input data store, e.g. file, network, kafka, etc
 	private DataStore source;
-	// whether it has a sink annotation, and in that case, what type. will need to become a enum in the future
+	// The schema of the input data
+	private Schema inputSchema;
+	// The output data store, e.g. file, network, kafka, console, etc
 	private DataStore sink;
+	// The schema of the output data
+	private Schema outputSchema;
 	
-	public WorkflowRepr(String name, DataStore source, DataStore sink){
+	public WorkflowRepr(String name, DataStore source, Schema inputSchema, DataStore sink, Schema outputSchema){
 		this.name = name;
 		this.source = source;
+		this.inputSchema = inputSchema;
 		this.sink = sink;
+		this.outputSchema = outputSchema;
 	}
 	
 	public String getName() {
@@ -34,6 +44,14 @@ public class WorkflowRepr {
 	public void setSource(DataStore source) {
 		this.source = source;
 	}
+	
+	public Schema getInputSchema(){
+		return inputSchema;
+	}
+	
+	public void setInputSchema(Schema inputSchema){
+		this.inputSchema = inputSchema;
+	}
 
 	public DataStore getSink() {
 		return sink;
@@ -43,12 +61,15 @@ public class WorkflowRepr {
 		this.sink = sink;
 	}
 	
+	public Schema getOutputSchema(){
+		return outputSchema;
+	}
+	
+	public void setOutputSchema(Schema outputSchema){
+		this.outputSchema = outputSchema;
+	}
+	
 	public boolean hasSink(){
 		return this.sink != null;
 	}
-	
-	public WorkflowRepr(String name, DataStore dOrigin, boolean hasSink, List<Object> inputParameters){
-		// TODO: perhaps we want to pass other information here and transform it to the above attributes
-	}
-	
 }

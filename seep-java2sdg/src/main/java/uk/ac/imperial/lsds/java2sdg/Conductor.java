@@ -6,7 +6,10 @@ import java.util.Map;
 import org.codehaus.janino.Java;
 
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
@@ -39,29 +42,33 @@ public class Conductor {
 		String className = cu.getClassName(inputFile);
 		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFile, className);
 		
+		/** Build partial SDGs from workflows **/
+		// Perform live variable analysis and retrieve information
+		Map<String, LivenessInformation> lvInfo = LVAnalysis.getLVInfo(compilationUnit);
+		
+		// Perform TE boundary analysis -> list of TEs
+		TEAnalyzerStrategyType strategy = TEAnalyzerStrategyType.getType(cc.getInt(CompilerConfig.TE_ANALYZER_TYPE));
+		switch(strategy){
+		case COARSE:
+			// TODO: implement coarse mode -> debugging
+			break;
+		case STATE_ACCESS:
+			// TODO: implement state boundaries -> atc 14
+			break;
+		}
+		
+		// TODO: assemble a partial SDG from the previous list of TEs
+		
+		/** Build SDG from partial SDGs **/
+		// TODO: get SDG from collection of partialSDGs
+		
+		/** Output generated SDG **/
+		// TODO: in jar by using the code generation module, in DOT or GEXF for visualization
+		
 	}
 	
 }
 		
-//		/** Extract fields and workflows **/
-//
-//		PhaseOptions.v().setPhaseOption("tag.ln", "on"); // tell compiler to include line numbers
-//		// List fields and indicate which one is state
-//		LOG.info("Extracting state information...");
-//		Chain<SootField> fields = c.getFields();
-//		Iterator<SootField> fieldsIterator = fields.iterator();
-//		Map<String, InternalStateRepr> stateElements = Util.extractStateInformation(fieldsIterator);
-//		LOG.info("Extracting state information...OK");
-//
-//		// List relevant methods (the ones that need to be analyzed)
-//		LOG.info("Extracting workflows...");
-//		Iterator<SootMethod> methodIterator = c.methodIterator();
-//		DriverProgramAnalyzer driverProgramAnalyzer = new DriverProgramAnalyzer();
-//		driverProgramAnalyzer.extractWorkflows(methodIterator, c);
-//		List<String> workflows = DriverProgramAnalyzer.getWorkflowNames(); //TODO: will return WorkflowRepr objects instead of strings
-//
-//		LOG.info("Extracting workflows...OK");
-//
 //		/** Build partialSDGs, one per workflow **/
 //
 //		SDGBuilder sdgBuilder = new SDGBuilder();

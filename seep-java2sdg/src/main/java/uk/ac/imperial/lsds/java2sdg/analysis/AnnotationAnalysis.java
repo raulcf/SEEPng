@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.codehaus.janino.Java;
 import org.codehaus.janino.Java.Annotation;
-import org.codehaus.janino.Java.FunctionDeclarator.FormalParameters;
 import org.codehaus.janino.util.Traverser;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;

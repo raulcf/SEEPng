@@ -22,11 +22,15 @@ public class CompilerConfig extends Config {
     public static final String INPUT_FILE = "input.file";
     private static final String INPUT_FILE_DOC = "The name of the input java file to compile";
     
+    public static final String TE_ANALYZER_TYPE = "te.analyzer.type";
+    private static final String TE_ANALYZER_TYPE_DOC = "Choose the type of TE analyzer from the available strategies";
+    
 	
 	static{
 		config = new ConfigDef().define(TARGET_OUTPUT, Type.INT, 0, Importance.HIGH, TARGET_OUTPUT_DOC)
 				.define(OUTPUT_FILE, Type.STRING, Importance.HIGH, OUTPUT_FILE_DOC)
-				.define(INPUT_FILE, Type.STRING, Importance.HIGH, INPUT_FILE_DOC);
+				.define(INPUT_FILE, Type.STRING, Importance.HIGH, INPUT_FILE_DOC)
+				.define(TE_ANALYZER_TYPE, Type.INT, Importance.HIGH, TE_ANALYZER_TYPE_DOC);
 	}
 	
 	public CompilerConfig(Map<? extends Object, ? extends Object> originals) {
