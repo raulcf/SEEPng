@@ -1,7 +1,7 @@
 import java.util.Properties;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
@@ -37,8 +37,8 @@ public class Base implements QueryComposer {
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		
-		src.connectTo(processor, 1, schema, new DataOrigin(DataOriginType.KAFKA, null, null, kafkaConfig));
-		processor.connectTo(snk, 2, schema, new DataOrigin(DataOriginType.KAFKA, null, null, kafkaConfig));
+		src.connectTo(processor, 1, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
+		processor.connectTo(snk, 2, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
 		
 		System.out.println("###### Build query finished");
 		return queryAPI.build();
