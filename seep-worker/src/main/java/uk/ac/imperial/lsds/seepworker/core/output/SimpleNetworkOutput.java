@@ -86,8 +86,12 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	@Override
 	public void sendKey(byte[] o, int key) {
 		int opId = router.route(key);
-		ob = outputBuffers.get(opId);
-		ob.write(o);
+		OutputBuffer ob = outputBuffers.get(opId);
+		
+		boolean complete = ob.write(o);
+		if(complete){
+			eAPI.readyForWrite(ob.id());
+		}
 	}
 
 	/**
