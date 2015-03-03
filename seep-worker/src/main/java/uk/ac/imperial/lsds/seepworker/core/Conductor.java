@@ -8,22 +8,24 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
+import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
+import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class Conductor {
 
@@ -35,6 +37,7 @@ public class Conductor {
 	private InetAddress myIp;
 	private NetworkSelector ns;
 	private FileSelector fs;
+	private KafkaSelector ks;
 	
 	private PhysicalOperator o;
 	private CoreInput coreInput;
@@ -48,8 +51,7 @@ public class Conductor {
 		this.myIp = myIp;
 		this.wc = wc;
 		this.dataPort = wc.getInt(WorkerConfig.DATA_PORT);
-		int engineType = wc.getInt(WorkerConfig.ENGINE_TYPE);
-		engine = ProcessingEngineFactory.buildProcessingEngine(engineType);
+		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
 		// Use config to get all parameters that configure input, output and engine
 		// TODO:
 	}
@@ -58,6 +60,7 @@ public class Conductor {
 		LOG.info("Starting processing engine...");
 		if(ns != null) ns.startNetworkSelector();
 		if(fs != null) fs.startFileSelector();
+		if(ks != null) ks.startKafkaSelector();
 		engine.start();
 	}
 	
@@ -82,6 +85,7 @@ public class Conductor {
 		
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
+		this.ks = maybeConfigureKafkaSelector();
 		
 		coreOutput.setEventAPI(ns);
 		
@@ -100,12 +104,12 @@ public class Conductor {
 	
 	private NetworkSelector maybeConfigureNetworkSelector(){
 		NetworkSelector ns = null;
-		if(coreInput.requiresConfiguringNetworkWorker()){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
-		if(coreOutput.requiresConfiguringNetworkWorker()){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
 			LOG.info("Configuring networkSelector for output");
 			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
@@ -116,21 +120,35 @@ public class Conductor {
 	
 	private FileSelector maybeConfigureFileSelector(){
 		FileSelector fs = null;
-		if(coreInput.requiresConfiguringFileWorker()){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			fs = new FileSelector(wc);
-			Map<Integer, DataOrigin> fileOrigins = new HashMap<>();
+			Map<Integer, DataStore> fileOrigins = new HashMap<>();
 			for(UpstreamConnection uc : o.upstreamConnections()){
 				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataOriginType() == DataOriginType.FILE){
+				if(uc.getDataOriginType() == DataStoreType.FILE){
 					fileOrigins.put(opId, uc.getDataOrigin());
 				}
 			}
 			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
 		}
-		if(coreOutput.requiresConfiguringFileWorker()){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			throw new NotImplementedException("not implemented yet...");
 		}
 		return fs;
+	}
+	
+	private KafkaSelector maybeConfigureKafkaSelector(){
+		KafkaSelector ks = null;
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
+			KafkaConfig kc = (KafkaConfig) o.upstreamConnections().get(0).getDataOrigin().getConfig();
+			LOG.info("Configuring kafkaSelector for input");
+			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
+					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			
+		}
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
+			// Not needed
+		}
+		return ks;
 	}
 	
 	public void plugSeepTask(SeepTask task){

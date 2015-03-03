@@ -1,18 +1,19 @@
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.util.Utils;
+import java.util.List;
+
+import uk.ac.imperial.lsds.seep.api.DataStore;
 
 public class WorkflowRepr {
 
 	// Workflow name. this is what we were storing previously
 	private String name;
 	// data origin type, told by the annotation, file, network, etc...
-	private DataOrigin source;
+	private DataStore source;
 	// whether it has a sink annotation, and in that case, what type. will need to become a enum in the future
-	private DataOrigin sink;
+	private DataStore sink;
 	
-	public WorkflowRepr(String name, DataOrigin source, DataOrigin sink){
+	public WorkflowRepr(String name, DataStore source, DataStore sink){
 		this.name = name;
 		this.source = source;
 		this.sink = sink;
@@ -26,19 +27,19 @@ public class WorkflowRepr {
 		this.name = name;
 	}
 
-	public DataOrigin getSource() {
+	public DataStore getSource() {
 		return source;
 	}
 
-	public void setSource(DataOrigin source) {
+	public void setSource(DataStore source) {
 		this.source = source;
 	}
 
-	public DataOrigin getSink() {
+	public DataStore getSink() {
 		return sink;
 	}
 
-	public void setSink(DataOrigin sink) {
+	public void setSink(DataStore sink) {
 		this.sink = sink;
 	}
 	
@@ -46,21 +47,8 @@ public class WorkflowRepr {
 		return this.sink != null;
 	}
 	
-	@Override
-	public String toString(){
-		StringBuilder sb = new StringBuilder();
-		sb.append("Workflow: "+name);
-		sb.append(Utils.NL);
-		sb.append("Source: ");
-		sb.append(Utils.NL);
-		sb.append(source.toString());
-		sb.append(Utils.NL);
-		if(sink != null){
-			sb.append("Sink: ");
-			sb.append(Utils.NL);
-			sb.append(sink.toString());
-		}
-		return sb.toString();
+	public WorkflowRepr(String name, DataStore dOrigin, boolean hasSink, List<Object> inputParameters){
+		// TODO: perhaps we want to pass other information here and transform it to the above attributes
 	}
 	
 }

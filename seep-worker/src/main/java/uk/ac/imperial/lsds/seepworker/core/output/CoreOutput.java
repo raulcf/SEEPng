@@ -7,7 +7,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 
 public class CoreOutput {
 	
@@ -32,18 +35,11 @@ public class CoreOutput {
 		return cons;
 	}
 	
-	public boolean requiresConfiguringNetworkWorker(){
+	public boolean requiresConfigureSelectorOfType(DataStoreType type){
 		for(OutputAdapter oa : outputAdapters){
-			if(oa.requiresNetwork())
+			if(oa.getDataOriginType().equals(type)){
 				return true;
-		}
-		return false;
-	}
-	
-	public boolean requiresConfiguringFileWorker(){
-		for(OutputAdapter oa : outputAdapters){
-			if(oa.requiresFile())
-				return true;
+			}
 		}
 		return false;
 	}

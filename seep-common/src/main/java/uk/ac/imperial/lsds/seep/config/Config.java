@@ -43,7 +43,13 @@ public class Config {
     protected Object get(String key) {
         if (!values.containsKey(key))
             throw new ConfigException(String.format("Unknown configuration '%s'", key));
-        used.add(key);
+        
+        try {
+        	used.add(key);
+        } catch (NullPointerException e) {
+        	// TODO: Investigate this exception
+        	log.warn("The used configs map is null.");
+        }
         return values.get(key);
     }
 

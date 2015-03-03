@@ -18,11 +18,11 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapter;
 
 public class FileSelector {
 
@@ -55,7 +55,7 @@ public class FileSelector {
 		}
 	}
 	
-	public void configureAccept(Map<Integer, DataOrigin> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
+	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
 		this.dataAdapters = dataAdapters;
 		this.numUpstreamResources = fileOrigins.size();
 		this.reader = new Reader();
@@ -63,7 +63,7 @@ public class FileSelector {
 		this.readerWorker.setName("File-Reader");
 		
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		for(Entry<Integer, DataOrigin> e : fileOrigins.entrySet()){
+		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
 				String absPath = Utils.absolutePath(e.getValue().getResourceDescriptor());
 				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
@@ -104,7 +104,7 @@ public class FileSelector {
 		this.reader.availableChannels(channels);
 	}
 	
-	public void configureDownstreamFiles(Map<Integer, DataOrigin> fileDest){
+	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest){
 		// TODO: implement this, configure writer, etc...
 		throw new NotImplementedException("TODO: ");
 	}

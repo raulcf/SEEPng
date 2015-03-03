@@ -8,7 +8,7 @@ public class UpstreamConnection {
 	private ConnectionType connectionType;
 	private int streamId;
 	private Schema schema;
-	private DataOrigin dSrc;
+	private DataStore dSrc;
 
 	public Operator getUpstreamOperator() {
 		return upstreamOperator;
@@ -42,19 +42,19 @@ public class UpstreamConnection {
 		this.schema = schema;
 	}
 	
-	public DataOrigin getDataOrigin(){
+	public DataStore getDataOrigin(){
 		return dSrc;
 	}
 	
-	public DataOriginType getDataOriginType(){
+	public DataStoreType getDataOriginType(){
 		return dSrc.type();
 	}
 	
-	public void setDataOrigin(DataOrigin dSrc){
+	public void setDataOrigin(DataStore dSrc){
 		this.dSrc = dSrc;
 	}
 	
-	public UpstreamConnection(Operator upstreamOperator, ConnectionType connectionType, int streamId, Schema schema, DataOrigin dSrc){
+	public UpstreamConnection(Operator upstreamOperator, ConnectionType connectionType, int streamId, Schema schema, DataStore dSrc){
 		this.setUpstreamOperator(upstreamOperator);
 		this.setConnectionType(connectionType);
 		this.setStreamId(streamId);

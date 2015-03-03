@@ -30,7 +30,8 @@ import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.RuntimeClassLoader;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
+import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;
@@ -78,9 +79,24 @@ public class Main {
 		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(wwPort, apiWorker);
 		wwcm.start();
 		
-		// bootstrap
+		// Bootstrap
 		String myIp = Utils.getStringRepresentationOfLocalIp();
 		api.bootstrap(masterConnection, myIp, myPort, dataPort);
+		
+		// Configure metrics serving
+		this.configureMetricsReporting(wc);
+		
+	}
+	
+	private void configureMetricsReporting(WorkerConfig wc){
+		int reportConsole = wc.getInt(WorkerConfig.REPORT_METRICS_CONSOLE_PERIOD);
+		int reportJMX = wc.getInt(WorkerConfig.REPORT_METRICS_JMX);
+		if(reportJMX == 1){
+			SeepMetrics.startJMXReporter();
+		}
+		if(reportConsole > 0){
+			SeepMetrics.startConsoleReporter(reportConsole);
+		}
 	}
 	
 	public static void main(String args[]){

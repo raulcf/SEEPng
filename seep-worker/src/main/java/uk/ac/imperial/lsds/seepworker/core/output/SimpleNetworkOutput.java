@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.imperial.lsds.seepworker.comm.EventAPI;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 
 
@@ -12,8 +15,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 
 	private final boolean SINGLE_SEND_NOT_DEFINED;
 	
-	final private boolean requiresNetworkWorker = true;
-	final private boolean requiresFileWorker = false;
+	final private DataStoreType TYPE = DataStoreType.NETWORK;
 	
 	private int streamId;
 	private Router router;
@@ -40,13 +42,8 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	}
 	
 	@Override
-	public boolean requiresNetwork() {
-		return requiresNetworkWorker;
-	}
-	
-	@Override
-	public boolean requiresFile() {
-		return requiresFileWorker;
+	public DataStoreType getDataOriginType() {
+		return TYPE;
 	}
 	
 	@Override
@@ -63,7 +60,8 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	public void send(byte[] o) {
 		OutputBuffer outB = ob;
 		if(SINGLE_SEND_NOT_DEFINED){
-			outB = this.router.route(outputBuffers);
+			int opId = this.router.route();
+			outB = outputBuffers.get(opId);
 		}
 		boolean completed = outB.write(o);
 		if(completed){
@@ -87,8 +85,13 @@ public class SimpleNetworkOutput implements OutputAdapter {
 
 	@Override
 	public void sendKey(byte[] o, int key) {
-		OutputBuffer ob = router.route(outputBuffers, key);
-		ob.write(o);
+		int opId = router.route(key);
+		OutputBuffer ob = outputBuffers.get(opId);
+		
+		boolean complete = ob.write(o);
+		if(complete){
+			eAPI.readyForWrite(ob.id());
+		}
 	}
 
 	/**

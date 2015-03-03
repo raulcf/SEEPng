@@ -51,7 +51,7 @@ public class Main {
 		LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
 		qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs);
 		LOG.info("Loading query...OK");
-		ui.start();		
+		ui.start();
 	}
 	
 	public static void main(String args[]){

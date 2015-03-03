@@ -26,12 +26,13 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapter;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 
 public class NetworkSelector implements EventAPI {
 
@@ -66,7 +67,7 @@ public class NetworkSelector implements EventAPI {
 		this.iapMap = iapMap;
 		int expectedUpstream = 0;
 		for(InputAdapter ia : iapMap.values()){
-			if(ia.requiresNetwork()) expectedUpstream++;
+			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
 		}
 		this.numUpstreamConnections  = expectedUpstream;
 		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
@@ -393,6 +394,7 @@ public class NetworkSelector implements EventAPI {
 		
 		// buffer id - outputbuffer
 		private Map<Integer, OutputBuffer> outputBufferMap;
+		private Map<Integer, Boolean> needsConfigureOutputConnection;
 		
 		private Selector writeSelector;
 		
@@ -400,6 +402,7 @@ public class NetworkSelector implements EventAPI {
 			this.id = id;
 			this.working = true;
 			this.outputBufferMap = new HashMap<>();
+			this.needsConfigureOutputConnection = new HashMap<>();
 			this.pendingConnections = new ArrayDeque<OutputBuffer>();
 			try {
 				this.writeSelector = Selector.open();
@@ -425,7 +428,6 @@ public class NetworkSelector implements EventAPI {
 		@Override
 		public void run(){
 			LOG.info("Started Writer worker: {}", Thread.currentThread().getName());
-			boolean needsToSendIdentifier = true;
 			while(working){
 				// First handle potential new connections that have been queued up
 				handleNewConnections();
@@ -456,10 +458,10 @@ public class NetworkSelector implements EventAPI {
 							OutputBuffer ob = (OutputBuffer)key.attachment();
 							SocketChannel channel = (SocketChannel)key.channel();
 							
-							if(needsToSendIdentifier){
+							if(needsConfigureOutputConnection.get(ob.id())){
 								handleSendIdentifier(myId, channel);
 								unsetWritable(key);
-								needsToSendIdentifier = false;
+								needsConfigureOutputConnection.put(ob.id(), false);
 								// Notify of a new configured connection
 								writersConfiguredLatch.countDown();
 								LOG.trace("CountDown to configure all output conns: {}", writersConfiguredLatch.getCount());
@@ -540,6 +542,7 @@ public class NetworkSelector implements EventAPI {
 					SelectionKey key = channel.register(writeSelector, interestSet);
 					key.attach(ob);
 					outputBufferMap.put(ob.id(), ob);
+					needsConfigureOutputConnection.put(ob.id(), true);
 					LOG.info("Configured new output connection with OP: {} at {}", ob.id(), address.toString());
 					// Associate id - key in the networkSelectorMap
 					writerKeys.put(ob.id(), key);

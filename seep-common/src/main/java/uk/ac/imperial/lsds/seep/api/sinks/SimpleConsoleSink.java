@@ -4,7 +4,7 @@ import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
-public class SimpleConsoleSink implements SeepTask{
+public class SimpleConsoleSink implements SeepTask, Sink {
 
 	private int numTuple = 0;
 	

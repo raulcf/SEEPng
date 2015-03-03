@@ -3,8 +3,8 @@ import java.util.List;
 
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.annotations.Collection;
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
@@ -29,13 +29,13 @@ public class Fake implements SeepProgram {
 		
 		// declare train workflow
 		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		DataOrigin trainSrc = new DataOrigin(DataOriginType.NETWORK, "localhost:5555", SerializerType.NONE, sch, null);
+		DataStore trainSrc = new DataStore(DataStoreType.NETWORK, "localhost:5555", SerializerType.NONE, null);
 		spc.newWorkflow("train", trainSrc);
 		
 		// declare test workflow
 		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		DataOrigin testSrc = new DataOrigin(DataOriginType.NETWORK, "localhost:5556", SerializerType.NONE, sch2, null);
-		DataOrigin testSnk = new DataOrigin(DataOriginType.CONSOLE, "System.out", SerializerType.NONE, null, null);
+		DataStore testSrc = new DataStore(DataStoreType.NETWORK, "localhost:5556", SerializerType.NONE, null);
+		DataStore testSnk = new DataStore(DataStoreType.CONSOLE, "System.out", SerializerType.NONE, null);
 		spc.newWorkflow("test", testSrc, testSnk);
 
 		return spc;

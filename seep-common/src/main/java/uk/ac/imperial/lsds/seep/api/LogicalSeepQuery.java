@@ -74,22 +74,24 @@ public class LogicalSeepQuery {
 	}
 	
 	public void setInitialPhysicalInstancesPerLogicalOperator(int opId, int numInstances) {
+		// Sanity checks
 		if(numInstances - 1 < 1){
 			throw new InvalidQueryDefinitionException("Minimum num Instances per logicalOperator is 1");
 		}
 		if(this.initialPhysicalInstancesPerOperator.containsKey(opId)){
 			throw new InvalidQueryDefinitionException("Illegal action. Can set up numInstances only once");
 		}
+		// Operator to statically scale out
 		LogicalOperator lo = null;
 		for(Operator o : logicalOperators){
 			if(o.getOperatorId() == opId) lo = (LogicalOperator)o;
 		}
 		if(lo == null){
-			throw new InvalidQueryDefinitionException("Impossible to set num instances for non-existent op: "+opId);
+			throw new InvalidQueryDefinitionException("Impossible to set num instances for NON-EXISTENT op: "+opId);
 		}
 		// Create scale out and update numInstances per op
-		for(int instance = 0; instance < (numInstances-1); instance++) {
-			int instanceOpId = getNewOpIdForInstance(lo.getOperatorId(), instance);
+		for(int instance = 0; instance < (numInstances-1); instance++) { // with 1 instance, we don't need to do anything
+			int instanceOpId = getNewOpIdForInstance(opId, instance);
 			LogicalOperator newInstance = null;
 			if(lo.isStateful()){
 				newInstance = this.newStatefulOperator(lo.getSeepTask(), lo.getState(), instanceOpId);
@@ -111,8 +113,9 @@ public class LogicalSeepQuery {
 		}
 	}
 		
+	// TODO: there are better ways to do this...
 	private int getNewOpIdForInstance(int opId, int it){
-		return opId * it + 1000;
+		return opId * 1000 + it;
 	}
 	
 	public int getInitialPhysicalInstancesForLogicalOperator(int opId){

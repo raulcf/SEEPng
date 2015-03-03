@@ -8,9 +8,15 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 
 public class InputBuffer {
 	
+	private ByteBuffer header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
+	private ByteBuffer payload = null;
+	private int nTuples = 0;
+	
+	// Used only for barrier, smells like refactoring...
 	private ByteBuffer buffer;
 	private Deque<byte[]> completedReads;
 	
@@ -27,32 +33,56 @@ public class InputBuffer {
 		return completedReads.poll();
 	}
 	
-	public boolean canReadFullBatch(int fromPosition, int limit){
-		// Check whether we can read a complete batch
-
-		int initialPosition = buffer.position();
-		int initialLimit = buffer.limit();
+	public void readFrom(ReadableByteChannel channel, InputAdapter ia) {
 		
-		buffer.position(fromPosition);
-		buffer.limit(limit);
-		int remaining = buffer.remaining();
-		if(remaining < TupleInfo.PER_BATCH_OVERHEAD_SIZE){
-			// Reset buffer back to initial status and wait for more data to arrive
-			buffer.limit(initialLimit);
-			buffer.position(initialPosition);
-			return false;
-		} 
-		else{
-			buffer.position(fromPosition + TupleInfo.BATCH_SIZE_OFFSET);
-			int batchSize = buffer.getInt();
-			buffer.limit(initialLimit);
-			buffer.position(initialPosition);
-			if(remaining < batchSize){
-				return false;
+		if(header.remaining() > 0){
+			this.read(channel, header);
+		}
+		
+		if(payload == null && !header.hasRemaining()){
+			header.flip();
+			byte control = header.get();
+			nTuples = header.getInt();
+			int payloadSize = header.getInt(); // payload size
+			payload = ByteBuffer.allocate(payloadSize);
+		}
+		
+		if(payload != null){
+			this.read(channel, payload);
+			if(!payload.hasRemaining()){
+				this.forwardTuples(payload, nTuples, ia);
+				payload = null;
+				header.clear();
+				nTuples = 0;
 			}
-			return true;
 		}
 	}
+	
+	private void forwardTuples(ByteBuffer buf, int numTuples, InputAdapter ia) {
+		int tupleSize = 0;
+		buf.flip(); // Prepare buffer to read
+		for(int i = 0; i < numTuples; i++){			
+			tupleSize = buf.getInt();
+			byte[] completedRead = new byte[tupleSize];
+			buf.get(completedRead, 0, tupleSize);
+			ia.pushData(completedRead);
+		}
+		buf.clear();
+	}
+
+	private int read(ReadableByteChannel src, ByteBuffer dst){
+		try {
+			return src.read(dst);
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	
+	/** 
+	 * TODO: refactor according to the new model (above)
+	 */
 	
 	public boolean readToInternalBuffer(ReadableByteChannel channel, InputAdapter ia){
 		boolean dataRemainingInBuffer = true;
@@ -97,7 +127,35 @@ public class InputBuffer {
 		return false;
 	}
 	
-	public boolean readFrom(ReadableByteChannel channel, InputAdapter ia){
+	private boolean canReadFullBatch(int fromPosition, int limit){
+		// Check whether we can read a complete batch
+
+		int initialPosition = buffer.position();
+		int initialLimit = buffer.limit();
+		
+		buffer.position(fromPosition);
+		buffer.limit(limit);
+		int remaining = buffer.remaining();
+		if(remaining < TupleInfo.PER_BATCH_OVERHEAD_SIZE){
+			// Reset buffer back to initial status and wait for more data to arrive
+			buffer.limit(initialLimit);
+			buffer.position(initialPosition);
+			return false;
+		} 
+		else{
+			buffer.position(fromPosition + TupleInfo.BATCH_SIZE_OFFSET);
+			int batchSize = buffer.getInt();
+			buffer.limit(initialLimit);
+			buffer.position(initialPosition);
+			if(remaining < batchSize){
+				return false;
+			}
+			return true;
+		}
+	}
+	
+	@Deprecated
+	public boolean _readFrom(ReadableByteChannel channel, InputAdapter ia){
 		boolean dataRemainingInBuffer = true;
 		int readBytes = 0;
 		try {

@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import uk.ac.imperial.lsds.seep.api.API;
-import uk.ac.imperial.lsds.seep.comm.serialization.Serializer;
-import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputAdapter;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.NotEnoughRoutingInformation;
 
 public class Collector implements API {

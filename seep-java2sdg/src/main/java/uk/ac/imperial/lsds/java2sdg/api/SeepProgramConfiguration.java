@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.InvalidInitializationException;
 
 public class SeepProgramConfiguration {
@@ -24,7 +24,7 @@ public class SeepProgramConfiguration {
 	 * @param name
 	 * @param idc
 	 */
-	public void newWorkflow(String name, DataOrigin input){
+	public void newWorkflow(String name, DataStore input){
 		newWorkflow(name, input, null);
 	}
 	
@@ -34,7 +34,7 @@ public class SeepProgramConfiguration {
 	 * @param idc
 	 * @param odc
 	 */
-	public void newWorkflow(String name, DataOrigin input, DataOrigin output){
+	public void newWorkflow(String name, DataStore input, DataStore output){
 		if(workflows.containsKey(name))
 			throw new InvalidInitializationException("Workflow with same name already registered");
 		

@@ -8,6 +8,10 @@ import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputBuffer;
+import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaOutputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
@@ -25,11 +29,20 @@ public class OutputAdapterFactory {
 			int id = dc.getDownstreamOperator().getOperatorId();
 			PhysicalOperator downstreamPhysOperator = query.getOperatorWithId(dc.getDownstreamOperator().getOperatorId());
 			Connection c = new Connection(downstreamPhysOperator.getWrappingEndPoint());
-			OutputBuffer ob = new OutputBuffer(wc, id, c, streamId);
+			// Get properties required by OutputBuffer
+			int batch_size = wc.getInt(WorkerConfig.BATCH_SIZE);
+			OutputBuffer ob = new OutputBuffer(id, c, streamId, batch_size);
 			outputBuffers.put(id, ob);
 		}
 		// TODO: left for configuration whether this should be a simpleoutput or something else...
 		OutputAdapter oa = new SimpleNetworkOutput(streamId, r, outputBuffers);
+		return oa;
+	}
+	
+	public static OutputAdapter buildOutputAdapterOfTypeKafkaForOps(KafkaConfig kc, int streamId, 
+			List<DownstreamConnection> cons, PhysicalSeepQuery query){
+		OutputAdapter oa = new KafkaOutputAdapter(kc.getString(KafkaConfig.KAFKA_SERVER), kc.getString(KafkaConfig.BASE_TOPIC),
+				kc.getString(KafkaConfig.PRODUCER_CLIENT_ID), streamId);
 		return oa;
 	}
 

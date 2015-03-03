@@ -3,4 +3,5 @@ include \
 	"seep-contrib",
 	"seep-worker",
 	"seep-master",
-	"seep-java2sdg"
+	"seep-java2sdg",
+	"seep-integrationtests"

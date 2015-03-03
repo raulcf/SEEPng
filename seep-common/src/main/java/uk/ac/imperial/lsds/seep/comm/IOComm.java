@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.Serializer;
-import uk.ac.imperial.lsds.seep.infrastructure.ExtendedObjectOutputStream;
+import uk.ac.imperial.lsds.seep.util.ExtendedObjectOutputStream;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;

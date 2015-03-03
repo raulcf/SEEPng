@@ -7,15 +7,20 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.codahale.metrics.Counter;
+import static com.codahale.metrics.MetricRegistry.name;
+
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkDataStream implements InputAdapter{
 
 	final private short RETURN_TYPE = InputAdapterReturnType.ONE.ofType();
-	final private boolean REQUIRES_NETWORK = true;
-	final private boolean REQUIRES_FILE = false;
+	final private DataStoreType TYPE = DataStoreType.NETWORK;
 	
 	private InputBuffer buffer;
 	private BlockingQueue<byte[]> queue;
@@ -25,6 +30,9 @@ public class NetworkDataStream implements InputAdapter{
 	final private int streamId;
 	private ITuple iTuple;
 	
+	// Metrics
+	final Counter qSize;
+	
 	public NetworkDataStream(WorkerConfig wc, int opId, int streamId, Schema expectedSchema) {
 		this.representedIds = new ArrayList<>();
 		this.representedIds.add(opId);
@@ -32,17 +40,14 @@ public class NetworkDataStream implements InputAdapter{
 		this.iTuple = new ITuple(expectedSchema);
 		this.queueSize = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
 		this.queue = new ArrayBlockingQueue<byte[]>(queueSize);
-		this.buffer = new InputBuffer(wc.getInt(WorkerConfig.RECEIVE_APP_BUFFER_SIZE));
+		int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
+		this.buffer = new InputBuffer(headroom);
+		qSize = SeepMetrics.REG.counter(name(NetworkDataStream.class, "queue", "size"));
 	}
 	
 	@Override
-	public boolean requiresNetwork() {
-		return REQUIRES_NETWORK;
-	}
-
-	@Override
-	public boolean requiresFile() {
-		return REQUIRES_FILE;
+	public DataStoreType getDataOriginType() {
+		return TYPE;
 	}
 
 	@Override
@@ -69,6 +74,7 @@ public class NetworkDataStream implements InputAdapter{
 	public void pushData(byte[] data){
 		try {
 			queue.put(data);
+			qSize.inc();
 		} 
 		catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -94,6 +100,7 @@ public class NetworkDataStream implements InputAdapter{
 		if(data == null){
 			return null;
 		}
+		qSize.dec(); // decrement only when is not null
 		iTuple.setData(data);
 		iTuple.setStreamId(streamId);
 		return iTuple;

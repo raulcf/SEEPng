@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import static com.codahale.metrics.MetricRegistry.name;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,17 +12,20 @@ import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.core.input.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
-import uk.ac.imperial.lsds.seepworker.core.output.OutputAdapter;
+
+import com.codahale.metrics.Meter;
 
 public class SingleThreadProcessingEngine implements ProcessingEngine {
 
 	final private Logger LOG = LoggerFactory.getLogger(SingleThreadProcessingEngine.class.getName());
-	// TODO: move value to a property in workerconfig
-	final private int MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = 500;
+	final private int MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS;
 	
 	private boolean working = false;
 	private Thread worker;
@@ -32,9 +37,14 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	private SeepTask task;
 	private SeepState state;
 	
-	public SingleThreadProcessingEngine(){
+	// Metrics
+	final private Meter m;
+	
+	public SingleThreadProcessingEngine(WorkerConfig wc) {
+		this.MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = wc.getInt(WorkerConfig.MAX_WAIT_TIME_PER_INPUTADAPTER_MS);
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
+		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
 	}
 	
 	@Override
@@ -93,12 +103,14 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						ITuple d = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
 						if(d != null){
 							task.processData(d, api);
+							m.mark();
 						}
 					}
 					else if(ia.returnType() == many){
 						ITuple ld = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
 						if(ld != null){
 							task.processDataGroup(ld, api);
+							m.mark();
 						}
 					}
 					if(!it.hasNext()){

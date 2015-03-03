@@ -114,7 +114,12 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 	}
 	
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataOrigin dSrc) {
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dSrc) {
+		throw new UnsupportedOperationException("Should not use this connectTo in Physical Ops");
+	}
+
+	@Override
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc) {
 		throw new UnsupportedOperationException("Should not use this connectTo in Physical Ops");
 	}
 	
