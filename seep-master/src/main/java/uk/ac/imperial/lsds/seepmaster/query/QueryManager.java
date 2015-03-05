@@ -149,13 +149,15 @@ public class QueryManager {
 	private void sendQueryInformationToNodes(Set<Connection> connections){
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQuery);
-		LOG.info("Ready to send query file of size: {} bytes", queryFile.length);
+		LOG.info("Sending query file of size: {} bytes", queryFile.length);
 		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile);
 		comm.send_object_sync(code, connections, k);
-		
+		LOG.info("Sending query file...DONE!");
+		LOG.info("Sending Query Deploy Command");
 		// Send physical query to all nodes
 		MasterWorkerCommand queryDeploy = ProtocolCommandFactory.buildQueryDeployCommand(originalQuery);
 		comm.send_object_sync(queryDeploy, connections, k);
+		LOG.info("Sending Query Deploy Command...DONE!");
 	}
 	
 	public void startQuery(){
