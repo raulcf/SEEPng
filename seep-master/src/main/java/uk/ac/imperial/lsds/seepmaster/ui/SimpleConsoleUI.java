@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 
-public class SimpleConsoleUI implements UI{
+public class SimpleConsoleUI implements UI {
 
 	final private Logger LOG = LoggerFactory.getLogger(SimpleConsoleUI.class.getName());
 	
@@ -30,6 +30,8 @@ public class SimpleConsoleUI implements UI{
 		sb.append(System.getProperty("line.separator"));
 		sb.append(System.getProperty("line.separator"));
 		sb.append("Choose an option and press Enter");
+		sb.append(System.getProperty("line.separator"));
+		sb.append("0. Load query in Master");
 		sb.append(System.getProperty("line.separator"));
 		sb.append("1. Deploy query to Cluster");
 		sb.append(System.getProperty("line.separator"));
@@ -70,20 +72,46 @@ public class SimpleConsoleUI implements UI{
 			try{
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String option = br.readLine();
+				boolean allowed = false;
 				switch(option){
+				case "0":
+					LOG.info("Loading query in Master...");
+					String pathToJar = getUserInput("Write absolute path to query (jar file): ");
+					String definitionClass = getUserInput("Write definition class name: ");
+					// FIXME: allow to specify query parameters here as well
+					String[] queryParams = new String[]{""};
+					allowed = qm.loadQueryFromFile(pathToJar, definitionClass, queryParams);
+					if(!allowed){
+						LOG.warn("Could not load query");
+						break;
+					}
+					LOG.info("Loading query in Master...OK");
+					break;
 				case "1":
 					LOG.info("Deploying query to nodes...");
-					qm.deployQueryToNodes();
+					allowed = qm.deployQueryToNodes();
+					if(!allowed){
+						LOG.warn("Could not deploy query");
+						break;
+					}
 					LOG.info("Deploying query to nodes...OK");
 					break;
 				case "2":
 					LOG.info("Starting query...");
-					qm.startQuery();
+					allowed = qm.startQuery();
+					if(!allowed){
+						LOG.warn("Could not start query");
+						break;
+					}
 					LOG.info("Starting query...OK");
 					break;
 				case "3":
 					LOG.info("Stopping query...");
-					qm.stopQuery();
+					allowed = qm.stopQuery();
+					if(!allowed){
+						LOG.warn("Could not stop query");
+						break;
+					}
 					LOG.info("Stopping query...OK");
 					break;
 				case "100":
@@ -99,72 +127,6 @@ public class SimpleConsoleUI implements UI{
 			}
 		}
 		LOG.info("Exiting UI simpleConsole...");
-		
-//		LOG.info("-> Console, waiting for commands: ");
-//		try {
-//			boolean alive = true;
-//			/// \todo{make this robust}
-//			while(alive){
-//				consoleOutputMessage();
-//				try{
-//					BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-//					String option = br.readLine();
-//					int opt = Integer.parseInt(option);
-//					switch(opt){
-//						//Map operators to nodes
-//						case 0:
-//							System.out.println("Not implemented yet");
-//							//Submit Query to the system
-//							break;
-//						case 1:
-//							deployQueryToNodes();
-//							break;
-//						//start system
-//						case 2:
-//							startSystemOption(inf);
-//							break;
-//						//configure source rate
-////						case 3:
-////							configureSourceRateOption(inf);
-////							break;
-//						//parallelize operator manually
-//						case 4:
-//							parallelizeOpManualOption(inf, eiu);
-//							break;
-//						//silent the console
-//						case 5:
-//							alive = false;
-//							inf.stopWorkers();
-//							System.out.println("ENDING console...");
-//							break;
-//						//Exit the system
-//						case 6:
-//							System.out.println("BYE");
-//							System.exit(0);
-//							break;
-//						case 10:
-//							System.out.println("Parsing txt file...");
-//							inf.parseFileForNetflix();
-//							break;
-//						default:
-//							System.out.println("Wrong option. Try again...");
-//					}
-//				}
-//				catch(IOException io){
-//					System.out.println("While reading from terminal: "+io.getMessage());
-//					io.printStackTrace();
-//				}			
-//			}
-//			System.out.println("BYE");
-//
-//		}
-//		catch(ESFTRuntimeException ere){
-//			System.out.println(ere.getMessage());
-//		}
-//		catch(Exception g){
-//			System.out.println(g.getMessage());
-//		}
-		
 	}
 
 	@Override
