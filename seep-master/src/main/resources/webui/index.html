@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>SEEPng Web Administration Interface</title>
+</head>
+
+<body>
+<h1>Main Menu</h1>
+
+<h4>Load query</h4>
+	<form action="/action" enctype="multipart/form-data" method="post">
+		<p>
+		Introduce name of Base class:<br>
+		<input type="text" name="baseclass" size="30">
+		</p>
+		<p>
+		Please specify the query file (.jar):<br>
+		<input type="file" name="queryfile" accept=".jar">
+		</p>
+		<button type="submit" formaction="/action">Go!</button>
+	</form>
+
+<h4>Submit query to Cluster</h4>
+	<form>
+		<input type="hidden" name="actionid" value="1" />
+		<button type="submit" formaction="/action">Go!</button>
+	</form>
+
+<h4>Start query</h4>
+	<form>
+		<input type="hidden" name="actionid" value="2" />
+		<button type="submit" formaction="/action">Go!</button>
+	</form>
+
+<h4>Stop query</h4>
+	<form>
+		<input type="hidden" name="actionid" value="3" />
+		<button type="submit" formaction="/action">Go!</button>
+	</form>
+
+<h4>Exit</h4>
+	<form>
+		<input type="hidden" name="actionid" value="100" />
+		<button type="submit" formaction="/action">Go!</button>
+	</form>
+
+</body>
+</html
