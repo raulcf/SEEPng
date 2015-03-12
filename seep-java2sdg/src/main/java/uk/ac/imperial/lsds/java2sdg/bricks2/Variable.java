@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.bricks;
+package uk.ac.imperial.lsds.java2sdg.bricks2;
 
 import soot.Type;
 

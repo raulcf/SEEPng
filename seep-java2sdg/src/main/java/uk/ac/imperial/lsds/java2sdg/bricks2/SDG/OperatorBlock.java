@@ -8,7 +8,7 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
+package uk.ac.imperial.lsds.java2sdg.bricks2.SDG;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
 
 public class OperatorBlock {
 	

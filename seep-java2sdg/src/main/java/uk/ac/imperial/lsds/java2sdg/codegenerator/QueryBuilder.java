@@ -25,8 +25,8 @@ import java.util.jar.Manifest;
 
 import javassist.CannotCompileException;
 import javassist.CtClass;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
 
 public class QueryBuilder {
 

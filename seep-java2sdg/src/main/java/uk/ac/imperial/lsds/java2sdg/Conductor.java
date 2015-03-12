@@ -1,22 +1,30 @@
 package uk.ac.imperial.lsds.java2sdg;
 
-import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.janino.Java;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.CoarseGrainedTEAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
 
 public class Conductor {
 
+	final private static Logger LOG = LoggerFactory.getLogger(Conductor.class);
+	
 	private CompilerConfig cc;
 	private ConductorUtils cu;
 	
@@ -38,9 +46,7 @@ public class Conductor {
 		Map<String, InternalStateRepr> fields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
-		File inputFile = cu.getFile(inputFilePath);
-		String className = cu.getClassName(inputFile);
-		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFile, className);
+		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath);
 		
 		/** Build partial SDGs from workflows **/
 		// Perform live variable analysis and retrieve information
@@ -48,22 +54,39 @@ public class Conductor {
 		
 		// Perform TE boundary analysis -> list of TEs
 		TEAnalyzerStrategyType strategy = TEAnalyzerStrategyType.getType(cc.getInt(CompilerConfig.TE_ANALYZER_TYPE));
-		switch(strategy){
+		
+		List<PartialSDGRepr> partialSDGs = null;
+		switch(strategy) {
 		case COARSE:
-			// TODO: implement coarse mode -> debugging
+			// coarse mode -> used mainly for debugging
+			partialSDGs = CoarseGrainedTEAnalysis.getPartialSDGs(workflows, lvInfo);
 			break;
 		case STATE_ACCESS:
 			// TODO: implement state boundaries -> atc 14
+			
 			break;
 		}
 		
-		// TODO: assemble a partial SDG from the previous list of TEs
-		
 		/** Build SDG from partial SDGs **/
 		// TODO: get SDG from collection of partialSDGs
+		SDGRepr sdg = SDGRepr.createSDGFromPartialSDG(partialSDGs);
 		
 		/** Output generated SDG **/
-		// TODO: in jar by using the code generation module, in DOT or GEXF for visualization
+		OutputTarget ot = OutputTarget.ofType(cc.getInt(CompilerConfig.TARGET_OUTPUT));
+		String outputName = cc.getString(CompilerConfig.OUTPUT_FILE);
+		switch(ot){
+		case DOT:
+			
+			break;
+		case GEXF:
+			
+			break;
+		case X_JAR:
+			
+			break;
+		default:
+			
+		}
 		
 	}
 	

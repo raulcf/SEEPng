@@ -3,9 +3,9 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 import java.util.List;
 
 import soot.IntType;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks.Variable;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.SendType;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.Variable;
+import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.SendType;
 
 public class SeepOperatorInternalCodeTemplate {
 

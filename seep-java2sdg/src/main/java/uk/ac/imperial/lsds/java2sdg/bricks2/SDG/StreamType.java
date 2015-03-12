@@ -8,8 +8,8 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks;
+package uk.ac.imperial.lsds.java2sdg.bricks2.SDG;
 
-public interface SDGElement {
-
+public enum StreamType {
+	ONE_AT_A_TIME, SYNC_BARRIER, UPSTREAM
 }

@@ -5,13 +5,19 @@ import java.util.Map;
 
 import org.codehaus.janino.JavaSourceClassLoader;
 
+import uk.ac.imperial.lsds.java2sdg.ConductorUtils;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 
 public class WorkflowAnalysis {
 	
-	public static Map<String, WorkflowRepr> getWorkflows(File inputFile, String className){
+	private static ConductorUtils cu = new ConductorUtils();
+	
+	public static Map<String, WorkflowRepr> getWorkflows(String inputFilePath){
+		File inputFile = cu.getFile(inputFilePath);
+		String className = cu.getClassName(inputFile);
+		
 		WorkflowAnalysis wa = new WorkflowAnalysis();
 		SeepProgramConfiguration spc = compileAndExecuteMain(wa, inputFile, className);
 		return spc.getWorkflows();

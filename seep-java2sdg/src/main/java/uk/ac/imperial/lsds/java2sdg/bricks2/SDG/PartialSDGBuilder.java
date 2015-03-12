@@ -8,15 +8,15 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
+package uk.ac.imperial.lsds.java2sdg.bricks2.SDG;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement.TaskElementBuilder;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement.TaskElementBuilder;
 
 public class PartialSDGBuilder {
 

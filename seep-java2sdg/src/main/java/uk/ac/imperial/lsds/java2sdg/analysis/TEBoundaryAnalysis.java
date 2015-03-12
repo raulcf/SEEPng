@@ -34,9 +34,9 @@ import soot.toolkits.graph.UnitGraph;
 import uk.ac.imperial.lsds.java2sdg.Main;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement.TaskElementBuilder;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
-import uk.ac.imperial.lsds.java2sdg.bricks.Variable;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.Variable;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement.TaskElementBuilder;
 import uk.ac.imperial.lsds.java2sdg.input.SourceCodeHandler;
 
 public class TEBoundaryAnalysis {

@@ -8,11 +8,11 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
+package uk.ac.imperial.lsds.java2sdg.bricks2.SDG;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature.Nature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature.Nature;
 
 public enum SendType {
 	SEND, SEND_ALL, SEND_KEY, SEND_STREAMID, SEND_STREAMID_KEY;

@@ -8,7 +8,7 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
+package uk.ac.imperial.lsds.java2sdg.bricks2.SDG;
 
 import java.util.Collections;
 import java.util.List;

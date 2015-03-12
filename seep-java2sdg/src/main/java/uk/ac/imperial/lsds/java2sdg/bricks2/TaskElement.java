@@ -8,11 +8,12 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.bricks;
+package uk.ac.imperial.lsds.java2sdg.bricks2;
 
 import java.util.List;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.SendType;
+import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.SendType;
 
 public class TaskElement implements SDGElement{
 
