@@ -29,6 +29,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
+import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
@@ -39,6 +40,7 @@ public class QueryManager {
 	final private Logger LOG = LoggerFactory.getLogger(QueryManager.class);
 	
 	private static QueryManager qm;
+	private LifecycleManager lifeManager;
 	private String pathToQuery;
 	private LogicalSeepQuery lsq;
 	private PhysicalSeepQuery originalQuery;
@@ -69,16 +71,18 @@ public class QueryManager {
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 	}
 	
-	private QueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
+	private QueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
+		this.lifeManager = lifeManager;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 	}
 	
-	public static QueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
+	public static QueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+											Comm comm, LifecycleManager lifeManager){
 		if(qm == null){
-			return new QueryManager(inf, mapOpToEndPoint, comm);
+			return new QueryManager(inf, mapOpToEndPoint, comm, lifeManager);
 		}
 		else{
 			return qm;
@@ -89,21 +93,33 @@ public class QueryManager {
 		return inf.executionUnitsAvailable() >= executionUnitsRequiredToStart;
 	}
 	
-	public void loadQueryFromFile(String pathToJar, String definitionClass, String[] queryArgs){
+	public boolean loadQueryFromFile(String pathToJar, String definitionClass, String[] queryArgs) {
+		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
+		if(!allowed){
+			LOG.error("Attempt to violate application lifecycle");
+			return false;
+		}
 		this.pathToQuery = pathToJar;
 		// get logical query
 		this.lsq = executeComposeFromQuery(pathToJar, definitionClass, queryArgs);
 		LOG.debug("Logical query loaded: {}", lsq.toString());
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
+		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
+		return true;
 	}
 	
-	public void deployQueryToNodes(){
+	public boolean deployQueryToNodes() {
+		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
+		if(!allowed){
+			LOG.error("Attempt to violate application lifecycle");
+			return false;
+		}
 		// Check whether there are sufficient execution units to deploy query
 		if(!canStartExecution()){
 			LOG.warn("Cannot deploy query, not enough nodes. Required: {}, available: {}"
 					, executionUnitsRequiredToStart, inf.executionUnitsAvailable());
-			return;
+			return false;
 		}
 		LOG.info("Building physicalQuery from logicalQuery...");
 		originalQuery = createOriginalPhysicalQuery();
@@ -111,11 +127,47 @@ public class QueryManager {
 		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		sendQueryInformationToNodes(connections);
+		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
+		return true;
 	}
 	
 	public PhysicalSeepQuery createOriginalPhysicalQueryFrom(LogicalSeepQuery lsq){
 		this.lsq = lsq;
 		return this.createOriginalPhysicalQuery();
+	}
+	
+	public boolean startQuery(){
+		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
+		if(!allowed){
+			LOG.error("Attempt to violate application lifecycle");
+			return false;
+		}
+		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
+		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
+		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
+		
+		// Send start query command
+		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
+		comm.send_object_sync(start, connections, k);
+		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
+		return true;
+	}
+	
+	public boolean stopQuery(){
+		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_STOPPED);
+		if(!allowed){
+			LOG.error("Attempt to violate application lifecycle");
+			return false;
+		}
+		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
+		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
+		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
+		
+		// Send start query command
+		MasterWorkerCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
+		comm.send_object_sync(stop, connections, k);
+		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_STOPPED);
+		return true;
 	}
 	
 	private PhysicalSeepQuery createOriginalPhysicalQuery(){
@@ -146,40 +198,22 @@ public class QueryManager {
 		return psq;
 	}
 	
+	private int computeRequiredExecutionUnits(LogicalSeepQuery lsq){
+		return lsq.getAllOperators().size();
+	}
+	
 	private void sendQueryInformationToNodes(Set<Connection> connections){
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQuery);
-		LOG.info("Ready to send query file of size: {} bytes", queryFile.length);
+		LOG.info("Sending query file of size: {} bytes", queryFile.length);
 		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile);
 		comm.send_object_sync(code, connections, k);
-		
+		LOG.info("Sending query file...DONE!");
+		LOG.info("Sending Query Deploy Command");
 		// Send physical query to all nodes
 		MasterWorkerCommand queryDeploy = ProtocolCommandFactory.buildQueryDeployCommand(originalQuery);
 		comm.send_object_sync(queryDeploy, connections, k);
-	}
-	
-	public void startQuery(){
-		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
-		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
-		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
-		
-		// Send start query command
-		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
-		comm.send_object_sync(start, connections, k);
-	}
-	
-	public void stopQuery(){
-		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
-		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
-		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
-		
-		// Send start query command
-		MasterWorkerCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
-		comm.send_object_sync(stop, connections, k);
-	}
-	
-	private int computeRequiredExecutionUnits(LogicalSeepQuery lsq){
-		return lsq.getAllOperators().size();
+		LOG.info("Sending Query Deploy Command...DONE!");
 	}
 	
 	private LogicalSeepQuery executeComposeFromQuery(String pathToJar, String definitionClass, String[] queryArgs){
@@ -241,5 +275,4 @@ public class QueryManager {
 		//Finally we return the queryPlan
 		return lsq;
 	}
-	
 }

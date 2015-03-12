@@ -1,8 +1,10 @@
 package uk.ac.imperial.lsds.seepmaster;
 
 import joptsimple.OptionParser;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
@@ -14,6 +16,7 @@ import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
+import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 import uk.ac.imperial.lsds.seepmaster.ui.UI;
 import uk.ac.imperial.lsds.seepmaster.ui.UIFactory;
@@ -33,24 +36,36 @@ public class Main {
 		int infType = mc.getInt(MasterConfig.DEPLOYMENT_TARGET_TYPE);
 		LOG.info("Deploy target of type: {}", InfrastructureManagerFactory.nameInfrastructureManagerWithType(infType));
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
+		LifecycleManager lifeManager = LifecycleManager.getInstance();
 		// TODO: get file from config if exists and parse it to get a map from operator to endPoint
 		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
 		// TODO: from properties get serializer and type of thread pool and resources assigned to it
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
-		QueryManager qm = QueryManager.getInstance(inf, mapOperatorToEndPoint, comm);
+		QueryManager qm = QueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager);
 		// TODO: put this in the config manager
 		int port = mc.getInt(MasterConfig.LISTENING_PORT);
 		MasterWorkerAPIImplementation api = new MasterWorkerAPIImplementation(qm, inf);
 		MasterWorkerCommManager mwcm = new MasterWorkerCommManager(port, api);
 		mwcm.start();
+		
 		int uiType = mc.getInt(MasterConfig.UI_TYPE);
 		UI ui = UIFactory.createUI(uiType, qm, inf);
 		LOG.info("Created UI of type: {}", UIFactory.nameUIOfType(uiType));
-		String queryPathFile = mc.getString(MasterConfig.QUERY_FILE);
-		String baseClass = mc.getString(MasterConfig.BASECLASS_NAME);
-		LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
-		qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs);
-		LOG.info("Loading query...OK");
+		
+		String queryPathFile = null;
+		String baseClass = null;
+		// TODO: find a more appropriate way of checking whether a property is defined in config
+		if(! mc.getString(MasterConfig.QUERY_FILE).equals("") && (! mc.getString(MasterConfig.BASECLASS_NAME).equals(""))){
+			queryPathFile = mc.getString(MasterConfig.QUERY_FILE);
+			baseClass = mc.getString(MasterConfig.BASECLASS_NAME);
+			LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
+			boolean success = qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs);
+			if(! success){
+				throw new InvalidLifecycleStatusException("Could not load query due to attempt to violate app lifecycle");
+			}
+			LOG.info("Loading query...OK");
+		}
+		
 		ui.start();
 	}
 	
@@ -60,8 +75,6 @@ public class Main {
 		OptionParser parser = new OptionParser();
 		// Unrecognized options are passed through to the query
 		parser.allowsUnrecognizedOptions();
-		parser.accepts(MasterConfig.QUERY_FILE, "Jar file with the compiled SEEP query").withRequiredArg().required();
-		parser.accepts(MasterConfig.BASECLASS_NAME, "Name of the Base Class").withRequiredArg().required();
 		CommandLineArgs cla = new CommandLineArgs(args, parser, configKeys);
 		Properties commandLineProperties = cla.getProperties();
 		
@@ -80,20 +93,7 @@ public class Main {
 		instance.executeMaster(args, mc, cla.getQueryArgs());
 	}
 	
-	private static boolean validateProperties(Properties validatedProperties){
-		if((!validatedProperties.containsKey(MasterConfig.QUERY_FILE)) ||
-				validatedProperties.getProperty(MasterConfig.QUERY_FILE) == null ||
-				validatedProperties.getProperty(MasterConfig.QUERY_FILE).equals("")){
-			LOG.error("Missing required parameter: {}", MasterConfig.QUERY_FILE);
-			return false;
-		}
-		if((!validatedProperties.containsKey(MasterConfig.BASECLASS_NAME)) ||
-				validatedProperties.getProperty(MasterConfig.BASECLASS_NAME) == null ||
-				validatedProperties.getProperty(MasterConfig.BASECLASS_NAME).equals("")){
-			LOG.error("Missing required parameter: {}", MasterConfig.BASECLASS_NAME);
-			return false;
-		}
-			
+	private static boolean validateProperties(Properties validatedProperties){	
 		return true;
 	}
 	
