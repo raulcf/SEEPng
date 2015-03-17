@@ -349,7 +349,7 @@ public class NetworkSelector implements EventAPI {
 			InputAdapter responsibleForThisChannel = iapMap.get(id);
 			if(responsibleForThisChannel == null){
 				// TODO: throw exception
-				LOG.error("Problem hre, no existent inputadapter");
+				LOG.error("Problem here, no existent inputadapter for id: {}", id);
 				System.exit(0);
 			}
 			// TODO: could we keep numUpstreamConnections internal to inputAdapter? probably not...

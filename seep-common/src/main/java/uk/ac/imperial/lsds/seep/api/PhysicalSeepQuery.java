@@ -21,8 +21,7 @@ public class PhysicalSeepQuery {
 		
 	}
 	
-	public static PhysicalSeepQuery buildPhysicalQueryFrom(Set<SeepQueryPhysicalOperator> physicalOperators, 
-			LogicalSeepQuery lsq) {
+	public static PhysicalSeepQuery buildPhysicalQueryFrom(Set<SeepQueryPhysicalOperator> physicalOperators, LogicalSeepQuery lsq) {
 		// create physical connections
 		for(Operator o : physicalOperators) {
 			// update all downstream connections -> this will update the downstream's upstreams
@@ -49,7 +48,8 @@ public class PhysicalSeepQuery {
 				}
 			}
 		}
-		return new PhysicalSeepQuery(pOps, pSources, pSink);
+		PhysicalSeepQuery psq = new PhysicalSeepQuery(pOps, pSources, pSink);
+		return psq;
 	}
 	
 	private static Operator findOperator(int opId, Set<SeepQueryPhysicalOperator> physicalOperators){

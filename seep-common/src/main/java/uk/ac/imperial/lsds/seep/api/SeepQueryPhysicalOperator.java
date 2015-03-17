@@ -16,7 +16,7 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 	private boolean stateful = false;
 	private List<DownstreamConnection> downstreamConnections;
 	private List<UpstreamConnection> upstreamConnections;
-	private EndPoint ep;
+	private final EndPoint ep;
 	
 	
 	private SeepQueryPhysicalOperator(int opId, String name, SeepTask seepTask, 

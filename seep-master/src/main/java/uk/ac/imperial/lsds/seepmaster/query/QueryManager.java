@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.Operator;
+import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.SeepQueryPhysicalOperator;
 import uk.ac.imperial.lsds.seep.comm.Comm;
@@ -181,8 +182,8 @@ public class QueryManager {
 				EndPoint ep = eu.getEndPoint();
 				SeepQueryPhysicalOperator po = SeepQueryPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lso, ep);
 				int pOpId = po.getOperatorId();
-				LOG.debug("LogicalOperator: {} will run on: {}", pOpId, ep.getId());
-				opToEndpointMapping.put(pOpId, ep);
+				LOG.debug("LogicalOperator: {} will run on: {} -> ({})", pOpId, po.getWrappingEndPoint().getId(), po.getWrappingEndPoint().getIp().toString());
+				opToEndpointMapping.put(pOpId, po.getWrappingEndPoint());
 				physicalOperators.add(po);
 			}
 		}
