@@ -31,11 +31,11 @@ public class QueryManagerTest {
 		// Artificially populate infrastructure
 		ExecutionUnit eu = null, eu1 = null, eu2 = null, eu3 = null, eu4 = null;
 		try {
-			eu = new PhysicalNode(InetAddress.getByName("127.0.0.1"), 3500, 5000);
-			eu1 = new PhysicalNode(InetAddress.getByName("127.0.0.1"), 3501, 5001);
-			eu2 = new PhysicalNode(InetAddress.getByName("127.0.0.1"), 3502, 5002);
-			eu3 = new PhysicalNode(InetAddress.getByName("127.0.0.1"), 3503, 5003);
-			eu4 = new PhysicalNode(InetAddress.getByName("127.0.0.1"), 3504, 5004);
+			eu = new PhysicalNode(InetAddress.getByName("10.0.0.1"), 3500, 5000);
+			eu1 = new PhysicalNode(InetAddress.getByName("10.0.0.2"), 3501, 5001);
+			eu2 = new PhysicalNode(InetAddress.getByName("10.0.0.3"), 3502, 5002);
+			eu3 = new PhysicalNode(InetAddress.getByName("10.0.0.4"), 3503, 5003);
+			eu4 = new PhysicalNode(InetAddress.getByName("10.0.0.5"), 3504, 5004);
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();

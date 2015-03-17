@@ -13,6 +13,12 @@ public class DataStore implements DataStoreDescriptor {
 	// Config will incorporate (in the future) resource and serde
 	private Config config;
 		
+	public DataStore(DataStoreType type, Config config){
+		this.type = type;
+		this.config = config;
+	}
+	
+	@Deprecated
 	public DataStore(DataStoreType type, String resource, SerializerType serde, Config config){
 		this.type = type;
 		this.resource = resource;

@@ -1,9 +1,14 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
 public class DownstreamConnection {
 
+	final private Logger LOG = LoggerFactory.getLogger(DownstreamConnection.class);
+	
 	private Operator downstreamOperator;
 	private int streamId;
 	private Schema schema;
@@ -63,6 +68,7 @@ public class DownstreamConnection {
 	}
 	
 	public void replaceOperator(Operator replacement){
+		LOG.trace("Replacing {} by {}", this.downstreamOperator, replacement);
 		this.downstreamOperator = replacement;
 	}
 	

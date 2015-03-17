@@ -3,8 +3,6 @@ package uk.ac.imperial.lsds.seep.api;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
@@ -15,26 +13,25 @@ public class PhysicalSeepQuery {
 	private List<PhysicalOperator> physicalOperators;
 	private List<PhysicalOperator> sources;
 	private PhysicalOperator sink;
-	@Deprecated
-	private Map<PhysicalOperator, List<PhysicalOperator>> instancesPerOriginalOp;
 	
-	private PhysicalSeepQuery(List<PhysicalOperator> physicalOperators, List<PhysicalOperator> pSources, PhysicalOperator pSink,
-			Map<PhysicalOperator, List<PhysicalOperator>> instancesPerOriginalOp) {
+	private PhysicalSeepQuery(List<PhysicalOperator> physicalOperators, List<PhysicalOperator> pSources, PhysicalOperator pSink) {
 		this.physicalOperators = physicalOperators;
 		this.sources = pSources;
 		this.sink = pSink;
-		this.instancesPerOriginalOp = instancesPerOriginalOp;
+		
 	}
 	
 	public static PhysicalSeepQuery buildPhysicalQueryFrom(Set<SeepQueryPhysicalOperator> physicalOperators, 
-			Map<PhysicalOperator, List<PhysicalOperator>> instancesPerOriginalOp, LogicalSeepQuery lsq) {
+			LogicalSeepQuery lsq) {
 		// create physical connections
 		for(Operator o : physicalOperators) {
 			// update all downstream connections -> this will update the downstream's upstreams
 			for(DownstreamConnection dc : o.downstreamConnections()) {
+				// find this logical op in the physical ops
+				Operator physicalVersionOfLogicalDownstream = PhysicalSeepQuery.findOperator(dc.getDownstreamOperator().getOperatorId(), physicalOperators);
 				// this will replace a still logical connection with a physical one
 				// note that we don't need to update connectionType or dataOrigin, this info is already there
-				o.connectTo(dc.getDownstreamOperator(), dc.getStreamId(), dc.getSchema());
+				o.connectTo(physicalVersionOfLogicalDownstream, dc.getStreamId(), dc.getSchema());
 			}
 		}
 		
@@ -52,7 +49,16 @@ public class PhysicalSeepQuery {
 				}
 			}
 		}
-		return new PhysicalSeepQuery(pOps, pSources, pSink, instancesPerOriginalOp);
+		return new PhysicalSeepQuery(pOps, pSources, pSink);
+	}
+	
+	private static Operator findOperator(int opId, Set<SeepQueryPhysicalOperator> physicalOperators){
+		for(SeepQueryPhysicalOperator o : physicalOperators){
+			if(o.getOperatorId() == opId){
+				return o;
+			}
+		}
+		return null;
 	}
 	
 	public List<PhysicalOperator> getOperators(){

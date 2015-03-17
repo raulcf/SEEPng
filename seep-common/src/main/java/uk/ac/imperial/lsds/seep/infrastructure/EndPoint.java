@@ -2,6 +2,8 @@ package uk.ac.imperial.lsds.seep.infrastructure;
 
 import java.net.InetAddress;
 
+import uk.ac.imperial.lsds.seep.util.Utils;
+
 public final class EndPoint {
 
 	private final int id;
@@ -46,5 +48,12 @@ public final class EndPoint {
 	public boolean isValid(){
 		if(ip == null) return false;
 		return true;
+	}
+	
+	@Override
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		sb.append(this.ip.toString()+" port: "+this.port+" d_port: "+this.dataPort);
+		return sb.toString();
 	}
 }

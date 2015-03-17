@@ -37,8 +37,8 @@ public class Base implements QueryComposer {
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		
-		src.connectTo(processor, 1, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
-		processor.connectTo(snk, 2, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
+		src.connectTo(processor, 0, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
+		processor.connectTo(snk, 0, schema, new DataStore(DataStoreType.KAFKA, null, null, kafkaConfig));
 		
 		System.out.println("###### Build query finished");
 		return queryAPI.build();
