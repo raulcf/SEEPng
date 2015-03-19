@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.FileConfig;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -65,7 +66,7 @@ public class FileSelector {
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
 		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
-				String absPath = Utils.absolutePath(e.getValue().getResourceDescriptor());
+				String absPath = Utils.absolutePath(e.getValue().getConfig().getString(FileConfig.FILE_PATH));
 				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);

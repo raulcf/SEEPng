@@ -16,7 +16,7 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 	private boolean stateful = false;
 	private List<DownstreamConnection> downstreamConnections;
 	private List<UpstreamConnection> upstreamConnections;
-	private EndPoint ep;
+	private final EndPoint ep;
 	
 	
 	private SeepQueryPhysicalOperator(int opId, String name, SeepTask seepTask, 
@@ -85,9 +85,7 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema) {
-		
 		replaceDownstream(downstreamOperator);
-		
 		replaceUpstream(downstreamOperator);
 	}
 	
@@ -148,6 +146,8 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 		sb.append(Utils.NL);
 		sb.append("SeepTask: "+this.seepTask.toString());
 		sb.append(Utils.NL);
+		sb.append("EndPoint: "+this.ep.toString());
+		sb.append(Utils.NL);
 		if(this.state != null){
 			sb.append("SeepState: "+this.state.toString());
 		}
@@ -156,9 +156,16 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 		sb.append(Utils.NL);
 		for(int i = 0; i < this.downstreamConnections.size(); i++){
 			DownstreamConnection down = downstreamConnections.get(i);
-			sb.append("  Down-conn-"+i+"-> StreamId: "+down.getStreamId()+" to opId: "
-					+ ""+down.getDownstreamOperator().getOperatorId());
+			int streamId = down.getStreamId();
+			int downOpId = down.getDownstreamOperator().getOperatorId();
+			sb.append("  Down-conn-"+i+"-> StreamId: "+streamId+" to opId: "
+					+ ""+downOpId);
 			sb.append(Utils.NL);
+			if(down.getDownstreamOperator() instanceof SeepQueryPhysicalOperator){
+				sb.append("EndPoint info: ");
+				sb.append(((SeepQueryPhysicalOperator)down.getDownstreamOperator()).ep.toString());
+				sb.append(Utils.NL);
+			}
 		}
 		sb.append("#Upstream: "+this.upstreamConnections.size());
 		sb.append(Utils.NL);

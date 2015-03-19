@@ -9,7 +9,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -46,10 +45,8 @@ public class QueryManager {
 	private PhysicalSeepQuery originalQuery;
 	private PhysicalSeepQuery runtimeQuery;
 	private int executionUnitsRequiredToStart;
-	
 	private InfrastructureManager inf;
 	private Map<Integer, EndPoint> opToEndpointMapping;
-	
 	private final Comm comm;
 	private final Kryo k;
 	
@@ -65,7 +62,6 @@ public class QueryManager {
 		this.lsq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
-		
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
@@ -79,8 +75,7 @@ public class QueryManager {
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 	}
 	
-	public static QueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
-											Comm comm, LifecycleManager lifeManager){
+	public static QueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
 		if(qm == null){
 			return new QueryManager(inf, mapOpToEndPoint, comm, lifeManager);
 		}
@@ -145,7 +140,6 @@ public class QueryManager {
 		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
 		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
-		
 		// Send start query command
 		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
 		comm.send_object_sync(start, connections, k);
@@ -172,7 +166,6 @@ public class QueryManager {
 	
 	private PhysicalSeepQuery createOriginalPhysicalQuery(){
 		Set<SeepQueryPhysicalOperator> physicalOperators = new HashSet<>();
-		Map<PhysicalOperator, List<PhysicalOperator>> instancesPerOriginalOp = new HashMap<>();
 		
 		// use pre-defined description if exists
 		if(this.opToEndpointMapping != null){
@@ -189,12 +182,12 @@ public class QueryManager {
 				EndPoint ep = eu.getEndPoint();
 				SeepQueryPhysicalOperator po = SeepQueryPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lso, ep);
 				int pOpId = po.getOperatorId();
-				LOG.debug("LogicalOperator: {} will run on: {}", pOpId, ep.getId());
-				opToEndpointMapping.put(pOpId, ep);
+				LOG.debug("LogicalOperator: {} will run on: {} -> ({})", pOpId, po.getWrappingEndPoint().getId(), po.getWrappingEndPoint().getIp().toString());
+				opToEndpointMapping.put(pOpId, po.getWrappingEndPoint());
 				physicalOperators.add(po);
 			}
 		}
-		PhysicalSeepQuery psq = PhysicalSeepQuery.buildPhysicalQueryFrom(physicalOperators, instancesPerOriginalOp, lsq);
+		PhysicalSeepQuery psq = PhysicalSeepQuery.buildPhysicalQueryFrom(physicalOperators, lsq);
 		return psq;
 	}
 	
@@ -237,7 +230,7 @@ public class QueryManager {
 			// For backwards compatibility, use the default constructor if one with a string array argument is not found
 			try {
 				baseInstance = baseI.getConstructor(String[].class).newInstance((Object)queryArgs);
-			} catch (NoSuchMethodException e)  {
+			} catch (NoSuchMethodException e) {
 				baseInstance = baseI.newInstance();
 				if (queryArgs.length > 0) {
 					LOG.warn("Query arguments specified but Base class has no constructor taking a String[] argument");

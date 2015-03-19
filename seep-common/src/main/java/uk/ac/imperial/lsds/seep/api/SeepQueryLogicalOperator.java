@@ -97,7 +97,7 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	}
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
-		DataStore dO = new DataStore(DataStoreType.NETWORK, null, null, null);
+		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
 		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
 	}
 	

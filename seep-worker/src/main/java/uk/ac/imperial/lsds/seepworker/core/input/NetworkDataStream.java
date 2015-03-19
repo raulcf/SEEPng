@@ -86,7 +86,7 @@ public class NetworkDataStream implements InputAdapter{
 	public ITuple pullDataItem(int timeout) {
 		byte[] data = null;
 		try {
-			if(timeout > 0){
+			if(timeout >= 0){
 				// Need to poll rather than take due to the implementation of some ProcessingEngines
 				data = queue.poll(timeout, TimeUnit.MILLISECONDS);
 			} else{
