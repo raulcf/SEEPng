@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.ui;
 
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 
 public class UIFactory {

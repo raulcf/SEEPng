@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.infrastructure.master;
+package uk.ac.imperial.lsds.seep.infrastructure;
 
 import java.net.InetAddress;
 import java.util.Set;

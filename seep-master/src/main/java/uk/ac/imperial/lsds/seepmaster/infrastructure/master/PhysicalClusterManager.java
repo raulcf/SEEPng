@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnit;
 import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnitType;
+import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 
 public class PhysicalClusterManager implements InfrastructureManager {
 	
