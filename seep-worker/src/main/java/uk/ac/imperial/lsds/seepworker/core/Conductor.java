@@ -65,7 +65,12 @@ public class Conductor {
 	}
 	
 	public void stopProcessing(){
+		LOG.info("Stopping processing engine...");
 		engine.stop();
+		
+		if(ns != null) ns.stopNetworkSelector();
+		if(fs != null) fs.stopFileSelector();
+		if(ks != null) ks.stopKafkaSelector();
 	}
 	
 	public void deployPhysicalOperator(PhysicalOperator o, PhysicalSeepQuery query){

@@ -56,6 +56,20 @@ public class FileSelector {
 		}
 	}
 	
+	public void stopFileSelector(){
+		// Stop readers
+		if(readerWorker != null){
+			LOG.info("Stopping reader: {}", readerWorker.getName());
+			reader.stop();
+		}
+		
+		// Stop writers
+		if(writerWorker != null){
+			LOG.info("Stopping writer: {}", writerWorker.getName());
+			writer.stop();
+		}
+	}
+	
 	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
 		this.dataAdapters = dataAdapters;
 		this.numUpstreamResources = fileOrigins.size();
@@ -131,7 +145,6 @@ public class FileSelector {
 		
 		public void stop(){
 			this.working = false;
-			// TODO: more stuff here
 		}
 		
 		@Override
@@ -145,21 +158,38 @@ public class FileSelector {
 					if(rbc.isOpen()){
 						ia.readFrom(rbc, id);
 					}
+					else{
+						working = false;
+					}
 				}
 			}
 			LOG.info("Finished File Reader worker: {}", Thread.currentThread().getName());
+			this.closeReader();
 		}
 		
+		private void closeReader(){
+			for(SeekableByteChannel sbc : channels.keySet()){
+				try {
+					sbc.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	class Writer implements Runnable {
 
+		public void stop(){
+			// TODO: implement
+		}
+		
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			
 		}
-		
 	}
-	
 }

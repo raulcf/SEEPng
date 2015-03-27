@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -54,6 +55,14 @@ public class WorkerMasterAPIImplementation {
 		LOG.info("Bootstrapping OK conn to master: {}", masterConn.toString());
 	}
 	
+	public void signalDeadWorker(Connection masterConn, String reason){
+		MasterWorkerCommand command = ProtocolCommandFactory.buildDeadWorkerCommand(reason);
+		LOG.info("Sending bye message to master...");
+		// Retry to reconnect to master (master is highly available, will be alive eventually)
+		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
+		LOG.info("Sending bye message to master...OK");
+	}
+	
 	public void handleQueryDeploy(QueryDeployCommand qdc){
 		InetAddress ip = null;
 		try {
@@ -75,6 +84,10 @@ public class WorkerMasterAPIImplementation {
 
 	public void handleStartQuery(StartQueryCommand sqc) {
 		c.startProcessing();
+	}
+	
+	public void handleStopQuery(StopQueryCommand sqc) {
+		c.stopProcessing();
 	}
 	
 }

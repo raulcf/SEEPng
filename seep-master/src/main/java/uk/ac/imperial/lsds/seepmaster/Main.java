@@ -70,6 +70,8 @@ public class Main {
 	}
 	
 	public static void main(String args[]){
+		// Register JVM shutdown hook
+		registerShutdownHook();
 		// Get Properties with command line configuration 
 		List<ConfigKey> configKeys = MasterConfig.getAllConfigKey();
 		OptionParser parser = new OptionParser();
@@ -104,5 +106,10 @@ public class Main {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static void registerShutdownHook(){
+		Thread hook = new Thread(new MasterShutdownHookWorker());
+		Runtime.getRuntime().addShutdownHook(hook);
 	}
 }

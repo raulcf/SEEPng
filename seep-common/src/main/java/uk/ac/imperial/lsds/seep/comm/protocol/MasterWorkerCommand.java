@@ -10,6 +10,7 @@ public class MasterWorkerCommand {
 	private QueryDeployCommand qdc;
 	private StartQueryCommand sqc;
 	private StopQueryCommand stqc;
+	private DeadWorkerCommand dwc;
 	
 	public MasterWorkerCommand(){}
 	
@@ -33,6 +34,9 @@ public class MasterWorkerCommand {
 		}
 		else if(type == MasterWorkerProtocolAPI.STOPQUERY.type()){
 			this.stqc = (StopQueryCommand)ct;
+		}
+		else if(type == MasterWorkerProtocolAPI.DEADWORKER.type()){
+			this.dwc = (DeadWorkerCommand)ct;
 		}
 		else{
 			try {
@@ -70,5 +74,9 @@ public class MasterWorkerCommand {
 	
 	public StopQueryCommand getStopQueryCommand(){
 		return stqc;
+	}
+	
+	public DeadWorkerCommand getDeadWorkerCommand(){
+		return dwc;
 	}
 }

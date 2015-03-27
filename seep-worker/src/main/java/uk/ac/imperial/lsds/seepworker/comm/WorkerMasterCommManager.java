@@ -18,6 +18,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -78,6 +79,7 @@ public class WorkerMasterCommManager {
 					MasterWorkerCommand c = k.readObject(i, MasterWorkerCommand.class);
 					short cType = c.type();
 					LOG.debug("RX command with type: {}", cType);
+					// CODE command
 					if(cType == MasterWorkerProtocolAPI.CODE.type()){
 						LOG.info("RX Code command");
 						CodeCommand cc = c.getCodeCommand();
@@ -92,17 +94,26 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						loadCodeToRuntime(f);
 					}
+					// QUERYDEPLOY command
 					else if(cType == MasterWorkerProtocolAPI.QUERYDEPLOY.type()){
 						LOG.info("RX QueryDeploy command");
 						QueryDeployCommand qdc = c.getQueryDeployCommand();
 						out.println("ack");
 						api.handleQueryDeploy(qdc);
 					}
+					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()){
 						LOG.info("RX StartRuntime command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
 						api.handleStartQuery(sqc);
+					}
+					// STOPQUERY command
+					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()){
+						LOG.info("RX StopRuntime command");
+						StopQueryCommand sqc = c.getStopQueryCommand();
+						out.println("ack");
+						api.handleStopQuery(sqc);
 					}
 				}
 				catch(IOException io){

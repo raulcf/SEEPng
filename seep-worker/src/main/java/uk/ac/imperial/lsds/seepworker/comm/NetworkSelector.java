@@ -178,12 +178,8 @@ public class NetworkSelector implements EventAPI {
 		}
 	}
 	
-	public void stop(){
+	public void stopNetworkSelector() {
 		this.acceptorWorking = false;
-	}
-	
-	public void destroyNow(){
-		this.stop();
 		
 		for(Reader r : readers){
 			r.stop();
@@ -191,6 +187,7 @@ public class NetworkSelector implements EventAPI {
 		for(Writer w : writers){
 			w.stop();
 		}
+		LOG.info("Stopped reader, writers and acceptor workers");
 	}
 	
 	@Override
@@ -272,8 +269,7 @@ public class NetworkSelector implements EventAPI {
 		}
 		
 		public void stop(){
-			this.working = false;
-			// TODO: more stuff here
+			this.working = false; // let thread die
 		}
 		
 		public void newConnection(SocketChannel incomingChannel){
@@ -323,6 +319,7 @@ public class NetworkSelector implements EventAPI {
 					ioe.printStackTrace();
 				}
 			}
+			this.closeReader();
 		}
 		
 		private boolean needsToConfigureConnection(SelectionKey key){
@@ -384,6 +381,27 @@ public class NetworkSelector implements EventAPI {
 				}
 			}
 		}
+		
+		private void closeReader(){
+			// FIXME: test this
+			try {
+				// close channel and cancel registration
+				for(SelectionKey sk : readSelector.keys()){
+					sk.channel().close();
+					sk.cancel();
+				}
+				// close pendingConnections
+				for(SocketChannel sc : pendingConnections){
+					sc.close();
+				}
+				// close selector
+				readSelector.close();
+			} 
+			catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	class Writer implements Runnable {
@@ -418,7 +436,6 @@ public class NetworkSelector implements EventAPI {
 		
 		public void stop(){
 			this.working = false;
-			// TODO: more stuff here
 		}
 		
 		public void newConnection(OutputBuffer ob){
@@ -482,6 +499,7 @@ public class NetworkSelector implements EventAPI {
 					ioe.printStackTrace();
 				}
 			}
+			this.closeWriter();
 		}
 		
 		private void pollBuffers(){
@@ -549,6 +567,21 @@ public class NetworkSelector implements EventAPI {
 				}
 			}
 			catch(IOException io){
+				io.printStackTrace();
+			}
+		}
+		
+		private void closeWriter(){
+			// FIXME: test this
+			try{
+				for(SelectionKey sk : writeSelector.keys()){
+					sk.channel().close();
+					sk.cancel();
+				}
+				writeSelector.close();
+			}
+			catch (IOException io){
+				// TODO: proper handling
 				io.printStackTrace();
 			}
 		}

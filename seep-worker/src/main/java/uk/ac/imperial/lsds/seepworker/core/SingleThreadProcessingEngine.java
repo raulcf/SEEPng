@@ -81,7 +81,23 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	@Override
 	public void stop() {
 		working = false;
-		// TODO: additional cleaning required
+		this.closeAndCleanEngine();
+	}
+	
+	private void closeAndCleanEngine(){
+		try {
+			LOG.debug("Waiting for worker thread to die...");
+			worker.join();
+			LOG.debug("Waiting for worker thread to die...OK");
+		} 
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		coreInput = null;
+		coreOutput = null;
+		task = null;
+		state = null;
 	}
 	
 	private class Worker implements Runnable{
@@ -121,6 +137,12 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 				LOG.info("About to call processData without data. Am I a source?");
 				task.processData(null, api);
 			}
+			this.closeEngine();
 		}
+		
+		private void closeEngine(){
+			LOG.info("Stopping main engine thread");
+		}
+		
 	}
 }

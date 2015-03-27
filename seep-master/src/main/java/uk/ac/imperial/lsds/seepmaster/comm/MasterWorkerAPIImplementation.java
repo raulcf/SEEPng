@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
@@ -37,6 +38,11 @@ public class MasterWorkerAPIImplementation {
 		LOG.info("New worker node in {}:{}, dataPort: {}", bootIp.toString(), port, dataPort);
 		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, port, dataPort);
 		inf.addExecutionUnit(eu);
+	}
+	
+	public void handleDeadWorker(DeadWorkerCommand dwc){
+		LOG.warn("Worker has died...");
+		// FIXME: bring necessary info to deregister worker here
 	}
 	
 }

@@ -86,6 +86,8 @@ public class Main {
 		// Configure metrics serving
 		this.configureMetricsReporting(wc);
 		
+		// Register JVM shutdown hook
+		registerShutdownHook(c, masterConnection, api);
 	}
 	
 	private void configureMetricsReporting(WorkerConfig wc){
@@ -100,7 +102,6 @@ public class Main {
 	}
 	
 	public static void main(String args[]){
-		
 		// Get properties from command line
 		List<ConfigKey> configKeys = WorkerConfig.getAllConfigKey();
 		OptionParser parser = new OptionParser();
@@ -140,5 +141,10 @@ public class Main {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static void registerShutdownHook(Conductor c, Connection masterConn, WorkerMasterAPIImplementation api){
+		Thread hook = new Thread(new WorkerShutdownHookWorker(c, masterConn, api));
+		Runtime.getRuntime().addShutdownHook(hook);
 	}
 }
