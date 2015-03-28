@@ -55,8 +55,8 @@ public class WorkerMasterAPIImplementation {
 		LOG.info("Bootstrapping OK conn to master: {}", masterConn.toString());
 	}
 	
-	public void signalDeadWorker(Connection masterConn, String reason){
-		MasterWorkerCommand command = ProtocolCommandFactory.buildDeadWorkerCommand(reason);
+	public void signalDeadWorker(Connection masterConn, int workerId, String reason){
+		MasterWorkerCommand command = ProtocolCommandFactory.buildDeadWorkerCommand(workerId, reason);
 		LOG.info("Sending bye message to master...");
 		// Retry to reconnect to master (master is highly available, will be alive eventually)
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);

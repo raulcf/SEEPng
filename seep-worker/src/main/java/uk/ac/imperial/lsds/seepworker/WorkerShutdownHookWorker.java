@@ -11,11 +11,14 @@ public class WorkerShutdownHookWorker implements Runnable {
 
 	final private static Logger LOG = LoggerFactory.getLogger(WorkerShutdownHookWorker.class);
 	
+	private final int workerId;
+	
 	private Conductor c;
 	private Connection masterConn;
 	private WorkerMasterAPIImplementation api;
 	
-	public WorkerShutdownHookWorker(Conductor c, Connection masterConn, WorkerMasterAPIImplementation api) {
+	public WorkerShutdownHookWorker(int workerId, Conductor c, Connection masterConn, WorkerMasterAPIImplementation api) {
+		this.workerId = workerId;
 		this.c = c;
 		this.masterConn = masterConn;
 		this.api = api;
@@ -29,7 +32,7 @@ public class WorkerShutdownHookWorker implements Runnable {
 		LOG.info("JVM is shutting down...");
 		LOG.info("Worker is shutting down, sending bye message");
 		String reason = "unknown";
-		api.signalDeadWorker(masterConn, reason);
+		api.signalDeadWorker(masterConn, workerId, reason);
 		c.stopProcessing();
 		LOG.info("bye");
 	}

@@ -80,6 +80,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 
 	@Override
 	public void stop() {
+		if(task != null) task.close();	// to avoid nullpointer when Ctrl^c after stopping query
 		working = false;
 		this.closeAndCleanEngine();
 	}
@@ -129,13 +130,15 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							m.mark();
 						}
 					}
-					if(!it.hasNext()){
+					if(!it.hasNext() && working){
 						it = inputAdapters.iterator();
 					}
 				}
 				// If there are no input adapters, assume processData contain all necessary and give null input data
-				LOG.info("About to call processData without data. Am I a source?");
-				task.processData(null, api);
+				if(working){
+					LOG.info("About to call processData without data. Am I a source?");
+					task.processData(null, api);
+				}
 			}
 			this.closeEngine();
 		}

@@ -41,8 +41,10 @@ public class MasterWorkerAPIImplementation {
 	}
 	
 	public void handleDeadWorker(DeadWorkerCommand dwc){
-		LOG.warn("Worker has died...");
-		// FIXME: bring necessary info to deregister worker here
+		int workerId = dwc.getWorkerId();
+		String reason = dwc.reason();
+		LOG.warn("Worker {} has died, reason: {}", workerId, reason);
+		inf.removeExecutionUnit(workerId);
 	}
 	
 }
