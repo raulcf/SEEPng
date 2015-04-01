@@ -27,10 +27,10 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnit;
+import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 import com.esotericsoftware.kryo.Kryo;
 

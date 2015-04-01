@@ -20,7 +20,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 
 public class WebUIHandler extends HttpServlet {

@@ -6,6 +6,7 @@ applicationDefaultJvmArgs = []
 // All dependencies
 dependencies {
 	compile project(':seep-common')
+	compile project(':seep-contrib')
 	compile 'org.apache.commons:commons-collections4:4.0'
 	compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
 	compile 'org.eclipse.jetty:jetty-servlet:9.2.9.v20150224'
