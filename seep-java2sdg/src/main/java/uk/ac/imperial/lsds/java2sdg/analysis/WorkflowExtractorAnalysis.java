@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,12 +36,12 @@ import org.codehaus.janino.util.Traverser;
 
 public class WorkflowExtractorAnalysis extends Traverser {
 
-	private Map<String, List<String>> bodies;
+	private static Map<String, List<String>> bodies = new HashMap<>();
 	
 	public static Map<String, List<String>> getWorkflowBody(Java.CompilationUnit cu){
 		WorkflowExtractorAnalysis wea = new WorkflowExtractorAnalysis();
 		wea.traverseCompilationUnit(cu);
-		return wea.bodies;
+		return bodies;
 	}
 
 	@Override
@@ -116,7 +117,7 @@ public class WorkflowExtractorAnalysis extends Traverser {
 
 		@Override
 		public void visitReturnStatement(ReturnStatement rs) {
-			rs.accept(this);
+			code.add(rs.toString());
 		}
 		
 		@Override
