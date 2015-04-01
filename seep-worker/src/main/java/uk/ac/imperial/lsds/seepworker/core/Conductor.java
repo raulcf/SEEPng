@@ -52,8 +52,6 @@ public class Conductor {
 		this.wc = wc;
 		this.dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
-		// Use config to get all parameters that configure input, output and engine
-		// TODO:
 	}
 	
 	public void startProcessing(){

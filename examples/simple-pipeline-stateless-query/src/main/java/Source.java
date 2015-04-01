@@ -11,6 +11,7 @@ public class Source implements SeepTask {
 
 	private Schema schema1 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
 	private Schema schema2 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+	private boolean working = true;
 	
 	@Override
 	public void setUp() {
@@ -22,7 +23,7 @@ public class Source implements SeepTask {
 		int userId = 0;
 		long ts = 0;
 		waitHere(2000);
-		while(true){
+		while(working){
 			byte[] d = OTuple.create(schema1, new String[]{"userId", "ts", "text"}, new Object[]{userId, ts, 
 					"some long"});// text to force some errors if possiblesome long text to force some errors if possible"
 //					+ "some long text to force some errors if possiblesome long text to force some errors if possible"
@@ -54,6 +55,6 @@ public class Source implements SeepTask {
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		this.working = false;
 	}
 }
