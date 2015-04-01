@@ -16,7 +16,7 @@ public class LifecycleManager {
 		QUERY_DEPLOYED(2, new int[]{4, 1}),
 		QUERY_RUNNING(4, new int[]{5, 6, 2}),
 		QUERY_FAILED(5, new int[]{6, 4, 2}),
-		QUERY_STOPPED(6, new int[]{2, 4});
+		QUERY_STOPPED(6, new int[]{2});
 		
 		private int id;
 		private int[] validStateTransitions;

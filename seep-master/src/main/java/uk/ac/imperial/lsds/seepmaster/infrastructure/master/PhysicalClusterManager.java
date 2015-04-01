@@ -61,7 +61,6 @@ public class PhysicalClusterManager implements InfrastructureManager {
 				}
 			}
 		}
-		LOG.info("ExecutionUnit id: {} was not available", id);
 		return false;
 	}
 
