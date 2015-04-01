@@ -1,7 +1,7 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import org.codehaus.janino.Java.Atom;
 import org.codehaus.janino.Java.CompilationUnit;
@@ -11,20 +11,30 @@ import org.codehaus.janino.util.Traverser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
+
 public class LVAnalysis extends Traverser {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LVAnalysis.class.getSimpleName());
 	
-	private HashMap<String, LivenessInformation> lvData;
+	private HashMap<String, VariableLivenessInformation> lvData;
+	private LivenessInformation lvInfo;
 	
 	public LVAnalysis(){
 		this.lvData = new HashMap<>();
 	}
 	
-	public static Map<String, LivenessInformation> getLVInfo(CompilationUnit cu){
+	public static LivenessInformation getLVInfo(CompilationUnit cu){
 		LVAnalysis lva = new LVAnalysis();
 		lva.traverseCompilationUnit(cu);
-		return lva.lvData;
+		lva.lvInfo = lva.buildLVInfo();
+		return lva.lvInfo;
+	}
+	
+	private LivenessInformation buildLVInfo(){
+		// TODO: create lvinfo here with comfortable ifaces
+		
+		return lvInfo;
 	}
 	
 	@Override 
@@ -48,7 +58,7 @@ public class LVAnalysis extends Traverser {
 		if(lvData.containsKey(varName)){
 			LOG.error("already registered variable. overwriting info?");
 		}
-		LivenessInformation li = new LivenessInformation(varName, line);
+		VariableLivenessInformation li = new VariableLivenessInformation(varName, line);
 		lvData.put(varName, li);
 	}
 	
@@ -58,13 +68,13 @@ public class LVAnalysis extends Traverser {
 		}
 	}
 	
-	public class LivenessInformation{
+	class VariableLivenessInformation{
 		
 		private final String varName;
 		private final int livesFrom;
 		private int livesTo = 0;
 		
-		public LivenessInformation(String varName, int line){
+		public VariableLivenessInformation(String varName, int line){
 			this.varName = varName;
 			this.livesFrom = line;
 			this.livesTo = line;
@@ -92,5 +102,12 @@ public class LVAnalysis extends Traverser {
 			return line <= livesTo;
 		}
 		
+	}
+	
+	public class LivenessInformation{
+		
+		public List<VariableRepr> getLiveVarsAt(int line){
+			return null;
+		}
 	}
 }

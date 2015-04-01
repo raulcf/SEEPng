@@ -14,6 +14,8 @@ import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowExtractorAnalysis;
+import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
@@ -46,11 +48,12 @@ public class Conductor {
 		Map<String, InternalStateRepr> fields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
-		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath);
+		Map<String, CodeRepr> workflowBodies = WorkflowExtractorAnalysis.getWorkflowBody(compilationUnit);
+		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath, workflowBodies);
 		
 		/** Build partial SDGs from workflows **/
 		// Perform live variable analysis and retrieve information
-		Map<String, LivenessInformation> lvInfo = LVAnalysis.getLVInfo(compilationUnit);
+		LivenessInformation lvInfo = LVAnalysis.getLVInfo(compilationUnit);
 		
 		// Perform TE boundary analysis -> list of TEs
 		TEAnalyzerStrategyType strategy = TEAnalyzerStrategyType.getType(cc.getInt(CompilerConfig.TE_ANALYZER_TYPE));

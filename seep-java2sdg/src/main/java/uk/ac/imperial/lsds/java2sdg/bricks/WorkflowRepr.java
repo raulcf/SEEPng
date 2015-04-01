@@ -3,7 +3,6 @@ package uk.ac.imperial.lsds.java2sdg.bricks;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
-
 /**
  * WorkflowRepr is an internal representation of a workflow in SEEP.
  * @author ra
@@ -20,6 +19,8 @@ public class WorkflowRepr {
 	private DataStore sink;
 	// The schema of the output data
 	private Schema outputSchema;
+	// Actual code of workflow
+	private CodeRepr code;
 	
 	public WorkflowRepr(String name, DataStore source, Schema inputSchema, DataStore sink, Schema outputSchema){
 		this.name = name;
@@ -71,5 +72,13 @@ public class WorkflowRepr {
 	
 	public boolean hasSink(){
 		return this.sink != null;
+	}
+	
+	public void setCode(CodeRepr code){
+		this.code = code;
+	}
+	
+	public CodeRepr getCode(){
+		return code;
 	}
 }
