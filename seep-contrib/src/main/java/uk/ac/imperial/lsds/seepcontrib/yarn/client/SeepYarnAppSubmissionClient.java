@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepcontrib.yarn;
+package uk.ac.imperial.lsds.seepcontrib.yarn.client;
 
 import java.io.IOException;
 
@@ -7,6 +7,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.LocalResource;
@@ -35,8 +36,10 @@ public class SeepYarnAppSubmissionClient {
     private ApplicationId appId;
     private Configuration conf;
     
-    public SeepYarnAppSubmissionClient(Config config, Configuration conf){
+    public SeepYarnAppSubmissionClient(Config yc){
         this.yarnClient = YarnClient.createYarnClient();
+        // FIXME: get HADOOP.Configuration from YarnConfig.yc (received as parameter)
+        Configuration conf = null;
         this.yarnClient.init(conf);
         this.yarnClient.start();
         this.conf = conf;
@@ -103,4 +106,30 @@ public class SeepYarnAppSubmissionClient {
         
         return success;
     }
+    
+    // TODO: not used now, integrate into yarnseepappbusmission client UI
+    public ApplicationReport requestReport(){
+    	ApplicationReport report = null; 
+    	// Get application report for the appId we are interested in
+    	try {
+			report = yarnClient.getApplicationReport(appId);
+		} 
+    	catch (YarnException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return report;
+    }
+
+    // TODO: not used now, integrate into yarnseepappbusmission client UI
+    public void kill(){
+    	try {
+			yarnClient.killApplication(appId);
+		} 
+    	catch (YarnException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
 }

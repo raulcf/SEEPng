@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepcontrib.yarn;
+package uk.ac.imperial.lsds.seepcontrib.yarn.infrastructure;
 
 import java.net.InetAddress;
 import java.util.Set;

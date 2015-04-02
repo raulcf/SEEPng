@@ -89,6 +89,10 @@ public class Utils {
 		return data;
 	}
 	
+	public static Properties readPropertiesFromFile(String fileName) {
+		return Utils.readPropertiesFromFile(fileName, null);
+	}
+	
 	public static Properties readPropertiesFromFile(String fileName, String resFileName){
 		Properties prop = new Properties();
 		File f = new File(fileName);
@@ -98,7 +102,7 @@ public class Utils {
 				// Read from file
 				fis = new FileInputStream(new File(fileName));
 			}
-			else{
+			else if(resFileName != null){
 				// Read from resource
 				fis = (InputStream) Thread.currentThread().getContextClassLoader().getResourceAsStream(resFileName);
 			}

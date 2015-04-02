@@ -1,8 +1,13 @@
 package uk.ac.imperial.lsds.seepmaster;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+
 import joptsimple.OptionParser;
 
-import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,21 +19,13 @@ import uk.ac.imperial.lsds.seep.config.ConfigKey;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seep.util.Utils;
-import uk.ac.imperial.lsds.seepcontrib.yarn.SeepYarnAppSubmissionClient;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureType;
 import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
 import uk.ac.imperial.lsds.seepmaster.ui.UI;
 import uk.ac.imperial.lsds.seepmaster.ui.UIFactory;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executors;
 
 
 public class Main {
@@ -94,27 +91,10 @@ public class Main {
 			System.exit(0);
 		}
 		MasterConfig mc = new MasterConfig(validatedProperties);
-		// Check infrastructure deployment type
-		int infType = mc.getInt(MasterConfig.DEPLOYMENT_TARGET_TYPE);
-		if(infType == InfrastructureType.YARN_CLUSTER.ofType()) {
-			// Yarn calls custom framework logic
-			// FIXME: instead of null get hadoop/yarn configuration, how to connect to yarn res manager
-			SeepYarnAppSubmissionClient syasc = new SeepYarnAppSubmissionClient(mc, null);
-			try {
-				boolean success = syasc.submitSeepYarnApplication();
-				if (!success) {
-					throw new RuntimeException("Failed to submit yarn app client.");
-				}
-			} catch (YarnException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		else{
-			// Any other infrastructure calls executeMaster
-			Main instance = new Main();
-			instance.executeMaster(args, mc, cla.getQueryArgs());
-		}
+
+		// Any other infrastructure calls executeMaster
+		Main instance = new Main();
+		instance.executeMaster(args, mc, cla.getQueryArgs());
 	}
 	
 	private static boolean validateProperties(Properties validatedProperties){	

@@ -1,7 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.infrastructure.master;
 
 import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
-import uk.ac.imperial.lsds.seepcontrib.yarn.YarnClusterManager;
+import uk.ac.imperial.lsds.seepcontrib.yarn.infrastructure.YarnClusterManager;
 
 public class InfrastructureManagerFactory {
 
