@@ -54,8 +54,11 @@ public class PhysicalClusterManager implements InfrastructureManager {
 	public boolean removeExecutionUnit(int id) {
 		for(ExecutionUnit eu : physicalNodes){
 			if(eu.getId() == id){
-				physicalNodes.remove(eu);
-				return true;
+				boolean success = physicalNodes.remove(eu);
+				if(success){
+					LOG.info("ExecutionUnit id: {} was removed");
+					return true;
+				}
 			}
 		}
 		return false;

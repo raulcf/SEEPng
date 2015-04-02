@@ -1,7 +1,7 @@
 package uk.ac.imperial.lsds.seep.api;
 
 
-public enum DataOriginType {
+public enum DataStoreType {
 	
 	NETWORK((short)0), 
 	FILE((short)1),
@@ -12,7 +12,7 @@ public enum DataOriginType {
 	
 	private short type;
 	
-	DataOriginType(short type){
+	DataStoreType(short type){
 		this.type = type;
 	}
 	

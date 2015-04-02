@@ -1,3 +1,6 @@
+import java.util.Properties;
+
+import uk.ac.imperial.lsds.seep.api.FileConfig;
 import uk.ac.imperial.lsds.seep.api.FileSource;
 import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
@@ -15,7 +18,11 @@ public class Base implements QueryComposer {
 		
 		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "param1").newField(Type.INT, "param2").build();
 		
-		FileSource fileSource = FileSource.newSource(0, "test.txt", SerializerType.NONE);
+		Properties p = new Properties();
+		p.setProperty(FileConfig.FILE_PATH, "test.txt");
+		p.setProperty(FileConfig.SERDE_TYPE, new Integer(SerializerType.NONE.ofType()).toString());
+		
+		FileSource fileSource = FileSource.newSource(0, new FileConfig(p));
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		

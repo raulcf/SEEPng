@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -54,14 +54,14 @@ public class CoreInputFactory {
 		for(Integer streamId : streamToOpConn.keySet()){
 			List<InputAdapter> ias = null;
 			List<UpstreamConnection> upCon = streamToOpConn.get(streamId);
-			DataOriginType dOriginType = upCon.get(0).getDataOriginType();
-			if(dOriginType.equals(DataOriginType.NETWORK)){
+			DataStoreType dOriginType = upCon.get(0).getDataOriginType();
+			if(dOriginType.equals(DataStoreType.NETWORK)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeNetworkForOps(wc, streamId, upCon);
 			} 
-			else if(dOriginType.equals(DataOriginType.FILE)){
+			else if(dOriginType.equals(DataStoreType.FILE)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeFileForOps(wc, streamId, upCon);
 			}
-			else if(dOriginType.equals(DataOriginType.KAFKA)){
+			else if(dOriginType.equals(DataStoreType.KAFKA)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeKafkaForOps(wc, streamId, upCon);
 			}
 			if(ias != null){

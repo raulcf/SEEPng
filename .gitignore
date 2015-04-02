@@ -41,6 +41,8 @@ examples/simple-pipeline-stateless-barrier-query/build/*
 examples/simple-kafka-stateless-pipeline/.gitignore/
 examples/simple-kafka-stateless-pipeline/.settings/
 examples/simple-kafka-stateless-pipeline/build/*
+examples/static-scaleout-pipeline-stateful-query/.settings/
+examples/static-scaleout-pipeline-stateful-query/build/
 deploy/
 dist/
 install/

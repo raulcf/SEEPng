@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import static com.codahale.metrics.MetricRegistry.name;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,15 +15,18 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 
+import com.codahale.metrics.Meter;
+
 public class SingleThreadProcessingEngine implements ProcessingEngine {
 
 	final private Logger LOG = LoggerFactory.getLogger(SingleThreadProcessingEngine.class.getName());
-	// TODO: move value to a property in workerconfig
-	final private int MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = 500;
+	final private int MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS;
 	
 	private boolean working = false;
 	private Thread worker;
@@ -33,9 +38,14 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	private SeepTask task;
 	private SeepState state;
 	
-	public SingleThreadProcessingEngine(){
+	// Metrics
+	final private Meter m;
+	
+	public SingleThreadProcessingEngine(WorkerConfig wc) {
+		this.MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = wc.getInt(WorkerConfig.MAX_WAIT_TIME_PER_INPUTADAPTER_MS);
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
+		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
 	}
 	
 	@Override
@@ -71,8 +81,25 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 
 	@Override
 	public void stop() {
+		if(task != null) task.close();	// to avoid nullpointer when Ctrl^c after stopping query
 		working = false;
-		// TODO: additional cleaning required
+		this.closeAndCleanEngine();
+	}
+	
+	private void closeAndCleanEngine(){
+		try {
+			LOG.debug("Waiting for worker thread to die...");
+			worker.join();
+			LOG.debug("Waiting for worker thread to die...OK");
+		} 
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		coreInput = null;
+		coreOutput = null;
+		task = null;
+		state = null;
 	}
 	
 	private class Worker implements Runnable{
@@ -96,8 +123,10 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							boolean consume = true;
 							while(consume) {
 								ITuple d = di.consume();
-								if(d != null) task.processData(d, api);
-								else consume = false;
+								if(d != null) {
+									task.processData(d, api);
+									m.mark();
+								} else consume = false;
 							}
 						}
 					}
@@ -107,20 +136,31 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							boolean consume = true;
 							while(consume) {
 								ITuple d = ld.consume();
-								if(d != null) task.processDataGroup(d, api);
+								if(d != null){
+									task.processDataGroup(d, api);
+									m.mark();
+								}
 								else consume = false;
 							}
 							
 						}
 					}
-					if(!it.hasNext()){
+					if(!it.hasNext() && working){
 						it = inputAdapters.iterator();
 					}
 				}
 				// If there are no input adapters, assume processData contain all necessary and give null input data
-				LOG.info("About to call processData without data. Am I a source?");
-				task.processData(null, api);
+				if(working){
+					LOG.info("About to call processData without data. Am I a source?");
+					task.processData(null, api);
+				}
 			}
+			this.closeEngine();
 		}
+		
+		private void closeEngine(){
+			LOG.info("Stopping main engine thread");
+		}
+		
 	}
 }

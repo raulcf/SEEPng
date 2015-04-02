@@ -8,7 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
@@ -43,15 +43,15 @@ public class CoreOutputFactory {
 		for(Integer streamId : streamToOpConn.keySet()){
 			
 			List<DownstreamConnection> doCon = streamToOpConn.get(streamId);
-			DataOriginType dOriginType = doCon.get(0).getExpectedDataOriginTypeOfDownstream();
+			DataStoreType dOriginType = doCon.get(0).getExpectedDataOriginTypeOfDownstream();
 			
 			OutputAdapter oa = null;
-			if(dOriginType == DataOriginType.NETWORK){
+			if(dOriginType == DataStoreType.NETWORK){
 				// Create outputAdapter
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "NETWORK");
 				oa = OutputAdapterFactory.buildOutputAdapterOfTypeNetworkForOps(wc, streamId, doCon, query);
 			}
-			else if(dOriginType == DataOriginType.KAFKA){
+			else if(dOriginType == DataStoreType.KAFKA){
 				// Create outputAdapter to send data to Kafka, and *not* to the downstream operator
 				KafkaConfig kc = (KafkaConfig) doCon.get(0).getExpectedDataOriginOfDownstream().getConfig();
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");

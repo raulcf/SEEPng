@@ -18,7 +18,8 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataOrigin;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.FileConfig;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -55,7 +56,21 @@ public class FileSelector {
 		}
 	}
 	
-	public void configureAccept(Map<Integer, DataOrigin> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
+	public void stopFileSelector(){
+		// Stop readers
+		if(readerWorker != null){
+			LOG.info("Stopping reader: {}", readerWorker.getName());
+			reader.stop();
+		}
+		
+		// Stop writers
+		if(writerWorker != null){
+			LOG.info("Stopping writer: {}", writerWorker.getName());
+			writer.stop();
+		}
+	}
+	
+	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
 		this.dataAdapters = dataAdapters;
 		this.numUpstreamResources = fileOrigins.size();
 		this.reader = new Reader();
@@ -63,9 +78,9 @@ public class FileSelector {
 		this.readerWorker.setName("File-Reader");
 		
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		for(Entry<Integer, DataOrigin> e : fileOrigins.entrySet()){
+		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
-				String absPath = Utils.absolutePath(e.getValue().getResourceDescriptor());
+				String absPath = Utils.absolutePath(e.getValue().getConfig().getString(FileConfig.FILE_PATH));
 				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);
@@ -104,7 +119,7 @@ public class FileSelector {
 		this.reader.availableChannels(channels);
 	}
 	
-	public void configureDownstreamFiles(Map<Integer, DataOrigin> fileDest){
+	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest){
 		// TODO: implement this, configure writer, etc...
 		throw new NotImplementedException("TODO: ");
 	}
@@ -130,7 +145,6 @@ public class FileSelector {
 		
 		public void stop(){
 			this.working = false;
-			// TODO: more stuff here
 		}
 		
 		@Override
@@ -144,21 +158,38 @@ public class FileSelector {
 					if(rbc.isOpen()){
 						ia.readFrom(rbc, id);
 					}
+					else{
+						working = false;
+					}
 				}
 			}
 			LOG.info("Finished File Reader worker: {}", Thread.currentThread().getName());
+			this.closeReader();
 		}
 		
+		private void closeReader(){
+			for(SeekableByteChannel sbc : channels.keySet()){
+				try {
+					sbc.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	class Writer implements Runnable {
 
+		public void stop(){
+			// TODO: implement
+		}
+		
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			
 		}
-		
 	}
-	
 }

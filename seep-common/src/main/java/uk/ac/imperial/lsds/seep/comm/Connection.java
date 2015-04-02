@@ -22,6 +22,7 @@ public class Connection {
 		if(!valid){
 			throw new InvalidEndPointException("No IP defined for the endPoint");
 		}
+		LOG.trace("Created connection with EndPoint: {}", ep.toString());
 		this.ep = ep;
 	}
 	
@@ -53,7 +54,7 @@ public class Connection {
 	}
 	
 	public InetSocketAddress getInetSocketAddressForData(){
-		LOG.trace("Building InetSocketAdderss with IP: {}, dataPort: {}", this.ep.getIp(), this.ep.getDataPort());
+		LOG.trace("Building InetSocketAddress with IP: {}, dataPort: {}", this.ep.getIp(), this.ep.getDataPort());
 		return new InetSocketAddress(this.ep.getIp(), this.ep.getDataPort());
 	}
 	

@@ -1,10 +1,11 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import java.util.Properties;
+
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
-import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
-import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
+import uk.ac.imperial.lsds.seep.api.data.Type;
 
 public class FileBase implements QueryComposer {
 
@@ -13,7 +14,13 @@ public class FileBase implements QueryComposer {
 		
 		Schema s = SchemaBuilder.getInstance().newField(Type.LONG, "w1").newField(Type.LONG, "w2").build();
 		
-		FileSource source = FileSource.newSource(10, "/data/test.txt", SerializerType.NONE);
+		// Create FileConfig to configure the file source
+		Properties p = new Properties();
+		p.setProperty(FileConfig.FILE_PATH, "/data/test.txt");
+		p.setProperty(FileConfig.SERDE_TYPE, "0");
+		FileConfig fConfig = new FileConfig(p);
+		
+		FileSource source = FileSource.newSource(10, fConfig);
 		LogicalOperator trainer = queryAPI.newStatelessOperator(new Trainer(), 0);
 		LogicalOperator parameterServer = queryAPI.newStatelessOperator(new ParameterServer(), 1);
 		LogicalOperator sink = queryAPI.newStatelessSink(new Sink(), 2);

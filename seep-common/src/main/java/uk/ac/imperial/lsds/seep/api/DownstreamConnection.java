@@ -1,14 +1,19 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
 public class DownstreamConnection {
 
+	final private Logger LOG = LoggerFactory.getLogger(DownstreamConnection.class);
+	
 	private Operator downstreamOperator;
 	private int streamId;
 	private Schema schema;
 	private ConnectionType connectionType;
-	private DataOrigin dSrc;
+	private DataStore dSrc;
 
 	public Operator getDownstreamOperator() {
 		return downstreamOperator;
@@ -42,19 +47,19 @@ public class DownstreamConnection {
 		this.connectionType = connectionType;
 	}
 	
-	public DataOriginType getExpectedDataOriginTypeOfDownstream(){
+	public DataStoreType getExpectedDataOriginTypeOfDownstream(){
 		return dSrc.type();
 	}
 	
-	public DataOrigin getExpectedDataOriginOfDownstream(){
+	public DataStore getExpectedDataOriginOfDownstream(){
 		return dSrc;
 	}
 	
-	public void setExpectedDataOriginOfDownstream(DataOrigin dSrc){
+	public void setExpectedDataOriginOfDownstream(DataStore dSrc){
 		this.dSrc = dSrc;
 	}
 	
-	public DownstreamConnection(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataOrigin dSrc){
+	public DownstreamConnection(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
 		this.setDownstreamOperator(downstreamOperator);
 		this.setStreamId(streamId);
 		this.setSchema(schema);
@@ -63,6 +68,7 @@ public class DownstreamConnection {
 	}
 	
 	public void replaceOperator(Operator replacement){
+		LOG.trace("Replacing {} by {}", this.downstreamOperator, replacement);
 		this.downstreamOperator = replacement;
 	}
 	

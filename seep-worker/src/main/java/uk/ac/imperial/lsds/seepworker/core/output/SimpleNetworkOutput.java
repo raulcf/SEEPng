@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
@@ -15,7 +15,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 
 	private final boolean SINGLE_SEND_NOT_DEFINED;
 	
-	final private DataOriginType TYPE = DataOriginType.NETWORK;
+	final private DataStoreType TYPE = DataStoreType.NETWORK;
 	
 	private int streamId;
 	private Router router;
@@ -42,7 +42,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	}
 	
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 	
@@ -86,8 +86,12 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	@Override
 	public void sendKey(byte[] o, int key) {
 		int opId = router.route(key);
-		ob = outputBuffers.get(opId);
-		ob.write(o);
+		OutputBuffer ob = outputBuffers.get(opId);
+		
+		boolean complete = ob.write(o);
+		if(complete){
+			eAPI.readyForWrite(ob.id());
+		}
 	}
 
 	/**

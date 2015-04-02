@@ -49,6 +49,21 @@ public class OTuple {
 		return o.getBytes();
 	}
 	
+	public static byte[] createUnsafe(Type[] types, Object[] values, int size){
+		byte[] data = new byte[size];
+		ByteBuffer wrapper = ByteBuffer.wrap(data);
+		for(int i = 0; i < values.length; i++) {
+			Type t = types[i];
+			t.write(wrapper, values[i]);
+		}
+		return data;
+	}
+	
+	public static byte[] createUnsafe(Type[] types, Object[] values){
+		int size = calculateSizeFromTypes(types, values);
+		return createUnsafe(types, values, size);
+	}
+	
 	private byte[] getBytes(){
 		int requiredSize = this.fixedSchemaSize;
 		if(schema.isVariableSize()){
@@ -68,6 +83,14 @@ public class OTuple {
 		for(int i = 0; i < schema.fields().length; i++){
 			Type t = schema.fields()[i];
 			size = size + t.sizeOf(values[i]);
+		}
+		return size;
+	}
+	
+	public static int calculateSizeFromTypes(Type[] types, Object[] values){
+		int size = 0;
+		for(int i = 0; i < types.length; i++){
+			size = size + types[i].sizeOf(values[i]);
 		}
 		return size;
 	}

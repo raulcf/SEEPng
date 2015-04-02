@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.BootstrapCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -79,6 +80,11 @@ public class MasterWorkerCommManager {
 					}
 					else if(type == MasterWorkerProtocolAPI.CRASH.type()){
 						LOG.info("RX-> Crash command");
+					}
+					else if(type == MasterWorkerProtocolAPI.DEADWORKER.type()){
+						LOG.info("RX-> DeadWorker command");
+						DeadWorkerCommand dwc = command.getDeadWorkerCommand();
+						api.handleDeadWorker(dwc);
 					}
 				}
 				catch(IOException io){

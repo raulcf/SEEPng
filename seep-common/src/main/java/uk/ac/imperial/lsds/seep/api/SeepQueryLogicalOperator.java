@@ -92,17 +92,17 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	}
 
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataOrigin dSrc) {
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dSrc) {
 		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dSrc);
 	}
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
-		DataOrigin dO = new DataOrigin(DataOriginType.NETWORK, null, null, null);
+		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
 		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
 	}
 	
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataOrigin dSrc){
+	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
 		// Add downstream to this operator
 		this.addDownstream(downstreamOperator, streamId, schema, connectionType, dSrc);
 		// Add this, as upstream, to the downstream operator
@@ -111,12 +111,12 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	
 	/* Methods to manage logicalOperator connections */
 	
-	private void addDownstream(Operator lo, int streamId, Schema schema, ConnectionType connectionType, DataOrigin dSrc){
+	private void addDownstream(Operator lo, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
 		DownstreamConnection dc = new DownstreamConnection(lo, streamId, schema, connectionType, dSrc);
 		this.downstream.add(dc);
 	}
 	
-	private void addUpstream(Operator lo, ConnectionType connectionType, int streamId, Schema schema, DataOrigin dSrc){
+	private void addUpstream(Operator lo, ConnectionType connectionType, int streamId, Schema schema, DataStore dSrc){
 		UpstreamConnection uc = new UpstreamConnection(lo, connectionType, streamId, schema, dSrc);
 		this.upstream.add(uc);
 	}

@@ -10,6 +10,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 public class Source implements SeepTask {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
+	private boolean working = true;
 	
 	@Override
 	public void setUp() {
@@ -21,7 +22,7 @@ public class Source implements SeepTask {
 		int userId = 0;
 		long ts = 0;
 		int switcher = 0;
-		while(true){
+		while(working){
 			byte[] d = OTuple.create(schema, new String[]{"userId", "ts", "text"}, new Object[]{userId, ts, "some text"});
 			
 			if(switcher++%2 == 0)
@@ -54,6 +55,6 @@ public class Source implements SeepTask {
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		this.working = false;
 	}
 }

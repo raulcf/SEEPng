@@ -7,19 +7,22 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
 import uk.ac.imperial.lsds.seep.api.data.DataItem;
+import com.codahale.metrics.Counter;
+import static com.codahale.metrics.MetricRegistry.name;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.RowBatchITuple;
 import uk.ac.imperial.lsds.seep.api.data.RowBatchITuple.RowBatchITupleBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkDataStream implements InputAdapter{
 
 	final private short RETURN_TYPE = InputAdapterReturnType.ONE.ofType();
-	final private DataOriginType TYPE = DataOriginType.NETWORK;
+	final private DataStoreType TYPE = DataStoreType.NETWORK;
 	
 	private InputBuffer buffer;
 	private BlockingQueue<DataItem> queue;
@@ -29,6 +32,9 @@ public class NetworkDataStream implements InputAdapter{
 	final private int streamId;
 	private ITuple iTuple;
 	private RowBatchITupleBuilder appBatch;
+	
+	// Metrics
+	final Counter qSize;
 	
 	public NetworkDataStream(WorkerConfig wc, int opId, int streamId, Schema expectedSchema) {
 		this.representedIds = new ArrayList<>();
@@ -40,10 +46,11 @@ public class NetworkDataStream implements InputAdapter{
 		int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
 		this.buffer = new InputBuffer(headroom);
 		this.appBatch = new RowBatchITupleBuilder(wc.getInt(WorkerConfig.APP_BATCH_SIZE), iTuple, streamId);
+		qSize = SeepMetrics.REG.counter(name(NetworkDataStream.class, "queue", "size"));
 	}
 	
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 
@@ -88,7 +95,7 @@ public class NetworkDataStream implements InputAdapter{
 	public DataItem pullDataItem(int timeout){
 		DataItem data = null;
 		try {
-			if(timeout > 0){
+			if(timeout >= 0){
 				// Need to poll rather than take due to the implementation of some ProcessingEngines
 				data = queue.poll(timeout, TimeUnit.MILLISECONDS);
 			} else{
@@ -102,6 +109,7 @@ public class NetworkDataStream implements InputAdapter{
 		if(data == null){
 			return null;
 		}
+		qSize.dec(); // decrement only when is not null
 		return data;
 	}
 

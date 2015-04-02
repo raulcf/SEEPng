@@ -5,15 +5,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import uk.ac.imperial.lsds.seep.config.Config;
-import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 
 public class KafkaSelector {
 
@@ -67,6 +68,11 @@ public class KafkaSelector {
 			LOG.info("Starting reader: {}", r.getName());
 			r.start();
 		}
+	}
+	
+	public void stopKafkaSelector(){
+		// TODO: do this
+		throw new NotImplementedException("stopKafkaSelector not implemented!!");
 	}
 
 	class Reader implements Runnable {

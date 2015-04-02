@@ -34,4 +34,10 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 	
+	public static MasterWorkerCommand buildDeadWorkerCommand(int workerId, String reason){
+		DeadWorkerCommand dwc = new DeadWorkerCommand(workerId, reason);
+		MasterWorkerCommand c = new MasterWorkerCommand(dwc);
+		return c;
+	}
+	
 }

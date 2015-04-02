@@ -2,7 +2,7 @@ package uk.ac.imperial.lsds.seepcontrib.kafka.comm;
 
 import java.util.Map;
 
-import uk.ac.imperial.lsds.seep.api.DataOriginType;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
@@ -10,7 +10,7 @@ import uk.ac.imperial.lsds.seepcontrib.kafka.KafkaSystemProducer;
 
 public class KafkaOutputAdapter implements OutputAdapter {
 
-	final private DataOriginType TYPE = DataOriginType.KAFKA;
+	final private DataStoreType TYPE = DataStoreType.KAFKA;
 	final private KafkaSystemProducer producer;
 	
 	private int streamId;
@@ -96,7 +96,7 @@ public class KafkaOutputAdapter implements OutputAdapter {
 	}
 
 	@Override
-	public DataOriginType getDataOriginType() {
+	public DataStoreType getDataOriginType() {
 		return TYPE;
 	}
 
