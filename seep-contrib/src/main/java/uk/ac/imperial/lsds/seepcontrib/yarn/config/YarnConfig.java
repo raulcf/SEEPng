@@ -13,11 +13,19 @@ public class YarnConfig extends Config {
 
 	private static final ConfigDef config;
 
-	public static final String CONTAINER_MEMORY_MB = "container.memory.mb";
-	private static final String CONTAINER_MEMORY_MB_DOC = "Maximum memory allowed per container";
+	public static final String YARN_CONTAINER_MEMORY_MB = "yarn.container.memory.mb";
+	private static final String YARN_CONTAINER_MEMORY_MB_DOC = "Maximum memory allowed per container";
+	
+	public static final String YARN_CONTAINER_CPU_CORES = "yarn.container.cpu.cores";
+	private static final String YARN_CONTAINER_CPU_CORES_DOC = "Maximum no of cpu cores allowed per container";
+	
+	public static final String YARN_WORKER_PACKAGE_PATH = "yarn.worker.package.path";
+	private static final String YARN_WORKER_PACKAGE_PATH_DOC = "Relative path to the worker jar package";
 	
 	static{
-		config = new ConfigDef().define(CONTAINER_MEMORY_MB, Type.STRING, Importance.HIGH, CONTAINER_MEMORY_MB_DOC);
+		config = new ConfigDef().define(YARN_CONTAINER_MEMORY_MB, Type.STRING, Importance.HIGH, YARN_CONTAINER_MEMORY_MB_DOC)
+				.define(YARN_CONTAINER_CPU_CORES, Type.STRING, Importance.HIGH, YARN_CONTAINER_CPU_CORES_DOC)
+				.define(YARN_WORKER_PACKAGE_PATH, Type.STRING, Importance.HIGH, YARN_WORKER_PACKAGE_PATH_DOC);
 	}
 	
 	

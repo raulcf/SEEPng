@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepmaster;
 
 import joptsimple.OptionParser;
 
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,15 @@ public class Main {
 			// Yarn calls custom framework logic
 			// FIXME: instead of null get hadoop/yarn configuration, how to connect to yarn res manager
 			SeepYarnAppSubmissionClient syasc = new SeepYarnAppSubmissionClient(mc, null);
-			
+			try {
+				boolean success = syasc.submitSeepYarnApplication();
+				if (!success) {
+					throw new RuntimeException("Failed to submit yarn app client.");
+				}
+			} catch (YarnException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		else{
 			// Any other infrastructure calls executeMaster
