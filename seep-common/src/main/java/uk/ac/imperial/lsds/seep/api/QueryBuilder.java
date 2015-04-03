@@ -13,15 +13,16 @@ package uk.ac.imperial.lsds.seep.api;
 import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 public class QueryBuilder implements QueryAPI {
 	
-	private static LogicalSeepQuery qp = new LogicalSeepQuery();
+	private static SeepLogicalQuery qp = new SeepLogicalQuery();
 	
 	public SchemaBuilder schemaBuilder = SchemaBuilder.getInstance();
 	
-	public static LogicalSeepQuery build(){
+	public static SeepLogicalQuery build(){
 		// Check nonOperator sources and adjust sources accordingly
 		for(Operator o : qp.getAllOperators()){
 			for(UpstreamConnection uc : o.upstreamConnections()){

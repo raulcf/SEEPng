@@ -5,7 +5,6 @@ import uk.ac.imperial.lsds.seep.config.Config;
 public class DataStore implements DataStoreDescriptor {
 
 	private DataStoreType type;
-	// Config will incorporate (in the future) resource and serde
 	private Config config;
 		
 	public DataStore(DataStoreType type, Config config){

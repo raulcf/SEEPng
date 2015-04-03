@@ -8,26 +8,26 @@ import java.util.Set;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
-public class PhysicalSeepQuery {
+public class SeepPhysicalQuery {
 
 	private List<PhysicalOperator> physicalOperators;
 	private List<PhysicalOperator> sources;
 	private PhysicalOperator sink;
 	
-	private PhysicalSeepQuery(List<PhysicalOperator> physicalOperators, List<PhysicalOperator> pSources, PhysicalOperator pSink) {
+	private SeepPhysicalQuery(List<PhysicalOperator> physicalOperators, List<PhysicalOperator> pSources, PhysicalOperator pSink) {
 		this.physicalOperators = physicalOperators;
 		this.sources = pSources;
 		this.sink = pSink;
 		
 	}
 	
-	public static PhysicalSeepQuery buildPhysicalQueryFrom(Set<SeepQueryPhysicalOperator> physicalOperators, LogicalSeepQuery lsq) {
+	public static SeepPhysicalQuery buildPhysicalQueryFrom(Set<SeepPhysicalOperator> physicalOperators, SeepLogicalQuery lsq) {
 		// create physical connections
 		for(Operator o : physicalOperators) {
 			// update all downstream connections -> this will update the downstream's upstreams
 			for(DownstreamConnection dc : o.downstreamConnections()) {
 				// find this logical op in the physical ops
-				Operator physicalVersionOfLogicalDownstream = PhysicalSeepQuery.findOperator(dc.getDownstreamOperator().getOperatorId(), physicalOperators);
+				Operator physicalVersionOfLogicalDownstream = SeepPhysicalQuery.findOperator(dc.getDownstreamOperator().getOperatorId(), physicalOperators);
 				// this will replace a still logical connection with a physical one
 				// note that we don't need to update connectionType or dataOrigin, this info is already there
 				o.connectTo(physicalVersionOfLogicalDownstream, dc.getStreamId(), dc.getSchema());
@@ -48,12 +48,12 @@ public class PhysicalSeepQuery {
 				}
 			}
 		}
-		PhysicalSeepQuery psq = new PhysicalSeepQuery(pOps, pSources, pSink);
+		SeepPhysicalQuery psq = new SeepPhysicalQuery(pOps, pSources, pSink);
 		return psq;
 	}
 	
-	private static Operator findOperator(int opId, Set<SeepQueryPhysicalOperator> physicalOperators){
-		for(SeepQueryPhysicalOperator o : physicalOperators){
+	private static Operator findOperator(int opId, Set<SeepPhysicalOperator> physicalOperators){
+		for(SeepPhysicalOperator o : physicalOperators){
 			if(o.getOperatorId() == opId){
 				return o;
 			}

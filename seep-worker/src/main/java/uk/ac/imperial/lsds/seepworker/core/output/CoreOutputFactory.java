@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -20,7 +20,7 @@ public class CoreOutputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreOutputFactory.class);
 	
-	public static CoreOutput buildCoreOutputForOperator(WorkerConfig wc, PhysicalOperator o, PhysicalSeepQuery query){
+	public static CoreOutput buildCoreOutputForOperator(WorkerConfig wc, PhysicalOperator o, SeepPhysicalQuery query){
 		LOG.info("Building coreOutput...");
 		List<OutputAdapter> outputAdapters = new ArrayList<>();
 		// Create an InputAdapter per upstream connection -> know with the streamId

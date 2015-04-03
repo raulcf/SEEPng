@@ -7,7 +7,7 @@ import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
-public class SeepQueryPhysicalOperator implements PhysicalOperator{
+public class SeepPhysicalOperator implements PhysicalOperator{
 	
 	private int opId;
 	private String name;
@@ -19,7 +19,7 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 	private final EndPoint ep;
 	
 	
-	private SeepQueryPhysicalOperator(int opId, String name, SeepTask seepTask, 
+	private SeepPhysicalOperator(int opId, String name, SeepTask seepTask, 
 									SeepState state, List<DownstreamConnection> downstreamConnections, 
 									List<UpstreamConnection> upstreamConnections, EndPoint ep) {
 		this.opId = opId;
@@ -34,18 +34,18 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 		this.ep = ep;
 	}
 	
-	public static SeepQueryPhysicalOperator createPhysicalOperatorFromLogicalOperatorAndEndPoint(int opId, Operator lo, EndPoint ep){
-		return new SeepQueryPhysicalOperator(opId, lo.getOperatorName(), lo.getSeepTask(), 
+	public static SeepPhysicalOperator createPhysicalOperatorFromLogicalOperatorAndEndPoint(int opId, Operator lo, EndPoint ep){
+		return new SeepPhysicalOperator(opId, lo.getOperatorName(), lo.getSeepTask(), 
 				lo.getState(), lo.downstreamConnections(), lo.upstreamConnections(), ep);
 	}
 	
-	public static SeepQueryPhysicalOperator createPhysicalOperatorFromLogicalOperatorAndEndPoint(Operator lo, EndPoint ep){
-		return SeepQueryPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lo.getOperatorId(), lo, ep);
+	public static SeepPhysicalOperator createPhysicalOperatorFromLogicalOperatorAndEndPoint(Operator lo, EndPoint ep){
+		return SeepPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lo.getOperatorId(), lo, ep);
 	}
 	
-	public static SeepQueryPhysicalOperator createPhysicalOperatorFromScratch(int opId, String opName, SeepTask st,
+	public static SeepPhysicalOperator createPhysicalOperatorFromScratch(int opId, String opName, SeepTask st,
 			SeepState state, List<DownstreamConnection> downCons, List<UpstreamConnection> upCons, EndPoint ep){
-		return new SeepQueryPhysicalOperator(opId, opName, st, state, downCons, upCons, ep);
+		return new SeepPhysicalOperator(opId, opName, st, state, downCons, upCons, ep);
 	}
 
 	@Override
@@ -161,9 +161,9 @@ public class SeepQueryPhysicalOperator implements PhysicalOperator{
 			sb.append("  Down-conn-"+i+"-> StreamId: "+streamId+" to opId: "
 					+ ""+downOpId);
 			sb.append(Utils.NL);
-			if(down.getDownstreamOperator() instanceof SeepQueryPhysicalOperator){
+			if(down.getDownstreamOperator() instanceof SeepPhysicalOperator){
 				sb.append("EndPoint info: ");
-				sb.append(((SeepQueryPhysicalOperator)down.getDownstreamOperator()).ep.toString());
+				sb.append(((SeepPhysicalOperator)down.getDownstreamOperator()).ep.toString());
 				sb.append(Utils.NL);
 			}
 		}

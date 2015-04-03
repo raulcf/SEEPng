@@ -21,7 +21,5 @@ public interface QueryAPI {
 	
 	public void setInitialPhysicalInstancesForLogicalOperator(int opId, int numInstances);
 	
-	//public LogicalState newLogicalState(SeepState state, int ownerId);
-	
 	public String toString();
 }

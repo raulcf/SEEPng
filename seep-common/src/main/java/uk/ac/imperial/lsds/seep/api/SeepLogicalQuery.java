@@ -17,10 +17,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
-public class LogicalSeepQuery {
+public class SeepLogicalQuery {
 	
 	private List<Operator> logicalOperators = new ArrayList<>();
 	private List<Operator> sources = new ArrayList<>();
@@ -143,14 +144,14 @@ public class LogicalSeepQuery {
 	
 	public LogicalOperator newStatefulOperator(SeepTask seepTask, SeepState state, int opId){
 		state.setOwner(opId);
-		LogicalOperator lo = SeepQueryLogicalOperator.newStatefulOperator(opId, seepTask, state);
+		LogicalOperator lo = SeepLogicalOperator.newStatefulOperator(opId, seepTask, state);
 		logicalOperators.add(lo);
 		states.add(state);
 		return lo;
 	}
 	
 	public LogicalOperator newStatelessOperator(SeepTask seepTask, int opId){
-		LogicalOperator lo = SeepQueryLogicalOperator.newStatelessOperator(opId, seepTask);
+		LogicalOperator lo = SeepLogicalOperator.newStatelessOperator(opId, seepTask);
 		logicalOperators.add(lo);
 		return lo;
 	}

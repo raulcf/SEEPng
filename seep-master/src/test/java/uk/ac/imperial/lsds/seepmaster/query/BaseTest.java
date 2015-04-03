@@ -2,7 +2,7 @@ package uk.ac.imperial.lsds.seepmaster.query;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -13,7 +13,7 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 public class BaseTest implements QueryComposer {
 
 	@Override
-	public LogicalSeepQuery compose() {
+	public SeepLogicalQuery compose() {
 		// Declare Source
 		LogicalOperator src = queryAPI.newStatelessSource(new Source(), -1);
 		

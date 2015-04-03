@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
@@ -72,7 +72,7 @@ public class Conductor {
 		LOG.info("Stopping processing engine...OK");
 	}
 	
-	public void deployPhysicalOperator(PhysicalOperator o, PhysicalSeepQuery query){
+	public void deployPhysicalOperator(PhysicalOperator o, SeepPhysicalQuery query){
 		this.o = o;
 		this.task = o.getSeepTask();
 		LOG.info("Configuring local task: {}", task.toString());

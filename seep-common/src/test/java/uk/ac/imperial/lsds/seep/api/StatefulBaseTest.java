@@ -8,7 +8,7 @@ import uk.ac.imperial.lsds.seep.api.state.stateimpl.SeepMap;
 public class StatefulBaseTest implements QueryComposer {
 
 	@Override
-	public LogicalSeepQuery compose() {
+	public SeepLogicalQuery compose() {
 		// Declare Source
 		LogicalOperator src = queryAPI.newStatelessSource(new Source(), -1);
 		// Declare processor

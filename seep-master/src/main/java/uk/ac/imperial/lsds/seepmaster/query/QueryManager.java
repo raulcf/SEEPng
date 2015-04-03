@@ -16,11 +16,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.Operator;
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
-import uk.ac.imperial.lsds.seep.api.SeepQueryPhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -41,24 +40,24 @@ public class QueryManager {
 	private static QueryManager qm;
 	private LifecycleManager lifeManager;
 	private String pathToQuery;
-	private LogicalSeepQuery lsq;
-	private PhysicalSeepQuery originalQuery;
-	private PhysicalSeepQuery runtimeQuery;
+	private SeepLogicalQuery lsq;
+	private SeepPhysicalQuery originalQuery;
+	private SeepPhysicalQuery runtimeQuery;
 	private int executionUnitsRequiredToStart;
 	private InfrastructureManager inf;
 	private Map<Integer, EndPoint> opToEndpointMapping;
 	private final Comm comm;
 	private final Kryo k;
 	
-	public PhysicalSeepQuery getOriginalPhysicalQuery(){
+	public SeepPhysicalQuery getOriginalPhysicalQuery(){
 		return originalQuery;
 	}
 	
-	public PhysicalSeepQuery getRuntimePhysicalQuery(){
+	public SeepPhysicalQuery getRuntimePhysicalQuery(){
 		return runtimeQuery;
 	}
 	
-	public QueryManager(LogicalSeepQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
+	public QueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
 		this.lsq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
@@ -126,7 +125,7 @@ public class QueryManager {
 		return true;
 	}
 	
-	public PhysicalSeepQuery createOriginalPhysicalQueryFrom(LogicalSeepQuery lsq){
+	public SeepPhysicalQuery createOriginalPhysicalQueryFrom(SeepLogicalQuery lsq){
 		this.lsq = lsq;
 		return this.createOriginalPhysicalQuery();
 	}
@@ -164,8 +163,8 @@ public class QueryManager {
 		return true;
 	}
 	
-	private PhysicalSeepQuery createOriginalPhysicalQuery(){
-		Set<SeepQueryPhysicalOperator> physicalOperators = new HashSet<>();
+	private SeepPhysicalQuery createOriginalPhysicalQuery(){
+		Set<SeepPhysicalOperator> physicalOperators = new HashSet<>();
 		
 		// use pre-defined description if exists
 		if(this.opToEndpointMapping != null){
@@ -180,18 +179,18 @@ public class QueryManager {
 			for(Operator lso : lsq.getAllOperators()){
 				ExecutionUnit eu = inf.getExecutionUnit();
 				EndPoint ep = eu.getEndPoint();
-				SeepQueryPhysicalOperator po = SeepQueryPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lso, ep);
+				SeepPhysicalOperator po = SeepPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lso, ep);
 				int pOpId = po.getOperatorId();
 				LOG.debug("LogicalOperator: {} will run on: {} -> ({})", pOpId, po.getWrappingEndPoint().getId(), po.getWrappingEndPoint().getIp().toString());
 				opToEndpointMapping.put(pOpId, po.getWrappingEndPoint());
 				physicalOperators.add(po);
 			}
 		}
-		PhysicalSeepQuery psq = PhysicalSeepQuery.buildPhysicalQueryFrom(physicalOperators, lsq);
+		SeepPhysicalQuery psq = SeepPhysicalQuery.buildPhysicalQueryFrom(physicalOperators, lsq);
 		return psq;
 	}
 	
-	private int computeRequiredExecutionUnits(LogicalSeepQuery lsq){
+	private int computeRequiredExecutionUnits(SeepLogicalQuery lsq){
 		return lsq.getAllOperators().size();
 	}
 	
@@ -209,11 +208,11 @@ public class QueryManager {
 		LOG.info("Sending Query Deploy Command...DONE!");
 	}
 	
-	private LogicalSeepQuery executeComposeFromQuery(String pathToJar, String definitionClass, String[] queryArgs){
+	private SeepLogicalQuery executeComposeFromQuery(String pathToJar, String definitionClass, String[] queryArgs){
 		Class<?> baseI = null;
 		Object baseInstance = null;
 		Method compose = null;
-		LogicalSeepQuery lsq = null;
+		SeepLogicalQuery lsq = null;
 		File urlPathToQueryDefinition = new File(pathToJar);
 		LOG.debug("-> Set path to query definition: {}", urlPathToQueryDefinition.getAbsolutePath());
 		URL[] urls = new URL[1];
@@ -238,7 +237,7 @@ public class QueryManager {
 			}
 			// FIXME: eliminate hardcoded name
 			compose = baseI.getDeclaredMethod("compose", (Class<?>[])null);
-			lsq = (LogicalSeepQuery) compose.invoke(baseInstance, (Object[])null);
+			lsq = (SeepLogicalQuery) compose.invoke(baseInstance, (Object[])null);
 			ucl.close();
 		}
 		catch (SecurityException e) {

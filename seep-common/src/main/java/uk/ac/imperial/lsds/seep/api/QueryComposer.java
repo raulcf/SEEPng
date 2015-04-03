@@ -14,6 +14,6 @@ public interface QueryComposer {
 	
 	public static QueryBuilder queryAPI = new QueryBuilder();
 	
-	public LogicalSeepQuery compose();
+	public SeepLogicalQuery compose();
     
 }

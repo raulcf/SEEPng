@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 
 public class ProtocolCommandFactory {
 	
@@ -16,7 +16,7 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 
-	public static MasterWorkerCommand buildQueryDeployCommand(PhysicalSeepQuery originalQuery) {
+	public static MasterWorkerCommand buildQueryDeployCommand(SeepPhysicalQuery originalQuery) {
 		QueryDeployCommand qdc = new QueryDeployCommand(originalQuery);
 		MasterWorkerCommand c = new MasterWorkerCommand(qdc);
 		return c;

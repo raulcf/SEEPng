@@ -1,14 +1,14 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 
 public class QueryDeployCommand implements CommandType {
 
-	private PhysicalSeepQuery psq;
+	private SeepPhysicalQuery psq;
 	
 	public QueryDeployCommand(){}
 	
-	public QueryDeployCommand(PhysicalSeepQuery psq){
+	public QueryDeployCommand(SeepPhysicalQuery psq){
 		this.psq = psq;
 	}
 	
@@ -17,7 +17,7 @@ public class QueryDeployCommand implements CommandType {
 		return MasterWorkerProtocolAPI.QUERYDEPLOY.type();
 	}
 	
-	public PhysicalSeepQuery getQuery(){
+	public SeepPhysicalQuery getQuery(){
 		return psq;
 	}
 

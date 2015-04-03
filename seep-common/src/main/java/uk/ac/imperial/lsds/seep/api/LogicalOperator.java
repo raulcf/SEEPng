@@ -8,4 +8,4 @@ package uk.ac.imperial.lsds.seep.api;
  *
  */
 
-public interface LogicalOperator extends Operator{}
+public interface LogicalOperator extends Operator { }

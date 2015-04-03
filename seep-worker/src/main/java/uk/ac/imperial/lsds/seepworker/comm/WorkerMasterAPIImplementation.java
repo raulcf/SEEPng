@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -72,7 +72,7 @@ public class WorkerMasterAPIImplementation {
 			e.printStackTrace();
 		}
 		int myOwnId = Utils.computeIdFromIpAndPort(ip, myPort);
-		PhysicalSeepQuery query = qdc.getQuery();
+		SeepPhysicalQuery query = qdc.getQuery();
 		
 		// We don't know yet what is this for anyway...
 		Set<EndPoint> meshTopology = query.getMeshTopology(myOwnId);

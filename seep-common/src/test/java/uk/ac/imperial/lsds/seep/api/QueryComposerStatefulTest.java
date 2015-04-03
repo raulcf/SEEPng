@@ -11,7 +11,7 @@ public class QueryComposerStatefulTest {
 		//Create Base class
 		StatefulBaseTest bt = new StatefulBaseTest();
 		//Get logical seep query by composing the base class
-		LogicalSeepQuery lsq = bt.compose();
+		SeepLogicalQuery lsq = bt.compose();
 		System.out.println(lsq.toString());
 		for(Operator lo : lsq.getAllOperators()){
 			System.out.println(lo.toString());

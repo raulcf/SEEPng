@@ -6,7 +6,7 @@ import java.util.Map;
 
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
@@ -19,7 +19,7 @@ import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
 public class OutputAdapterFactory {
 
 	public static OutputAdapter buildOutputAdapterOfTypeNetworkForOps(WorkerConfig wc, int streamId, 
-			List<DownstreamConnection> cons, PhysicalSeepQuery query){
+			List<DownstreamConnection> cons, SeepPhysicalQuery query){
 		// Create a router for the outputAdapter with the downstreamConn info
 		Router r = RouterFactory.buildRouterFor(cons);
 
@@ -40,7 +40,7 @@ public class OutputAdapterFactory {
 	}
 	
 	public static OutputAdapter buildOutputAdapterOfTypeKafkaForOps(KafkaConfig kc, int streamId, 
-			List<DownstreamConnection> cons, PhysicalSeepQuery query){
+			List<DownstreamConnection> cons, SeepPhysicalQuery query){
 		OutputAdapter oa = new KafkaOutputAdapter(kc.getString(KafkaConfig.KAFKA_SERVER), kc.getString(KafkaConfig.BASE_TOPIC),
 				kc.getString(KafkaConfig.PRODUCER_CLIENT_ID), streamId);
 		return oa;
