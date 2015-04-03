@@ -1,7 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.ui;
 
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 
 public class UIFactory {
 
@@ -16,7 +16,7 @@ public class UIFactory {
 		return name;
 	}
 	
-	public static UI createUI(int uiType, QueryManager qm, InfrastructureManager inf){
+	public static UI createUI(int uiType, GenericQueryManager qm, InfrastructureManager inf){
 		if(uiType == UIType.SIMPLECONSOLE.ofType()) {
 			return new SimpleConsoleUI(qm, inf);
 		}

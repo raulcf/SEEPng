@@ -48,7 +48,7 @@ public class QueryManagerTest {
 //		inf.addExecutionUnit(eu4);
 		
 		// Build query manager
-		QueryManager qm = new QueryManager(lsq, inf, mapOperatorToEndPoint, cu);
+		MaterializedQueryManager qm = MaterializedQueryManager.buildTestMaterializedQueryManager(lsq, inf, mapOperatorToEndPoint, cu);
 		
 		// Use helper method to create physical query
 		SeepPhysicalQuery psq = qm.createOriginalPhysicalQueryFrom(lsq);

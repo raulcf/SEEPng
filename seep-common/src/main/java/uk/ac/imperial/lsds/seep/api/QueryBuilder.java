@@ -24,10 +24,10 @@ public class QueryBuilder implements QueryAPI {
 	
 	public static SeepLogicalQuery build(){
 		// Check nonOperator sources and adjust sources accordingly
-		for(Operator o : qp.getAllOperators()){
-			for(UpstreamConnection uc : o.upstreamConnections()){
+		for(Operator o : qp.getAllOperators()) {
+			for(UpstreamConnection uc : o.upstreamConnections()) {
 				LogicalOperator lo = (LogicalOperator) uc.getUpstreamOperator();
-				if(lo.getSeepTask() instanceof Source){
+				if(lo.getSeepTask() instanceof Source) {
 					// This operator becomes a source
 					qp.addSource((LogicalOperator)o);
 				}

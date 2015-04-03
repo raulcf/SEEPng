@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.MaterializedQueryManager;
 
 public class LifecycleManager {
 
-	final private Logger LOG = LoggerFactory.getLogger(QueryManager.class);
+	final private Logger LOG = LoggerFactory.getLogger(MaterializedQueryManager.class);
 	
 	public enum AppStatus {
 		MASTER_READY(0, new int[]{1, 0}),

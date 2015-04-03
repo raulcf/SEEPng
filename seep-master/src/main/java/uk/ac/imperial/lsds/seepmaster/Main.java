@@ -1,5 +1,11 @@
 package uk.ac.imperial.lsds.seepmaster;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+
 import joptsimple.OptionParser;
 
 import org.slf4j.Logger;
@@ -17,22 +23,16 @@ import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
 import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 import uk.ac.imperial.lsds.seepmaster.ui.UI;
 import uk.ac.imperial.lsds.seepmaster.ui.UIFactory;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executors;
 
 
 public class Main {
 	
 	final private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	private void executeMaster(String[] args, MasterConfig mc, String[] queryArgs){
+	private void executeMaster(String[] args, MasterConfig mc, String[] queryArgs) {
 		int infType = mc.getInt(MasterConfig.DEPLOYMENT_TARGET_TYPE);
 		LOG.info("Deploy target of type: {}", InfrastructureManagerFactory.nameInfrastructureManagerWithType(infType));
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
@@ -41,7 +41,7 @@ public class Main {
 		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
 		// TODO: from properties get serializer and type of thread pool and resources assigned to it
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
-		QueryManager qm = QueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager);
+		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager);
 		// TODO: put this in the config manager
 		int port = mc.getInt(MasterConfig.LISTENING_PORT);
 		MasterWorkerAPIImplementation api = new MasterWorkerAPIImplementation(qm, inf);
@@ -69,7 +69,7 @@ public class Main {
 		ui.start();
 	}
 	
-	public static void main(String args[]){
+	public static void main(String args[]) {
 		// Register JVM shutdown hook
 		registerShutdownHook();
 		// Get Properties with command line configuration 
@@ -95,11 +95,11 @@ public class Main {
 		instance.executeMaster(args, mc, cla.getQueryArgs());
 	}
 	
-	private static boolean validateProperties(Properties validatedProperties){	
+	private static boolean validateProperties(Properties validatedProperties) {	
 		return true;
 	}
 	
-	private static void printHelp(OptionParser parser){
+	private static void printHelp(OptionParser parser) {
 		try {
 			parser.printHelpOn(System.out);
 		} 
@@ -108,7 +108,7 @@ public class Main {
 		}
 	}
 	
-	private static void registerShutdownHook(){
+	private static void registerShutdownHook() {
 		Thread hook = new Thread(new MasterShutdownHookWorker());
 		Runtime.getRuntime().addShutdownHook(hook);
 	}

@@ -9,17 +9,17 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 
 
 public class MasterWorkerAPIImplementation {
 
 	final private Logger LOG = LoggerFactory.getLogger(MasterWorkerAPIImplementation.class.getName());
 	
-	private QueryManager qm;
+	private GenericQueryManager qm;
 	private InfrastructureManager inf;
 	
-	public MasterWorkerAPIImplementation(QueryManager qm, InfrastructureManager inf) {
+	public MasterWorkerAPIImplementation(GenericQueryManager qm, InfrastructureManager inf) {
 		this.qm = qm;
 		this.inf = inf;
 	}

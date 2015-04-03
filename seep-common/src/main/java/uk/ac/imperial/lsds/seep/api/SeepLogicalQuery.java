@@ -17,17 +17,44 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
 public class SeepLogicalQuery {
 	
+	final private static Logger LOG = LoggerFactory.getLogger(SeepLogicalQuery.class);
+	
 	private List<Operator> logicalOperators = new ArrayList<>();
 	private List<Operator> sources = new ArrayList<>();
+	// TODO: there could be many sinks
 	private Operator sink;
 	private List<SeepState> states = new ArrayList<>();
 	private Map<Integer, Integer> initialPhysicalInstancesPerOperator = new HashMap<>();
+	
+	private QueryExecutionMode qem = QueryExecutionMode.ALL_MATERIALIZED;
+	
+	public void setExecutionModeHint(QueryExecutionMode qem) {
+		if(this.validExecutionModeForThisQuery(qem)) {
+			this.qem = qem;
+		}
+		else {
+			LOG.warn("Impossible to honour the requested execution mode. Query will run with: "+qem.toString());
+		}
+		
+	}
+	
+	public QueryExecutionMode getQueryExecutionMode() {
+		return qem;
+	}
+	
+	private boolean validExecutionModeForThisQuery(QueryExecutionMode qem){
+		LOG.warn("We are not checking requested execution mode !!!");
+		return true;
+	}
 	
 	public List<Operator> getAllOperators(){
 		return logicalOperators;

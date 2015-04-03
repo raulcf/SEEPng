@@ -3,12 +3,13 @@ package uk.ac.imperial.lsds.seep.api;
 
 public enum DataStoreType {
 	
-	NETWORK((short)0), 
+	NETWORK((short)0),
 	FILE((short)1),
 	IPC((short)2), // ??
 	RDD((short)3),
 	KAFKA((short)4),
-	HDFS((short)5);
+	HDFS((short)5),
+	MEMORYMAPPED_BYTEBUFFER((short)6);
 	
 	private short type;
 	

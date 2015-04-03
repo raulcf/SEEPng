@@ -8,7 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.MaterializedQueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 
 public class SimpleConsoleUI implements UI {
 
@@ -55,10 +56,10 @@ public class SimpleConsoleUI implements UI {
 		emptyText = sb2.toString();
 	}
 	
-	private QueryManager qm;
+	private GenericQueryManager qm;
 	private InfrastructureManager inf;
 	
-	public SimpleConsoleUI(QueryManager qm, InfrastructureManager inf){
+	public SimpleConsoleUI(GenericQueryManager qm, InfrastructureManager inf){
 		this.qm = qm;
 		this.inf = inf;
 	}

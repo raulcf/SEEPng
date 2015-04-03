@@ -2,7 +2,6 @@ package uk.ac.imperial.lsds.seepmaster.ui.web;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 
 public class WebUIHandler extends HttpServlet {
 
@@ -31,10 +30,10 @@ public class WebUIHandler extends HttpServlet {
 	private final int MAX_MEMORY_SIZE_TO_HOLD_FILE = 1024 * 1024 * 100; // 100 MB
 	private final int MAX_UPLOAD_SIZE_TO_HOLD_FILE = 1024 * 1024 * 100; // 100 MB
 	
-	private QueryManager qm;
+	private GenericQueryManager qm;
 	private InfrastructureManager inf;
 
-	public WebUIHandler(QueryManager qm, InfrastructureManager inf){
+	public WebUIHandler(GenericQueryManager qm, InfrastructureManager inf){
 		this.qm = qm;
 		this.inf = inf;
 	}

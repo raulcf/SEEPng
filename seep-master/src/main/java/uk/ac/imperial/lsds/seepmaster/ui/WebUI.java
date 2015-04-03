@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 import uk.ac.imperial.lsds.seepmaster.ui.web.WebUIHandler;
 
 public class WebUI implements UI{
@@ -25,7 +25,7 @@ public class WebUI implements UI{
 	
 	private Server server;
 	
-	public WebUI(QueryManager qm, InfrastructureManager inf){
+	public WebUI(GenericQueryManager qm, InfrastructureManager inf){
 		actionHandler = new WebUIHandler(qm, inf);
 		silenceJettyLogger();
 		this.server = new Server(8888);
