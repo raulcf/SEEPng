@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
+import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
@@ -44,7 +45,7 @@ public class GenericQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
 		// Check whether the action is valid, but GenericQueryManager does not change Lifecycle
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
@@ -57,12 +58,12 @@ public class GenericQueryManager implements QueryManager {
 		// delegates all operations to that one
 		QueryExecutionMode qem = slq.getQueryExecutionMode();
 		qm = this.getQueryManagerForExecutionMode(qem);
-		boolean success = qm.loadQueryFromParameter(slq);
+		boolean success = qm.loadQueryFromParameter(slq, pathToQueryJar);
 		return success;
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToJar, String definitionClass, String[] queryArgs) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs) {
 		// Check whether the action is valid, but GenericQueryManager does not change Lifecycle
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
@@ -71,44 +72,45 @@ public class GenericQueryManager implements QueryManager {
 		}
 		// FIXME: eliminate hardcoded name
 		// get logical query
-		SeepLogicalQuery lsq = Utils.executeComposeFromQuery(pathToJar, definitionClass, queryArgs, "compose");
-		return this.loadQueryFromParameter(lsq);
+		SeepLogicalQuery lsq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, "compose");
+		return this.loadQueryFromParameter(lsq, pathToQueryJar);
 	}
 	
 	private QueryManager getQueryManagerForExecutionMode(QueryExecutionMode qem) {
 		QueryManager qm = null;
 		switch (qem){
 		case ALL_MATERIALIZED:
+			LOG.info("Creating MaterializedQueryManager...");
 			qm = MaterializedQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager);
+			LOG.info("Creating MaterializedQueryManager...OK");
 			break;
 		case ALL_SCHEDULED:
+			LOG.info("Creating ScheduledQueryManager...");
 			qm = ScheduledQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager);
+			LOG.info("Creating ScheduledQueryManager...OK");
 			break;
 		case AUTOMATIC_HYBRID:
-			
-			break;
+			throw new NotImplementedException("Most likely lacks implementation (?)");
 		default:
-			
+			LOG.error("Execution Mode not supported !");
+			throw new NotImplementedException("Most likely lacks implementation (?)");
 		}
 		return qm;
 	}
 
 	@Override
 	public boolean deployQueryToNodes() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.qm.deployQueryToNodes();
 	}
 
 	@Override
 	public boolean startQuery() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.qm.startQuery();
 	}
 
 	@Override
 	public boolean stopQuery() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.qm.stopQuery();
 	}
 
 }

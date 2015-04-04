@@ -20,7 +20,7 @@ public class ScheduledQueryManager implements QueryManager {
 	
 	private static ScheduledQueryManager sqm;
 	private SeepLogicalQuery slq;
-	
+	private String pathToQueryJar;
 	
 	private InfrastructureManager inf;
 	private Map<Integer, EndPoint> opToEndpointMapping;
@@ -46,13 +46,14 @@ public class ScheduledQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
 		this.slq = slq;
+		this.pathToQueryJar = pathToQueryJar;
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		
 		// TODO: implement this method

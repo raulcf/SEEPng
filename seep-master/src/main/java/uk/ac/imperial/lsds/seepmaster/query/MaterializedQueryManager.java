@@ -32,7 +32,7 @@ public class MaterializedQueryManager implements QueryManager {
 	
 	private static MaterializedQueryManager qm;
 	private LifecycleManager lifeManager;
-	private String pathToQuery;
+	private String pathToQueryJar;
 	private SeepLogicalQuery slq;
 	private SeepPhysicalQuery originalQuery;
 	private SeepPhysicalQuery runtimeQuery;
@@ -84,13 +84,14 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
 		this.slq = slq;
+		this.pathToQueryJar = pathToQueryJar;
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(slq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
@@ -99,16 +100,16 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToJar, String definitionClass, String[] queryArgs) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
-		this.pathToQuery = pathToJar;
+		this.pathToQueryJar = pathToQueryJar;
 		// FIXME: eliminate hardcoded name
 		// get logical query 
-		this.slq = Utils.executeComposeFromQuery(pathToJar, definitionClass, queryArgs, "compose");
+		this.slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, "compose");
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(slq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
@@ -207,7 +208,7 @@ public class MaterializedQueryManager implements QueryManager {
 	
 	private void sendQueryInformationToNodes(Set<Connection> connections){
 		// Send data file to nodes
-		byte[] queryFile = Utils.readDataFromFile(pathToQuery);
+		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
 		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile);
 		comm.send_object_sync(code, connections, k);
