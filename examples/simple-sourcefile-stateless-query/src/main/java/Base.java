@@ -1,9 +1,9 @@
 import java.util.Properties;
 
-import uk.ac.imperial.lsds.seep.api.FileConfig;
-import uk.ac.imperial.lsds.seep.api.FileSource;
+import uk.ac.imperial.lsds.seep.api.sources.FileConfig;
+import uk.ac.imperial.lsds.seep.api.sources.FileSource;
 import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.LogicalSeepQuery;
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
@@ -14,7 +14,7 @@ import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 public class Base implements QueryComposer {
 
 	@Override
-	public LogicalSeepQuery compose() {
+	public SeepLogicalQuery compose() {
 		
 		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "param1").newField(Type.INT, "param2").build();
 		
