@@ -21,6 +21,7 @@ import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
+import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
@@ -30,6 +31,7 @@ public class MaterializedQueryManager implements QueryManager {
 
 	final private Logger LOG = LoggerFactory.getLogger(MaterializedQueryManager.class);
 	
+	private MasterConfig mc;
 	private static MaterializedQueryManager qm;
 	private LifecycleManager lifeManager;
 	private String pathToQueryJar;
@@ -53,7 +55,8 @@ public class MaterializedQueryManager implements QueryManager {
 		return this.createOriginalPhysicalQuery();
 	}
 	
-	private MaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> opToEndpointMapping, Comm comm){
+	private MaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, 
+			Map<Integer, EndPoint> opToEndpointMapping, Comm comm){
 		this.slq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
@@ -62,17 +65,20 @@ public class MaterializedQueryManager implements QueryManager {
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 	}
 	
-	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
+	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.mc = mc;
 	}
 	
-	public static MaterializedQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
+	public static MaterializedQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		if(qm == null){
-			return new MaterializedQueryManager(inf, mapOpToEndPoint, comm, lifeManager);
+			return new MaterializedQueryManager(inf, mapOpToEndPoint, comm, lifeManager, mc);
 		}
 		else{
 			return qm;

@@ -23,7 +23,7 @@ public class MasterWorkerAPIImplementationTest {
 		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
 		Comm cu = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		LifecycleManager lifeManager = LifecycleManager.getInstance();
-		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, cu, lifeManager);
+		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, cu, lifeManager, null);
 		
 		MasterWorkerAPIImplementation api = new MasterWorkerAPIImplementation(qm, inf);
 		

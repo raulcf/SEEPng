@@ -12,12 +12,14 @@ import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
+import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 public class GenericQueryManager implements QueryManager {
 
 	final private Logger LOG = LoggerFactory.getLogger(GenericQueryManager.class);
 	
+	private MasterConfig mc;
 	// Singleton instance made available to client (Master)
 	private static GenericQueryManager gqm;
 	// The actual QueryManager backend
@@ -28,20 +30,21 @@ public class GenericQueryManager implements QueryManager {
 	private Comm comm;
 	private LifecycleManager lifeManager;
 	
-	public static GenericQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
+	public static GenericQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		if(gqm == null){
-			return new GenericQueryManager(inf, mapOpToEndPoint, comm, lifeManager);
+			gqm = new GenericQueryManager(inf, mapOpToEndPoint, comm, lifeManager, mc);
 		}
-		else{
-			return gqm;
-		}
+		return gqm;
 	}
 	
-	private GenericQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm, LifecycleManager lifeManager){
+	private GenericQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
+		this.mc = mc;
 	}
 	
 	@Override
@@ -81,12 +84,12 @@ public class GenericQueryManager implements QueryManager {
 		switch (qem){
 		case ALL_MATERIALIZED:
 			LOG.info("Creating MaterializedQueryManager...");
-			qm = MaterializedQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager);
+			qm = MaterializedQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager, mc);
 			LOG.info("Creating MaterializedQueryManager...OK");
 			break;
 		case ALL_SCHEDULED:
 			LOG.info("Creating ScheduledQueryManager...");
-			qm = ScheduledQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager);
+			qm = ScheduledQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager, mc);
 			LOG.info("Creating ScheduledQueryManager...OK");
 			break;
 		case AUTOMATIC_HYBRID:

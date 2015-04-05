@@ -9,5 +9,7 @@ public interface SeepState {
 
 	public void setOwner(int owner);
 	public int getOwner();
+	public DistributedMutableState getDMS();
+	public void setDMS(DistributedMutableState dms);
 	
 }

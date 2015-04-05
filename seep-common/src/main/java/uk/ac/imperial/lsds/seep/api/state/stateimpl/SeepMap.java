@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import uk.ac.imperial.lsds.seep.api.state.Checkpoint;
+import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
 import uk.ac.imperial.lsds.seep.api.state.Mergeable;
 import uk.ac.imperial.lsds.seep.api.state.Partitionable;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
@@ -23,6 +24,7 @@ public class SeepMap<K,V> implements Map<K,V>, Checkpoint, Partitionable, Mergea
 
 	// Main map
 	private int owner;
+	private DistributedMutableState dms = DistributedMutableState.PARTIAL;
 	private Map<K, V> map;
 	
 	// Support for dirtyState
@@ -48,6 +50,16 @@ public class SeepMap<K,V> implements Map<K,V>, Checkpoint, Partitionable, Mergea
 	@Override
 	public int getOwner(){
 		return owner;
+	}
+	
+	@Override
+	public DistributedMutableState getDMS() {
+		return dms;
+	}
+	
+	@Override
+	public void setDMS(DistributedMutableState dms) {
+		this.dms = dms;
 	}
 	
 	/** Implement Map<K,V> interface **/

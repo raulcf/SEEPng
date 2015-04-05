@@ -41,7 +41,7 @@ public class Main {
 		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
 		// TODO: from properties get serializer and type of thread pool and resources assigned to it
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
-		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager);
+		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager, mc);
 		// TODO: put this in the config manager
 		int port = mc.getInt(MasterConfig.LISTENING_PORT);
 		MasterWorkerAPIImplementation api = new MasterWorkerAPIImplementation(qm, inf);
