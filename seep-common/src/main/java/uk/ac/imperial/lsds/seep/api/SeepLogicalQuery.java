@@ -157,13 +157,13 @@ public class SeepLogicalQuery {
 		return initialPhysicalInstancesPerOperator.containsKey(opId);
 	}
 	
-	public LogicalOperator newStatefulSource(SeepTask seepTask, SeepState state, int opId){
+	public LogicalOperator newStatefulSource(Source seepTask, SeepState state, int opId){
 		LogicalOperator lo = newStatefulOperator(seepTask, state, opId);
 		this.sources.add(lo);
 		return lo;
 	}
 	
-	public LogicalOperator newStatelessSource(SeepTask seepTask, int opId){
+	public LogicalOperator newStatelessSource(Source seepTask, int opId){
 		LogicalOperator lo = newStatelessOperator(seepTask, opId);
 		this.sources.add(lo);
 		return lo;

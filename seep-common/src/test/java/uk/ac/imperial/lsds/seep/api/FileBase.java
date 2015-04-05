@@ -57,7 +57,7 @@ public class FileBase implements QueryComposer {
 		public void close() {		}
 	}
 	
-	class Sink implements SeepTask {
+	class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
 		@Override
 		public void setUp() {		}
 		@Override

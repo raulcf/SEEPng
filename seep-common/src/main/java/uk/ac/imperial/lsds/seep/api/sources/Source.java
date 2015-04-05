@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api.sources;
 
-public interface Source {
+import uk.ac.imperial.lsds.seep.api.SeepTask;
+
+public interface Source extends SeepTask {
 
 }

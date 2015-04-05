@@ -7,7 +7,7 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 
 
-public class Source implements SeepTask {
+public class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
 	private boolean working = true;

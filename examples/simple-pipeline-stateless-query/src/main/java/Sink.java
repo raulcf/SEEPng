@@ -3,7 +3,7 @@ import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
 
-public class Sink implements SeepTask {
+public class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
 
 	private int PERIOD = 1000;
 	private int count = 0;

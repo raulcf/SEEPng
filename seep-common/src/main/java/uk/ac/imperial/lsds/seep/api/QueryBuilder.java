@@ -13,6 +13,7 @@ package uk.ac.imperial.lsds.seep.api;
 import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
@@ -73,12 +74,12 @@ public class QueryBuilder implements QueryAPI {
 	}
 
 	@Override
-	public LogicalOperator newStatefulSource(SeepTask seepTask,	SeepState state, int opId) {
+	public LogicalOperator newStatefulSource(Source seepTask,	SeepState state, int opId) {
 		return qp.newStatefulSource(seepTask, state, opId);
 	}
 
 	@Override
-	public LogicalOperator newStatelessSource(SeepTask seepTask, int opId) {
+	public LogicalOperator newStatelessSource(Source seepTask, int opId) {
 		return qp.newStatelessSource(seepTask, opId);
 	}
 
@@ -93,12 +94,12 @@ public class QueryBuilder implements QueryAPI {
 	}
 
 	@Override
-	public LogicalOperator newStatefulSink(SeepTask seepTask, SeepState state, int opId) {
+	public LogicalOperator newStatefulSink(Sink seepTask, SeepState state, int opId) {
 		return qp.newStatefulSink(seepTask, state, opId);
 	}
 
 	@Override
-	public LogicalOperator newStatelessSink(SeepTask seepTask, int opId) {
+	public LogicalOperator newStatelessSink(Sink seepTask, int opId) {
 		return qp.newStatelessSink(seepTask, opId);
 	}
 

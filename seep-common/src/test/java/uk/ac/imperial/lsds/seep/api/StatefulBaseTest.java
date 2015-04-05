@@ -37,7 +37,7 @@ public class StatefulBaseTest implements QueryComposer {
 		return QueryBuilder.build();
 	}
 	
-	class Source implements SeepTask {
+	class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
@@ -82,7 +82,7 @@ public class StatefulBaseTest implements QueryComposer {
 		}
 	}
 	
-	class Sink implements SeepTask {
+	class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
