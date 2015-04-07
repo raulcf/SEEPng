@@ -89,7 +89,7 @@ public class GenericQueryManager implements QueryManager {
 			break;
 		case ALL_SCHEDULED:
 			LOG.info("Creating ScheduledQueryManager...");
-			qm = ScheduledQueryManager.getInstance(inf, opToEndpointMapping, comm, lifeManager, mc);
+			qm = ScheduledQueryManager.getInstance(inf, comm, lifeManager, mc);
 			LOG.info("Creating ScheduledQueryManager...OK");
 			break;
 		case AUTOMATIC_HYBRID:

@@ -9,19 +9,23 @@ import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 
 public class SchedulerEngine {
 
 	private static SchedulerEngine instance;
-	private MasterConfig mc;
+	private ScheduleTracker tracker;
+	private SchedulingStrategy schedulingStrategy;
 	private SeepLogicalQuery slq;
 	
 	private int stageId = 0;
 	private Set<Stage> stages;
 	
 	private SchedulerEngine(MasterConfig mc) {
-		this.mc = mc;
+		schedulingStrategy = SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY));
 		stages = new HashSet<>();
 	}
 	
@@ -34,13 +38,13 @@ public class SchedulerEngine {
 	
 	public ScheduleDescription buildSchedulingPlanForQuery(SeepLogicalQuery slq) {
 		Set<Integer> opsAlreadyInSchedule = new HashSet<>();
-//		int stageId = 0;
 		// Start building from sink
 		SeepLogicalOperator op = (SeepLogicalOperator) slq.getSink();
 		// Recursive method, with opsAlreadyInSchedule to detect already incorporated stages
 		buildScheduleFromStage(null, op,  opsAlreadyInSchedule, slq);
 		ScheduleDescription sd = new ScheduleDescription(stages);
-		
+		// Initialize all tracking machinery
+		tracker = new ScheduleTracker(stages);
 		return sd;
 	}
 	

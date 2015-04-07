@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -63,7 +64,7 @@ public class WorkerMasterCommManager {
 		this.working = false;
 	}
 	
-	class CommMasterWorker implements Runnable{
+	class CommMasterWorker implements Runnable {
 
 		@Override
 		public void run() {
@@ -100,6 +101,13 @@ public class WorkerMasterCommManager {
 						QueryDeployCommand qdc = c.getQueryDeployCommand();
 						out.println("ack");
 						api.handleQueryDeploy(qdc);
+					}
+					// SCHEDULEDEPLOY command
+					else if(cType == MasterWorkerProtocolAPI.SCHEDULEDEPLOY.type()){
+						LOG.info("RX ScheduleDeploy command");
+						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
+						out.println("ack");
+						api.handleScheduleDeploy(sdc);
 					}
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()){

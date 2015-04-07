@@ -14,6 +14,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -80,6 +81,11 @@ public class WorkerMasterAPIImplementation {
 		PhysicalOperator po = query.getOperatorLivingInExecutionUnitId(myOwnId);
 		LOG.info("Found PhysicalOperator: {} to execute in this executionUnit: {} stateful: {}", po.getOperatorName(), myOwnId, po.isStateful());
 		c.deployPhysicalOperator(po, query);
+	}
+	
+	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public void handleStartQuery(StartQueryCommand sqc) {

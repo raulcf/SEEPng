@@ -28,6 +28,9 @@ public class MasterConfig extends Config {
     public static final String UI_TYPE = "ui.type";
     private static final String UI_TYPE_DOC = "The type of UI chosen, simpleconsole(0), console(1), web(2), etc";
     
+    public static final String SCHED_STRATEGY = "scheduling.strategy.type";
+    private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), etc";
+    
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
@@ -38,6 +41,7 @@ public class MasterConfig extends Config {
 				.define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
+				.define(SCHED_STRATEGY, Type.INT, Importance.LOW, SCHED_STRATEGY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
 	}
 	

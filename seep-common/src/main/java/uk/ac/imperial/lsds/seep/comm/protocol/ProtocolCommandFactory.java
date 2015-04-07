@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
 public class ProtocolCommandFactory {
 	
@@ -37,6 +39,12 @@ public class ProtocolCommandFactory {
 	public static MasterWorkerCommand buildDeadWorkerCommand(int workerId, String reason){
 		DeadWorkerCommand dwc = new DeadWorkerCommand(workerId, reason);
 		MasterWorkerCommand c = new MasterWorkerCommand(dwc);
+		return c;
+	}
+
+	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
+		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription);
+		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		return c;
 	}
 	

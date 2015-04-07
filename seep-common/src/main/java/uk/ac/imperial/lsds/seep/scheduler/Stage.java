@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seep.scheduler;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.util.Utils;
+
 
 public class Stage {
 
@@ -72,6 +73,10 @@ public class Stage {
 		stage.downstream.add(this);
 	}
 	
+	public Set<Stage> getDependencies(){
+		return upstream;
+	}
+	
 	@Override
 	public int hashCode(){
 		return stageId;
@@ -94,6 +99,12 @@ public class Stage {
 		sb.append("DependsOn: ");
 		sb.append(Utils.NL);
 		for(Stage s : upstream){
+			sb.append("  st -> "+s.stageId);
+			sb.append(Utils.NL);
+		}
+		sb.append("Serves: ");
+		sb.append(Utils.NL);
+		for(Stage s : downstream){
 			sb.append("  st -> "+s.stageId);
 			sb.append(Utils.NL);
 		}
