@@ -3,6 +3,7 @@
 */.settings
 .gradle
 query.jar
+examples/*.jar
 examples/stateless-simple-query/bin/*
 *.class
 */bin/

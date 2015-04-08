@@ -10,6 +10,9 @@ public class InfrastructureManagerFactory {
 		if(infType == InfrastructureType.PHYSICAL_CLUSTER.ofType()) {
 			name = InfrastructureType.PHYSICAL_CLUSTER.name();
 		}
+		if (infType == InfrastructureType.YARN_CLUSTER.ofType()) {
+		    name = InfrastructureType.YARN_CLUSTER.name();
+		}
 		return name;
 	}
 	
@@ -18,7 +21,7 @@ public class InfrastructureManagerFactory {
 			return new PhysicalClusterManager();
 		}
 		else if(infType == InfrastructureType.YARN_CLUSTER.ofType()){
-			return new YarnClusterManager();
+		    return new YarnClusterManager();
 		}
 		return null;
 	}

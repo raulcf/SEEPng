@@ -30,6 +30,7 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnit;
 import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seep.util.Utils;
+import uk.ac.imperial.lsds.seepcontrib.yarn.infrastructure.YarnClusterManager;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -101,6 +102,13 @@ public class QueryManager {
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
+		
+		if (inf instanceof YarnClusterManager) {
+		    // Need to deploy yarn containers for each worker
+		    for (int i = 0; i < this.executionUnitsRequiredToStart; ++i)
+		        ((YarnClusterManager) inf).requestContainer();
+		}
+		
 		return true;
 	}
 	

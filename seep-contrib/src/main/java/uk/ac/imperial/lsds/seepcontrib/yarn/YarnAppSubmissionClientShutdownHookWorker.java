@@ -1,13 +1,15 @@
 package uk.ac.imperial.lsds.seepcontrib.yarn;
 
-import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class YarnAppSubmissionClientShutdownHookWorker implements Runnable {
-
+    
+    final private static Logger LOG = LoggerFactory.getLogger(YarnAppSubmissionClientShutdownHookWorker.class);
+    
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException("Yarn Application Submission client JVM shutdown hook not implemented !!");
+	    LOG.info("SeepYarnAppSubmissionClient is shutting down...");
 	}
 
 }

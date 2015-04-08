@@ -31,7 +31,7 @@ public class Main {
 				throw new RuntimeException("Failed to submit yarn app client.");
 			}
 		} 
-		catch (YarnException | IOException e) {
+		catch (InterruptedException | YarnException | IOException e) {
 			e.printStackTrace();
 		}
 		
@@ -60,7 +60,7 @@ public class Main {
 			System.exit(0);
 		}
 		YarnConfig yc = new YarnConfig(validatedProperties);
-		
+
 		Main instance = new Main();
 		instance.executeMaster(args, yc, cla.getQueryArgs());
 	}

@@ -1,3 +1,8 @@
+// Applying and configuring application
+apply plugin: 'application'
+mainClassName = 'uk.ac.imperial.lsds.seepcontrib.yarn.Main'
+applicationDefaultJvmArgs = []
+
 // Variables internal to this build script
 ext{
 	yarnVersion="2.6.0"
@@ -49,6 +54,9 @@ task fatJar(type: Jar){
   	} 
   	with jar
   	manifest {
-    	attributes 'Main-Class': 'uk.ac.imperial.lsds.seepcontrib.Main'
+    	attributes 'Main-Class': mainClassName
   	}
 }
+
+// Configure the output of the installApp task of the application plugin
+installApp.destinationDir = file("$projectDir.parent/install/$project.name")

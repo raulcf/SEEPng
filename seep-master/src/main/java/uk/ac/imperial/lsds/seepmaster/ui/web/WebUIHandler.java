@@ -21,7 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
+import uk.ac.imperial.lsds.seepcontrib.yarn.infrastructure.YarnClusterManager;
 import uk.ac.imperial.lsds.seepmaster.query.QueryManager;
+import uk.ac.imperial.lsds.seepmaster.ui.WebUI;
 
 public class WebUIHandler extends HttpServlet {
 
@@ -31,11 +33,11 @@ public class WebUIHandler extends HttpServlet {
 	private final int MAX_MEMORY_SIZE_TO_HOLD_FILE = 1024 * 1024 * 100; // 100 MB
 	private final int MAX_UPLOAD_SIZE_TO_HOLD_FILE = 1024 * 1024 * 100; // 100 MB
 	
-	private QueryManager qm;
-	private InfrastructureManager inf;
+	private final QueryManager qm;
+	private final InfrastructureManager inf;
 
 	public WebUIHandler(QueryManager qm, InfrastructureManager inf){
-		this.qm = qm;
+	    this.qm = qm;
 		this.inf = inf;
 	}
 	
@@ -179,8 +181,11 @@ public class WebUIHandler extends HttpServlet {
 				LOG.info("Stopping query...OK");
 			}
 			return allowed;
-		case 4:
+		case 100:
 			LOG.info("Exit");
+			if (inf instanceof YarnClusterManager) {
+			    ((YarnClusterManager) inf).stop();
+			}
 			return true;
 		default:
 				

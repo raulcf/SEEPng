@@ -32,13 +32,17 @@ public class MasterConfig extends Config {
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
 	
+    public static final String WORKER_PACKAGE_PATH = "worker.package.path";
+    public static final String WORKER_PACKAGE_PATH_DOC = "Relative path to the worker package. Used only if master deploys workers itself.";
+    
 	static{
 		config = new ConfigDef().define(QUERY_FILE, Type.STRING, "", Importance.HIGH, QUERY_FILE_DOC)
 				.define(BASECLASS_NAME, Type.STRING, "", Importance.HIGH, BASECLASS_NAME_DOC) 
 				.define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
-				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
+				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
+				.define(WORKER_PACKAGE_PATH, Type.STRING, "", Importance.LOW, WORKER_PACKAGE_PATH_DOC);
 	}
 	
 	public MasterConfig(Map<? extends Object, ? extends Object> originals) {

@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.config.ConfigKey;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.InfrastructureManager;
 import uk.ac.imperial.lsds.seep.util.Utils;
+import uk.ac.imperial.lsds.seepcontrib.yarn.config.YarnConfig;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
@@ -32,10 +33,12 @@ public class Main {
 	
 	final private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	private void executeMaster(String[] args, MasterConfig mc, String[] queryArgs){
+	private void executeMaster(String[] args, MasterConfig mc, YarnConfig yc, String[] queryArgs){
 		int infType = mc.getInt(MasterConfig.DEPLOYMENT_TARGET_TYPE);
 		LOG.info("Deploy target of type: {}", InfrastructureManagerFactory.nameInfrastructureManagerWithType(infType));
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
+		inf.init(yc);
+		
 		LifecycleManager lifeManager = LifecycleManager.getInstance();
 		// TODO: get file from config if exists and parse it to get a map from operator to endPoint
 		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
@@ -74,6 +77,7 @@ public class Main {
 		registerShutdownHook();
 		// Get Properties with command line configuration 
 		List<ConfigKey> configKeys = MasterConfig.getAllConfigKey();
+		configKeys.addAll(YarnConfig.getAllConfigKey());
 		OptionParser parser = new OptionParser();
 		// Unrecognized options are passed through to the query
 		parser.allowsUnrecognizedOptions();
@@ -90,11 +94,13 @@ public class Main {
 			printHelp(parser);
 			System.exit(0);
 		}
+		
 		MasterConfig mc = new MasterConfig(validatedProperties);
-
+		YarnConfig yc = new YarnConfig(validatedProperties);
+		
 		// Any other infrastructure calls executeMaster
 		Main instance = new Main();
-		instance.executeMaster(args, mc, cla.getQueryArgs());
+		instance.executeMaster(args, mc, yc, cla.getQueryArgs());
 	}
 	
 	private static boolean validateProperties(Properties validatedProperties){	
