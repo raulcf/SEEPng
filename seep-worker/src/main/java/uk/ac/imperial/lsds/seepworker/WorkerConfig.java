@@ -11,9 +11,9 @@ import uk.ac.imperial.lsds.seep.config.ConfigKey;
 
 public class WorkerConfig extends Config {
 
-	private static final ConfigDef config;
+    private static final ConfigDef config;
 	
-	public static final String PROPERTIES_FILE = "properties.file";
+    public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
 	
@@ -58,6 +58,9 @@ public class WorkerConfig extends Config {
     private static final String BATCH_SIZE_DOC = "Recommended maximum batch size in bytes. Note that this is not enforced, the system"
     													+ "will try to achieve this size on a best effort basis";
     
+    public static final String APP_BATCH_SIZE = "app.batch.size";
+    private static final String APP_BATCH_SIZE_DOC = "The total number of tuples batched at the application level";
+
     public static final String MAX_WAIT_TIME_PER_INPUTADAPTER_MS = "wait.time.inputadapter.ms";
     private static final String MAX_WAIT_TIME_PER_INPUTADAPTER_MS_DOC = "Maximum time an engine will poll a given inputadapter"
     													+ "for data. It only applies to certain inputAdapters.";
@@ -91,12 +94,11 @@ public class WorkerConfig extends Config {
 				.define(NUM_NETWORK_WRITER_THREADS, Type.INT, 2, Importance.MEDIUM, NUM_NETWORK_WRITER_THREADS_DOC)
 				.define(MAX_PENDING_NETWORK_CONNECTION_PER_THREAD, Type.INT, 10, Importance.LOW, MAX_PENDING_NETWORK_CONNECTION_PER_THREAD_DOC)
 				.define(SIMPLE_INPUT_QUEUE_LENGTH, Type.INT, 100, Importance.MEDIUM, SIMPLE_INPUT_QUEUE_LENGTH_DOC)
-				.define(BATCH_SIZE, Type.INT, 100, Importance.HIGH, BATCH_SIZE_DOC) // small so one tuple at-at-time
+				.define(BATCH_SIZE, Type.INT, 100, Importance.HIGH, BATCH_SIZE_DOC)
+				.define(APP_BATCH_SIZE, Type.INT, 100, Importance.HIGH, APP_BATCH_SIZE_DOC)
 				.define(MAX_WAIT_TIME_PER_INPUTADAPTER_MS, Type.INT, 500, Importance.MEDIUM, MAX_WAIT_TIME_PER_INPUTADAPTER_MS_DOC)
 				.define(REPORT_METRICS_CONSOLE_PERIOD, Type.INT, -1, Importance.LOW, REPORT_METRICS_CONSOLE_PERIOD_DOC)
 				.define(REPORT_METRICS_JMX, Type.INT, 1, Importance.MEDIUM, REPORT_METRICS_JMX_DOC)
-				.define(SEND_APP_BUFFER_SIZE, Type.INT, 1000, Importance.HIGH, SEND_APP_BUFFER_SIZE_DOC)
-				.define(RECEIVE_APP_BUFFER_SIZE, Type.INT, 1000, Importance.HIGH, RECEIVE_APP_BUFFER_SIZE_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
 	}
 	

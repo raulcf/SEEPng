@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seep.core;
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
@@ -19,7 +20,7 @@ public interface InputAdapter {
 	public void pushData(byte[] data);
 	public void pushData(List<byte[]> data);
 	
-	public ITuple pullDataItem(int timeout);
-	public ITuple pullDataItems(int timeout);
+	public DataItem pullDataItem(int timeout);
+	public DataItem pullDataItems(int timeout);
 	
 }
