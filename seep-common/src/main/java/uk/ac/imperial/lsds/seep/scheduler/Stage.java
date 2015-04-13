@@ -12,7 +12,6 @@ public class Stage {
 
 	private final int stageId;
 	
-	private StageStatus status = StageStatus.WAITING;
 	private StageType type;
 	private Set<Stage> upstream;
 	private Set<Stage> downstream;
@@ -23,9 +22,9 @@ public class Stage {
 	
 	public Stage(int stageId){
 		this.stageId = stageId;
-		upstream = new HashSet<>();
-		downstream = new HashSet<>();
-		wrapping = new ArrayDeque<>();
+		this.upstream = new HashSet<>();
+		this.downstream = new HashSet<>();
+		this.wrapping = new ArrayDeque<>();
 	}
 	
 	public int getStageId(){
@@ -75,6 +74,10 @@ public class Stage {
 	
 	public Set<Stage> getDependencies(){
 		return upstream;
+	}
+	
+	public Set<Stage> getDependants() {
+		return downstream;
 	}
 	
 	@Override

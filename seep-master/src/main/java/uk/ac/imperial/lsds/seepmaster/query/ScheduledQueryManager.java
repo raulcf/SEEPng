@@ -69,6 +69,7 @@ public class ScheduledQueryManager implements QueryManager {
 		// Create Scheduler Engine and build scheduling plan for the given query
 		se = SchedulerEngine.getInstance(mc);
 		scheduleDescription = se.buildSchedulingPlanForQuery(slq);
+		se.initializeSchedulerEngine();
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
 		
@@ -102,6 +103,10 @@ public class ScheduledQueryManager implements QueryManager {
 		sendQueryCodeToNodes(connections);
 		sendScheduleToNodes(connections);
 		LOG.info("Seding query and schedule to nodes...OK {}");
+		
+		LOG.info("Prepare scheduler engine...");
+		se.prepareForStart();
+		LOG.info("Prepare scheduler engine...OK");
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		return true;

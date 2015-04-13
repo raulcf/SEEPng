@@ -48,4 +48,53 @@ public class ScheduleTracker {
 		return scheduleStatus;
 	}
 	
+	public boolean setReady(Stage stage) {
+		this.scheduleStatus.put(stage, StageStatus.READY);
+		return true;
+	}
+	
+	public boolean setFinished(Stage stage) {
+		// Set finish
+		this.scheduleStatus.put(stage, StageStatus.FINISHED);
+		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
+			// Finished schedule
+			this.status = ScheduleStatus.FINISHED;
+		}
+		// Check whether the new stage makes ready new stages
+		for(Stage downstream : stage.getDependants()) {
+			if(isStageReadyToRun(downstream)) {
+				this.scheduleStatus.put(downstream, StageStatus.READY);
+			}
+		}
+		return true;
+	}
+	
+	public boolean isStageReady(Stage stage) {
+		return this.scheduleStatus.get(stage).equals(StageStatus.READY);
+	}
+	
+	public boolean isStageWaiting(Stage stage) {
+		return this.scheduleStatus.get(stage).equals(StageStatus.WAITING);
+	}
+	
+	public boolean isStageFinished(Stage stage) {
+		return this.scheduleStatus.get(stage).equals(StageStatus.FINISHED);
+	}
+	
+	public boolean resetAllStagesTo(StageStatus newStatus) {
+		for(Stage st : this.scheduleStatus.keySet()) {
+			this.scheduleStatus.put(st, newStatus);
+		}
+		return true;
+	}
+	
+	private boolean isStageReadyToRun(Stage stage) {
+		for(Stage st : stage.getDependencies()) {
+			if(! scheduleStatus.get(st).equals(StageStatus.FINISHED)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 }
