@@ -13,9 +13,10 @@ import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 
 public class Base implements QueryComposer {
 
-	private final KafkaConfig kafkaConfig;
+	private final Properties p;
 	
 	public Base() {
+		
 		Properties p = new Properties();
 		p.setProperty(KafkaConfig.KAFKA_SERVER, "localhost:9092");
 		p.setProperty(KafkaConfig.ZOOKEEPER_CONNECT, "localhost:2181");
@@ -23,7 +24,9 @@ public class Base implements QueryComposer {
 		p.setProperty(KafkaConfig.CONSUMER_GROUP_ID, "seep");
 		p.setProperty(KafkaConfig.BASE_TOPIC, "seep");
 		
-		kafkaConfig = new KafkaConfig(p);
+		// TODO: have a validator method in KafkaConfig here...
+		
+		this.p = p;
 	}
 	
 	@Override
@@ -37,8 +40,8 @@ public class Base implements QueryComposer {
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		
-		src.connectTo(processor, 0, schema, new DataStore(DataStoreType.KAFKA, kafkaConfig));
-		processor.connectTo(snk, 0, schema, new DataStore(DataStoreType.KAFKA, kafkaConfig));
+		src.connectTo(processor, 0, schema, new DataStore(DataStoreType.KAFKA, p));
+		processor.connectTo(snk, 0, schema, new DataStore(DataStoreType.KAFKA, p));
 		
 		System.out.println("###### Build query finished");
 		return queryAPI.build();

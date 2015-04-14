@@ -80,7 +80,8 @@ public class FileSelector {
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
 		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
-				String absPath = Utils.absolutePath(e.getValue().getConfig().getString(FileConfig.FILE_PATH));
+				FileConfig config = new FileConfig(e.getValue().getConfig());
+				String absPath = Utils.absolutePath(config.getString(FileConfig.FILE_PATH));
 				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);
