@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.ScheduledQueryManager;
 
 
 public class MasterWorkerAPIImplementation {
@@ -45,6 +47,10 @@ public class MasterWorkerAPIImplementation {
 		String reason = dwc.reason();
 		LOG.warn("Worker {} has died, reason: {}", workerId, reason);
 		inf.removeExecutionUnit(workerId);
+	}
+	
+	public void stageStatusCommand(StageStatusCommand ssc) {
+		((ScheduledQueryManager)qm.getQueryManager()).notifyStageStatus(ssc);
 	}
 	
 }

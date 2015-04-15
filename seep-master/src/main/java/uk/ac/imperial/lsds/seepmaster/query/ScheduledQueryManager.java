@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -17,11 +19,12 @@ import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngine;
 
 import com.esotericsoftware.kryo.Kryo;
 
-public class ScheduledQueryManager implements QueryManager {
+public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
 	final private Logger LOG = LoggerFactory.getLogger(ScheduledQueryManager.class);
 	
@@ -69,7 +72,7 @@ public class ScheduledQueryManager implements QueryManager {
 		// Create Scheduler Engine and build scheduling plan for the given query
 		se = SchedulerEngine.getInstance(mc);
 		scheduleDescription = se.buildSchedulingPlanForQuery(slq);
-		se.initializeSchedulerEngine();
+		se.initializeSchedulerEngine(inf, comm, k);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
 		
@@ -95,9 +98,13 @@ public class ScheduledQueryManager implements QueryManager {
 			return false;
 		}
 		
-		// TODO: figure out how to get this
-		Set<Integer> involvedEUId = null;
-		
+		// Ugly. Get all eu available
+		// FIXME: how are we dealing with this? workers should run wherever there's data to process
+		Set<Integer> involvedEUId = new HashSet<>();
+		int totalEUAvailable = inf.executionUnitsAvailable();
+		for(int i = 0; i < totalEUAvailable; i++) {
+			involvedEUId.add(inf.getExecutionUnit().getId());
+		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		LOG.info("Sending query and schedule to nodes");
 		sendQueryCodeToNodes(connections);
@@ -105,7 +112,7 @@ public class ScheduledQueryManager implements QueryManager {
 		LOG.info("Seding query and schedule to nodes...OK {}");
 		
 		LOG.info("Prepare scheduler engine...");
-		se.prepareForStart();
+		se.prepareForStart(connections);
 		LOG.info("Prepare scheduler engine...OK");
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
@@ -114,14 +121,14 @@ public class ScheduledQueryManager implements QueryManager {
 
 	@Override
 	public boolean startQuery() {
-		// TODO Auto-generated method stub
-		return false;
+		LOG.info("Start scheduling.");
+		return se.startScheduling();
 	}
 
 	@Override
 	public boolean stopQuery() {
-		// TODO Auto-generated method stub
-		return false;
+		LOG.info("Stop scheduling");
+		return se.stopScheduling();
 	}
 
 	// FIXME: this code is repeated in materialisedQueryManager. please refactor
@@ -141,5 +148,28 @@ public class ScheduledQueryManager implements QueryManager {
 		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
+	}
+	
+	/** Implement ScheduleManager interface **/
+
+	@Override
+	public void notifyStageStatus(StageStatusCommand ssc) {
+		int stageId = ssc.getStageId();
+		int euId = ssc.getEuId();
+		StageStatusCommand.Status status = ssc.getStatus();
+		switch(status) {
+		case OK:
+			LOG.info("EU {} finishes stage {}", euId, stageId);
+			se.finishStage(euId, stageId);
+			break;
+		case FAIL:
+			LOG.info("EU {} has failed executing stage {}", euId, stageId);
+			
+			break;
+		default:
+			
+			LOG.error("Unrecognized STATUS in StageStatusCommand");
+		}
+		
 	}
 }

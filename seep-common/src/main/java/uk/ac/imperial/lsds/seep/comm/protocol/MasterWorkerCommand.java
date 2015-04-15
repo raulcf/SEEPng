@@ -12,6 +12,8 @@ public class MasterWorkerCommand {
 	private StopQueryCommand stqc;
 	private DeadWorkerCommand dwc;
 	private ScheduleDeployCommand sdc;
+	private ExecuteStageCommand esc;
+	private StageStatusCommand ssc;
 	
 	public MasterWorkerCommand(){}
 	
@@ -41,6 +43,9 @@ public class MasterWorkerCommand {
 		}
 		else if(type == MasterWorkerProtocolAPI.SCHEDULEDEPLOY.type()){
 			this.sdc = (ScheduleDeployCommand)ct;
+		}
+		else if(type == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
+			this.esc = (ExecuteStageCommand)ct;
 		}
 		else{
 			try {
@@ -86,5 +91,13 @@ public class MasterWorkerCommand {
 	
 	public ScheduleDeployCommand getScheduleDeployCommand(){
 		return sdc;
+	}
+	
+	public ExecuteStageCommand getExecuteStageCommand() {
+		return esc;
+	}
+	
+	public StageStatusCommand getStageStatusCommand() {
+		return ssc;
 	}
 }

@@ -14,6 +14,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.BootstrapCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -77,6 +78,11 @@ public class MasterWorkerCommManager {
 						LOG.info("RX-> Bootstrap command");
 						BootstrapCommand bc = command.getBootstrapCommand();
 						api.bootstrapCommand(bc);
+					}
+					else if(type == MasterWorkerProtocolAPI.STAGE_STATUS.type()) {
+						LOG.info("RX-> Stage Status update command");
+						StageStatusCommand ssc = command.getStageStatusCommand();
+						api.stageStatusCommand(ssc);
 					}
 					else if(type == MasterWorkerProtocolAPI.CRASH.type()){
 						LOG.info("RX-> Crash command");

@@ -47,5 +47,11 @@ public class ProtocolCommandFactory {
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		return c;
 	}
+
+	public static MasterWorkerCommand buildExecuteStageCommand(int stageId) {
+		ExecuteStageCommand sdc = new ExecuteStageCommand(stageId);
+		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
+		return c;
+	}
 	
 }

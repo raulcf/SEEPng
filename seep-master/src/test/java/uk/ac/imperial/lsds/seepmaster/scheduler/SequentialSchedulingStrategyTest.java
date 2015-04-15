@@ -27,8 +27,8 @@ public class SequentialSchedulingStrategyTest {
 		se.buildSchedulingPlanForQuery(lsq);
 		
 		// Set schedulerEngine ready to start
-		se.initializeSchedulerEngine();
-		se.prepareForStart();
+		se.initializeSchedulerEngine(null, null, null);
+		se.prepareForStart(null);
 		return se;
 	}
 	
@@ -67,7 +67,7 @@ public class SequentialSchedulingStrategyTest {
 		
 		boolean finished = false;
 		while(!finished) {
-			Stage next = se.getNextStageToSchedule();
+			Stage next = se.__get_next_stage_to_schedule_fot_test();
 			tracker.setFinished(next);
 			
 			if(next.getStageType().equals(StageType.SINK_STAGE)) {
@@ -86,11 +86,11 @@ public class SequentialSchedulingStrategyTest {
 		int numSchedules = 100000;
 		long start = System.currentTimeMillis();
 		while(numSchedules > 0) {
-			Stage next = se.getNextStageToSchedule();
+			Stage next = se.__get_next_stage_to_schedule_fot_test();
 			tracker.setFinished(next);
 			if(next.getStageType().equals(StageType.SINK_STAGE)) {
 				se.resetSchedule();
-				se.prepareForStart();
+				se.prepareForStart(null);
 			}
 			numSchedules--;
 		}
@@ -111,19 +111,19 @@ public class SequentialSchedulingStrategyTest {
 		se.buildSchedulingPlanForQuery(lsq);
 		
 		// Set schedulerEngine ready to start
-		se.initializeSchedulerEngine();
-		se.prepareForStart();
+		se.initializeSchedulerEngine(null, null, null);
+		se.prepareForStart(null);
 		
 		// Attempt to make the following number of schedules by reseting the query as necessary
 		ScheduleTracker tracker = se.___tracker_for_test();
 		int numSchedules = 100000;
 		long start = System.currentTimeMillis();
 		while(numSchedules > 0) {
-			Stage next = se.getNextStageToSchedule();
+			Stage next = se.__get_next_stage_to_schedule_fot_test();
 			tracker.setFinished(next);
 			if(next.getStageType().equals(StageType.SINK_STAGE)) {
 				se.resetSchedule();
-				se.prepareForStart();
+				se.prepareForStart(null);
 			}
 			numSchedules--;
 		}

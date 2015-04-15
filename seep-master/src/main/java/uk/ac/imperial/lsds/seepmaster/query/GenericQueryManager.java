@@ -115,5 +115,9 @@ public class GenericQueryManager implements QueryManager {
 	public boolean stopQuery() {
 		return this.qm.stopQuery();
 	}
+	
+	public QueryManager getQueryManager() {
+		return qm;
+	}
 
 }

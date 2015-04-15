@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seepmaster.scheduler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +19,12 @@ public class ScheduleTracker {
 	private ScheduleStatus status;
 	private Stage sink;
 	private Map<Stage, StageStatus> scheduleStatus;
-	private Map<Stage, StageTracker> stageTracker;
+	private StageTracker currentStageTracker;
 	
 	public ScheduleTracker(Set<Stage> stages) {
 		status = ScheduleStatus.NON_INITIALIZED;
 		// Keep track of overall schedule
 		scheduleStatus = new HashMap<>();
-		stageTracker = new HashMap<>();
 		for(Stage stage : stages) {
 			if(stage.getStageId() == 0) {
 				// sanity check
@@ -36,7 +36,6 @@ public class ScheduleTracker {
 				sink = stage;
 			}
 			scheduleStatus.put(stage, StageStatus.WAITING);
-			stageTracker.put(stage, new StageTracker(stage.getStageId(), stage.getStageType()));
 		}
 	}
 	
@@ -95,6 +94,15 @@ public class ScheduleTracker {
 			}
 		}
 		return true;
+	}
+	
+	public void trackAndWait(Stage stage, Set<Integer> euInvolved) {
+		currentStageTracker = new StageTracker(stage, euInvolved);
+		currentStageTracker.await();
+	}
+
+	public void finishStage(int euId, int stageId) {
+		currentStageTracker.notifyOk(euId, stageId);
 	}
 	
 }

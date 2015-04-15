@@ -6,26 +6,35 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
+import uk.ac.imperial.lsds.seep.comm.Comm;
+import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 public class SchedulerEngine {
 
+	// FIXME: refactor this inside scheduledQueryManager
+	
 	final private Logger LOG = LoggerFactory.getLogger(SchedulerEngine.class);
 	
 	private static SchedulerEngine instance;
 	private ScheduleTracker tracker;
 	private SchedulingStrategy schedulingStrategy;
 	private SeepLogicalQuery slq;
+	private Thread worker;
+	private SchedulerEngineWorker seWorker;
 	
 	private int stageId = 0;
 	private Set<Stage> stages;
@@ -37,6 +46,10 @@ public class SchedulerEngine {
 	
 	public ScheduleTracker ___tracker_for_test() {
 		return tracker;
+	}
+	
+	public Stage __get_next_stage_to_schedule_fot_test() {
+		return this.schedulingStrategy.next(tracker);
 	}
 	
 	public static SchedulerEngine getInstance(MasterConfig mc) {
@@ -56,19 +69,23 @@ public class SchedulerEngine {
 		return sd;
 	}
 	
-	public boolean initializeSchedulerEngine() {
+	public boolean initializeSchedulerEngine(InfrastructureManager inf, Comm comm, Kryo k) {
 		// TODO: error handling, check stages is not null -> this was called appropriately
-		// Initialize the threads that will be broadcasting stuff to the machines
-		
 		
 		// Initialize all tracking machinery
 		tracker = new ScheduleTracker(stages);
+		// Initialize the threads that will be broadcasting stuff to the machines
+		seWorker = new SchedulerEngineWorker(schedulingStrategy, tracker, inf, comm, k);
+		worker = new Thread(seWorker);
+		
 		return true;
 	}
 	
-	public boolean prepareForStart() {
-		boolean success = true;
+	public boolean prepareForStart(Set<Connection> connections) {
+		// Set initial connections in worker
+		seWorker.setConnections(connections);
 		// Basically change stage status so that SOURCE tasks are ready to run
+		boolean success = true;
 		for(Stage stage : stages) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
 				boolean changed = tracker.setReady(stage);
@@ -76,6 +93,24 @@ public class SchedulerEngine {
 			}
 		}
 		return success;
+	}
+	
+	public boolean startScheduling() {
+		worker.start();
+		// FIXME: check for this condition
+		return true;
+	}
+	
+	public boolean stopScheduling() {
+		try {
+			worker.join();
+		} 
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// FIXME: check for this condition
+		return true;
 	}
 	
 	public Set<Stage> returnReadyStages() {
@@ -86,10 +121,6 @@ public class SchedulerEngine {
 			}
 		}
 		return toReturn;
-	}
-	
-	public Stage getNextStageToSchedule() {
-		return this.schedulingStrategy.next(tracker);
 	}
 	
 	public void resetSchedule() {
@@ -222,6 +253,10 @@ public class SchedulerEngine {
 			return true;
 		}
 		return false;
+	}
+
+	public void finishStage(int euId, int stageId) {
+		tracker.finishStage(euId, stageId);
 	}
 	
 }
