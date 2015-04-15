@@ -10,6 +10,8 @@ import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.Operator;
 import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
+import java.util.Properties;
+
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.config.Config;
@@ -19,15 +21,15 @@ import uk.ac.imperial.lsds.seep.errors.NotSupportedException;
 public class FileSource implements Connectable, DataStoreDescriptor {
 
 	private static LogicalOperator lo;
-	private FileConfig config;
+	private Properties config;
 	
-	private FileSource(int opId, FileConfig config){
+	private FileSource(int opId, Properties config){
 		this.config = config;
 		QueryBuilder qb = new QueryBuilder();
 		lo = qb.newStatelessSource(new FileSourceImpl(), opId);
 	}
 	
-	public static FileSource newSource(int opId, FileConfig config){
+	public static FileSource newSource(int opId, Properties config){
 		return new FileSource(opId, config);
 	}
 	
@@ -74,7 +76,7 @@ public class FileSource implements Connectable, DataStoreDescriptor {
 	}
 
 	@Override
-	public Config getConfig() {
+	public Properties getConfig() {
 		// TODO Auto-generated method stub
 		return null;
 	}

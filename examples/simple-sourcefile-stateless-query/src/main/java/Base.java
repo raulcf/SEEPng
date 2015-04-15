@@ -22,7 +22,7 @@ public class Base implements QueryComposer {
 		p.setProperty(FileConfig.FILE_PATH, "test.txt");
 		p.setProperty(FileConfig.SERDE_TYPE, new Integer(SerializerType.NONE.ofType()).toString());
 		
-		FileSource fileSource = FileSource.newSource(0, new FileConfig(p));
+		FileSource fileSource = FileSource.newSource(0, p);
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
 		

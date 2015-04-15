@@ -129,7 +129,7 @@ public class Conductor {
 			Map<Integer, DataStore> fileOrigins = new HashMap<>();
 			for(UpstreamConnection uc : o.upstreamConnections()){
 				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataOriginType() == DataStoreType.FILE){
+				if(uc.getDataOriginType() == DataStoreType.FILE) {
 					fileOrigins.put(opId, uc.getDataOrigin());
 				}
 			}
@@ -144,7 +144,7 @@ public class Conductor {
 	private KafkaSelector maybeConfigureKafkaSelector(){
 		KafkaSelector ks = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
-			KafkaConfig kc = (KafkaConfig) o.upstreamConnections().get(0).getDataOrigin().getConfig();
+			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataOrigin().getConfig() );
 			LOG.info("Configuring kafkaSelector for input");
 			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
 					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			

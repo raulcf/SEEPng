@@ -34,7 +34,8 @@ public class FileDataStream implements InputAdapter {
 		this.iTuple = new ITuple(expectedSchema);
 		this.queueSize = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
 		this.queue = new ArrayBlockingQueue<byte[]>(queueSize);
-		this.buffer = new InputBuffer(wc.getInt(WorkerConfig.RECEIVE_APP_BUFFER_SIZE));
+		int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
+		this.buffer = new InputBuffer(headroom);
 	}
 	
 	private FileDataStream(int opId, int streamId, Schema expectedSchema, int inputQueueLength, int rxBufSize){

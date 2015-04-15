@@ -21,7 +21,7 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 
 public class GenerateBinaryFile {
 
-	private static int FILE_SIZE = 10000000; // 1KB
+	private static int FILE_SIZE = 10; // 10MB
 	private static int BATCH_SIZE = 10;
 	
 	public static void main(String[] args){
@@ -30,7 +30,7 @@ public class GenerateBinaryFile {
 		parser.accepts("types", "Seed values").withRequiredArg().required();
 		parser.accepts("values", "Seed values").withRequiredArg().required();
 		parser.accepts("output", "Absolute path to output generated file").withRequiredArg().required();
-		parser.accepts("filesize", "Desired file size").withRequiredArg();
+		parser.accepts("filesize", "Desired file size in MB").withRequiredArg();
 		OptionSet os = parser.parse(args);
 		Properties p = asProperties(os);
 		
@@ -52,7 +52,7 @@ public class GenerateBinaryFile {
 			bos = new BufferedOutputStream(new FileOutputStream(output));
 			dos = new DataOutputStream(bos);
 			Object[] values = new Object[s.names().length];
-			while(currentSize < targetSize){
+			while((currentSize/1000000) < targetSize){
 				for(int i = 0; i < values.length; i++){
 					values[i] = values[i] == null ? 2 : (int)values[i] + 2;
 				}

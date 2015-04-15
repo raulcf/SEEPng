@@ -19,11 +19,10 @@ public class FileConfig extends Config {
 	public static final String SERDE_TYPE = "serde.type";
 	private static final String SERDE_TYPE_DOC = "The type of the serializer/deserializer. See SerializerType enum for reference";
 	
-	static{
+	static {
 		config = new ConfigDef().define(FILE_PATH, Type.STRING, Importance.HIGH, FILE_PATH_DOC)
 								.define(SERDE_TYPE, Type.INT, 0, Importance.HIGH, SERDE_TYPE_DOC);
 	}
-	
 	
 	public FileConfig(Map<? extends Object, ? extends Object> originals) {
 		super(config, originals);
