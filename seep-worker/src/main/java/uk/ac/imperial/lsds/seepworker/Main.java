@@ -60,7 +60,6 @@ public class Main {
 		
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
-		
 		// Create workerMaster comm manager
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
@@ -81,6 +80,7 @@ public class Main {
 		
 		// Bootstrap
 		String myIp = Utils.getStringRepresentationOfLocalIp();
+		//myIp = "192.168.0.21";
 		api.bootstrap(masterConnection, myIp, myPort, dataPort);
 		
 		// Configure metrics serving

@@ -64,6 +64,9 @@ public class CoreInputFactory {
 			else if(dOriginType.equals(DataStoreType.KAFKA)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeKafkaForOps(wc, streamId, upCon);
 			}
+			else if(dOriginType.equals(DataStoreType.HDFS)){
+				ias = InputAdapterFactory.buildInputAdapterOfTypeHdfsForOps(wc, streamId, upCon);
+			}
 			if(ias != null){
 				inputAdapters.addAll(ias);
 			}

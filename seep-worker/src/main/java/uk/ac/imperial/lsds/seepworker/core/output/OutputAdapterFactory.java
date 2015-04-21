@@ -10,6 +10,8 @@ import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.comm.HdfsOutputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.config.HdfsConfig;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaOutputAdapter;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -46,4 +48,12 @@ public class OutputAdapterFactory {
 		return oa;
 	}
 
+	public static OutputAdapter buildOutputAdapterOfTypeHdfsForOps(
+			HdfsConfig hc, Integer streamId, List<DownstreamConnection> doCon,
+			PhysicalSeepQuery query) {
+		OutputAdapter oa = new HdfsOutputAdapter(hc.getString(HdfsConfig.HDFS_SERVER)+hc.getString(HdfsConfig.HDFS_PATH));
+		// TODO Auto-generated method stub
+		return oa;
+	}
+	
 }

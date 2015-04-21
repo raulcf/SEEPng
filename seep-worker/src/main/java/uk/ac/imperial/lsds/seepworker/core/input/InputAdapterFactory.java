@@ -11,6 +11,7 @@ import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.comm.HdfsInputAdapter;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -87,4 +88,20 @@ public class InputAdapterFactory {
 		return ias;
 	}
 	
+	public static List<InputAdapter> buildInputAdapterOfTypeHdfsForOps(WorkerConfig wc, Integer streamId, List<UpstreamConnection> upCon) {
+		List<InputAdapter> ias = new ArrayList<>();
+		short cType = upCon.get(0).getConnectionType().ofType();
+		Schema expectedSchema = upCon.get(0).getExpectedSchema();
+		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()){
+			LOG.info("Creating HDFS inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.ONE_AT_A_TIME.withName());
+			for(UpstreamConnection uc : upCon){
+				int opId = uc.getUpstreamOperator().getOperatorId();
+				int queuelength = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
+				int headroom = wc.getInt(WorkerConfig.BATCH_SIZE)*2;
+				InputAdapter ia = new HdfsInputAdapter(opId, streamId, expectedSchema,queuelength,headroom);
+				ias.add(ia);
+			}
+		}
+		return ias;
+	}
 }

@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.config.HdfsConfig;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -56,6 +57,11 @@ public class CoreOutputFactory {
 				KafkaConfig kc = new KafkaConfig( doCon.get(0).getExpectedDataOriginOfDownstream().getConfig() );
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");
 				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(kc, streamId, doCon, query);
+			}
+			else if(dOriginType == DataStoreType.HDFS){
+				HdfsConfig hc = new HdfsConfig(doCon.get(0).getExpectedDataOriginOfDownstream().getConfig() );
+				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "HDFS");
+				oa = OutputAdapterFactory.buildOutputAdapterOfTypeHdfsForOps(hc, streamId, doCon, query);
 			}
 			outputAdapters.add(oa);
 		}

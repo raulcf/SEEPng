@@ -26,6 +26,11 @@ public class PhysicalSeepQuery {
 		for(Operator o : physicalOperators) {
 			// update all downstream connections -> this will update the downstream's upstreams
 			for(DownstreamConnection dc : o.downstreamConnections()) {
+				//***********down stream connection need not to consider the sink.***********
+				if(dc.getDownstreamOperator().getSeepTask() instanceof Sink){
+					break;
+				}
+				//***************************************************************************
 				// find this logical op in the physical ops
 				Operator physicalVersionOfLogicalDownstream = PhysicalSeepQuery.findOperator(dc.getDownstreamOperator().getOperatorId(), physicalOperators);
 				// this will replace a still logical connection with a physical one
@@ -42,10 +47,10 @@ public class PhysicalSeepQuery {
 			for(Operator po : pOps){
 				if(po.getOperatorId() == o.getOperatorId()){
 					pSources.add((PhysicalOperator)po);
-				}
+				}/*
 				if(po.getOperatorId() == lsq.getSink().getOperatorId()){
 					pSink = (PhysicalOperator)po;
-				}
+				}*/
 			}
 		}
 		PhysicalSeepQuery psq = new PhysicalSeepQuery(pOps, pSources, pSink);
@@ -111,7 +116,8 @@ public class PhysicalSeepQuery {
 	}
 	
 	private boolean isSink(PhysicalOperator po){
-		return po.getOperatorId() == sink.getOperatorId();
+		return false;
+		//return po.getOperatorId() == sink.getOperatorId();
 	}
 	
 	public Set<Integer> getIdOfEUInvolved(){
@@ -147,7 +153,7 @@ public class PhysicalSeepQuery {
 		}
 		sb.append("Sink:");
 		sb.append(Utils.NL);
-		sb.append(sink.toString());
+		//sb.append(sink.toString());
 		sb.append(Utils.NL);
 		sb.append("##############");
 		return sb.toString();
