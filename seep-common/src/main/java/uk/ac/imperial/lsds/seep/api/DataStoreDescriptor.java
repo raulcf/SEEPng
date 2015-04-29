@@ -1,12 +1,11 @@
 package uk.ac.imperial.lsds.seep.api;
 
-import uk.ac.imperial.lsds.seep.config.Config;
+import java.util.Properties;
+
 
 public interface DataStoreDescriptor {
 	
 	public DataStoreType type();
-//	public String getResourceDescriptor();
-//	public SerializerType getSerdeType();
-	public Config getConfig();
+	public Properties getConfig();
 	
 }

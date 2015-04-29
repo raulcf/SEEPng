@@ -1,14 +1,14 @@
 package uk.ac.imperial.lsds.seep.api;
 
-import uk.ac.imperial.lsds.seep.config.Config;
+import java.util.Properties;
 
 public class DataStore implements DataStoreDescriptor {
 
 	private DataStoreType type;
 	// Config will incorporate (in the future) resource and serde
-	private Config config;
+	private Properties config;
 		
-	public DataStore(DataStoreType type, Config config){
+	public DataStore(DataStoreType type, Properties config){
 		this.type = type;
 		this.config = config;
 	}
@@ -19,7 +19,7 @@ public class DataStore implements DataStoreDescriptor {
 	}
 
 	@Override
-	public Config getConfig(){
+	public Properties getConfig(){
 		return config;
 	}
 
