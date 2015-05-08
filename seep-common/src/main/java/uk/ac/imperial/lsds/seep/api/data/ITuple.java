@@ -37,6 +37,28 @@ public class ITuple implements DataItem{
 			this.populateOffsets();
 		}
 	}
+	
+	/** FIXME: temporal solution to allow on-demand ITuple creation **/
+	
+	public ITuple(Schema schema, byte[] data) {
+		this.schema = schema;
+		mapFieldToOffset = new HashMap<>();
+		if( ! schema.isVariableSize()) {
+			this.populateOffsets();
+		}
+		this.data = data;
+		// greedily populate offsets for lazy deserialisation
+		if(schema.isVariableSize()){
+			this.populateOffsets();
+		}
+		wrapper = ByteBuffer.wrap(data);
+	}
+	
+	public Schema getSchema() {
+		return schema;
+	}
+	
+	/** FIXME: end fixme **/
 
 	@Override
 	public ITuple consume() {
