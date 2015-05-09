@@ -9,7 +9,7 @@ public enum MasterWorkerProtocolAPI {
 	STOPQUERY((short)6, new StopQueryCommand()),
 	DEADWORKER((short)7, new DeadWorkerCommand()),
 	SCHEDULEDEPLOY((short)8, new ScheduleDeployCommand()),
-	SCHEDULE_STAGE((short)9, new ExecuteStageCommand()),
+	SCHEDULE_STAGE((short)9, new ScheduleStageCommand()),
 	STAGE_STATUS((short)10, new StageStatusCommand());
 	
 	private short type;

@@ -20,14 +20,14 @@ public class CoreInputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreInputFactory.class);
 	
-	public static CoreInput buildCoreInputForOperator(WorkerConfig wc, PhysicalOperator o){
+	public static CoreInput buildCoreInputForOperator(WorkerConfig wc, PhysicalOperator o) {
 		LOG.info("Building Core Input...");
 		List<InputAdapter> inputAdapters = new LinkedList<>();
 		// Create an InputAdapter per upstream connection -> know with the streamId
 		Map<Integer, List<UpstreamConnection>> streamToOpConn = new HashMap<>();
-		for(UpstreamConnection uc : o.upstreamConnections()){
+		for(UpstreamConnection uc : o.upstreamConnections()) {
 			int streamId = uc.getStreamId();
-			if(streamToOpConn.containsKey(streamId)){
+			if(streamToOpConn.containsKey(streamId)) {
 				streamToOpConn.get(streamId).add(uc);
 			}
 			else{

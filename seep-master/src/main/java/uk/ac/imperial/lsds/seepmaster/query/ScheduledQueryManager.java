@@ -93,7 +93,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			return false;
 		}
 		// Check that there is at least one resource available
-		if(! (inf.executionUnitsAvailable() > 0)){
+		if(! (inf.executionUnitsAvailable() > 0)) {
 			LOG.warn("Cannot deploy query, not enough nodes. Available: {}", inf.executionUnitsAvailable());
 			return false;
 		}

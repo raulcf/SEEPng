@@ -13,10 +13,11 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 
-public class KafkaSelector {
+public class KafkaSelector implements DataStoreSelector {
 
 	final private static Logger LOG = LoggerFactory.getLogger(KafkaSelector.class);
 	
@@ -62,17 +63,26 @@ public class KafkaSelector {
         }
 	}
 	
-	public void startKafkaSelector() {
+	@Override
+	public boolean startSelector() {
 		// Start readers
 		for(Thread r : readerWorkers){
 			LOG.info("Starting reader: {}", r.getName());
 			r.start();
 		}
+		return true;
 	}
 	
-	public void stopKafkaSelector(){
+	@Override
+	public boolean stopSelector(){
 		// TODO: do this
 		throw new NotImplementedException("stopKafkaSelector not implemented!!");
+	}
+	
+	@Override
+	public boolean initSelector() {
+		
+		return true;
 	}
 
 	class Reader implements Runnable {

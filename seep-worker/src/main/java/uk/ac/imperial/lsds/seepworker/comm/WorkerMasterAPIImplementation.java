@@ -8,9 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
@@ -19,6 +21,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
@@ -84,7 +87,8 @@ public class WorkerMasterAPIImplementation {
 	}
 	
 	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
-		// TODO Auto-generated method stub
+		SeepLogicalQuery slq = sdc.getQuery();
+		ScheduleDescription sd = sdc.getSchedule();
 		
 	}
 
@@ -94,6 +98,11 @@ public class WorkerMasterAPIImplementation {
 	
 	public void handleStopQuery(StopQueryCommand sqc) {
 		c.stopProcessing();
+	}
+
+	public void handleScheduleStage(ScheduleStageCommand esc) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

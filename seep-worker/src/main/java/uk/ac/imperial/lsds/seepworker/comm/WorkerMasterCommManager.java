@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
@@ -108,6 +109,13 @@ public class WorkerMasterCommManager {
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
 						api.handleScheduleDeploy(sdc);
+					}
+					// SCHEDULE_STAGE command
+					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
+						LOG.info("RX Schedule Stage command");
+						ScheduleStageCommand esc = c.getExecuteStageCommand();
+						out.println("ack");
+						api.handleScheduleStage(esc);
 					}
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()){

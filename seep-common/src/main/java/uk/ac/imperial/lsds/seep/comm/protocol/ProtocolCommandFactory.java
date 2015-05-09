@@ -49,7 +49,7 @@ public class ProtocolCommandFactory {
 	}
 
 	public static MasterWorkerCommand buildExecuteStageCommand(int stageId) {
-		ExecuteStageCommand sdc = new ExecuteStageCommand(stageId);
+		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		return c;
 	}

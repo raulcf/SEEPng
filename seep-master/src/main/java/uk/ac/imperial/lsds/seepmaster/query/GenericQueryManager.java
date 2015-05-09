@@ -57,7 +57,7 @@ public class GenericQueryManager implements QueryManager {
 		}
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		// This is the only operation fully handled by QueryManager
-		// After checking queryExecutionMode it creates an appropriate queryManager and 
+		// After checking queryExecutionMode it creates an appropriate queryManager and
 		// delegates all operations to that one
 		QueryExecutionMode qem = slq.getQueryExecutionMode();
 		qm = this.getQueryManagerForExecutionMode(qem);

@@ -3,7 +3,6 @@ package uk.ac.imperial.lsds.seepmaster.scheduler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +96,7 @@ public class ScheduleTracker {
 	}
 	
 	public void trackAndWait(Stage stage, Set<Integer> euInvolved) {
+		// TODO: necessary to encapsulate stageTracker ??
 		currentStageTracker = new StageTracker(stage, euInvolved);
 		currentStageTracker.await();
 	}

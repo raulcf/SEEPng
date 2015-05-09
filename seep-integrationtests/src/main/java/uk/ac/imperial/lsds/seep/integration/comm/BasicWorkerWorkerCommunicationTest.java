@@ -62,7 +62,7 @@ public class BasicWorkerWorkerCommunicationTest {
 		obs.add(ob);
 		ds.configureConnect(obs);
 		
-		ds.initNetworkSelector();
+		ds.initSelector();
 		
 		try {
 			Thread.sleep(1000);

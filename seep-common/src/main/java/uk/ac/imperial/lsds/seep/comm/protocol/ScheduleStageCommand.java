@@ -1,12 +1,12 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-public class ExecuteStageCommand implements CommandType {
+public class ScheduleStageCommand implements CommandType {
 
 	private int stageId;
 	
-	public ExecuteStageCommand() {}
+	public ScheduleStageCommand() {}
 	
-	public ExecuteStageCommand(int stageId) {
+	public ScheduleStageCommand(int stageId) {
 		this.stageId = stageId;
 	}
 	

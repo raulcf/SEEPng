@@ -36,7 +36,6 @@ public class SchedulerEngineWorker implements Runnable {
 		this.connections = connections;
 	}
 
-
 	public void stop() {
 		this.work = false;
 	}
@@ -63,7 +62,6 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private void waitForNodes(Stage stage, Set<Connection> euInvolved) {
-		
 		// better to wait on a latch or something....
 		Set<Integer> euIds = new HashSet<>();
 		for(Connection c : euInvolved) {

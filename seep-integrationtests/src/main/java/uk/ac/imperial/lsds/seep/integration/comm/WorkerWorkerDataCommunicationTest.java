@@ -72,7 +72,7 @@ public class WorkerWorkerDataCommunicationTest {
 		obs.add(ob);
 		ds.configureConnect(obs);
 		
-		ds.initNetworkSelector();
+		ds.initSelector();
 		
 		try {
 			Thread.sleep(1000);
@@ -80,7 +80,7 @@ public class WorkerWorkerDataCommunicationTest {
 			e.printStackTrace();
 		}
 		
-		ds.startNetworkSelector();
+		ds.startSelector();
 		
 		/** Continuous sending **/
 		int interWriteTime = -1;

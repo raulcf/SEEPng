@@ -29,12 +29,13 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
-public class NetworkSelector implements EventAPI {
+public class NetworkSelector implements EventAPI, DataStoreSelector {
 
 	final private static Logger LOG = LoggerFactory.getLogger(NetworkSelector.class);
 	
@@ -148,7 +149,8 @@ public class NetworkSelector implements EventAPI {
 		this.writersConfiguredLatch = new CountDownLatch(obufs.size()); // Initialize countDown with num of outputConns
 	}
 	
-	public void startNetworkSelector(){
+	@Override
+	public boolean startSelector() {
 		// Start readers
 		for(Thread r : readerWorkers){
 			LOG.info("Starting reader: {}", r.getName());
@@ -167,18 +169,22 @@ public class NetworkSelector implements EventAPI {
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		return true;
 	}
 	
-	public void initNetworkSelector(){
+	@Override
+	public boolean initSelector() {
 		this.acceptorWorking = true;
 		// Check whether there is a network acceptor worker. There won't be one if there are no input network connections.
 		if(acceptorWorker != null){
 			LOG.info("Starting acceptor thread: {}", acceptorWorker.getName());
 			this.acceptorWorker.start();
 		}
+		return true;
 	}
 	
-	public void stopNetworkSelector() {
+	@Override
+	public boolean stopSelector() {
 		this.acceptorWorking = false;
 		
 		for(Reader r : readers){
@@ -188,6 +194,7 @@ public class NetworkSelector implements EventAPI {
 			w.stop();
 		}
 		LOG.info("Stopped reader, writers and acceptor workers");
+		return true;
 	}
 	
 	@Override

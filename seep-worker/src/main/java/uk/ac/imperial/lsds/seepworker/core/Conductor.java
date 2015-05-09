@@ -1,27 +1,19 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
-import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
-import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
-import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
-import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
+import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -35,11 +27,9 @@ public class Conductor {
 	
 	private int dataPort;
 	private InetAddress myIp;
-	private NetworkSelector ns;
-	private FileSelector fs;
-	private KafkaSelector ks;
 	
-	private PhysicalOperator o;
+	private List<DataStoreSelector> dataStoreSelectors;
+	
 	private CoreInput coreInput;
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
@@ -56,24 +46,22 @@ public class Conductor {
 	
 	public void startProcessing(){
 		LOG.info("Starting processing engine...");
-		if(ns != null) ns.startNetworkSelector();
-		if(fs != null) fs.startFileSelector();
-		if(ks != null) ks.startKafkaSelector();
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			dss.startSelector();
+		}
 		engine.start();
 	}
 	
 	public void stopProcessing(){
 		LOG.info("Stopping processing engine...");
 		engine.stop();
-		
-		if(ns != null) ns.stopNetworkSelector();
-		if(fs != null) fs.stopFileSelector();
-		if(ks != null) ks.stopKafkaSelector();
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			dss.stopSelector();
+		}
 		LOG.info("Stopping processing engine...OK");
 	}
 	
 	public void deployPhysicalOperator(PhysicalOperator o, SeepPhysicalQuery query){
-		this.o = o;
 		this.task = o.getSeepTask();
 		LOG.info("Configuring local task: {}", task.toString());
 		// set up state if any
@@ -87,11 +75,13 @@ public class Conductor {
 		// This creates one outputAdapter per downstream stream Id
 		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, query);
 		
-		this.ns = maybeConfigureNetworkSelector();
-		this.fs = maybeConfigureFileSelector();
-		this.ks = maybeConfigureKafkaSelector();
-		
-		coreOutput.setEventAPI(ns);
+		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
+				coreOutput, wc, o, myIp, dataPort);
+
+		// FIXME: this is ugly, why ns is special?
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			if(dss instanceof EventAPI) coreOutput.setEventAPI((EventAPI)dss);
+		}
 		
 		engine.setId(o.getOperatorId());
 		engine.setTask(task);
@@ -103,61 +93,9 @@ public class Conductor {
 		LOG.info("Setting up task...");
 		task.setUp(); // setup method of task
 		LOG.info("Setting up task...OK");
-		if(ns != null) ns.initNetworkSelector(); // start network selector, if any
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			dss.initSelector();
+		}
 	}
-	
-	private NetworkSelector maybeConfigureNetworkSelector(){
-		NetworkSelector ns = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
-			LOG.info("Configuring networkSelector for input");
-			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
-			ns.configureAccept(myIp, dataPort);
-		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
-			LOG.info("Configuring networkSelector for output");
-			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
-			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
-			ns.configureConnect(obufs);
-		}
-		return ns;
-	}
-	
-	private FileSelector maybeConfigureFileSelector(){
-		FileSelector fs = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
-			fs = new FileSelector(wc);
-			Map<Integer, DataStore> fileOrigins = new HashMap<>();
-			for(UpstreamConnection uc : o.upstreamConnections()){
-				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataOriginType() == DataStoreType.FILE) {
-					fileOrigins.put(opId, uc.getDataOrigin());
-				}
-			}
-			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
-		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
-			throw new NotImplementedException("not implemented yet...");
-		}
-		return fs;
-	}
-	
-	private KafkaSelector maybeConfigureKafkaSelector(){
-		KafkaSelector ks = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
-			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataOrigin().getConfig() );
-			LOG.info("Configuring kafkaSelector for input");
-			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
-					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			
-		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
-			// Not needed
-		}
-		return ks;
-	}
-	
-	public void plugSeepTask(SeepTask task){
-		// TODO: plug and play. this will do stuff with input and output and then delegate the call to engine
-		// this pattern should be the default in this conductor controller
-	}
-	
+		
 }

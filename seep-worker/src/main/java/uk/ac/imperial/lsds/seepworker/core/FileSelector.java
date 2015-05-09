@@ -20,12 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.sources.FileConfig;
+import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
-public class FileSelector {
+public class FileSelector implements DataStoreSelector {
 
 	final private static Logger LOG = LoggerFactory.getLogger(FileSelector.class);
 	
@@ -42,7 +43,8 @@ public class FileSelector {
 		
 	}
 	
-	public void startFileSelector(){
+	@Override
+	public boolean startSelector() {
 		// Start readers
 		if(readerWorker != null){
 			LOG.info("Starting reader: {}", readerWorker.getName());
@@ -54,9 +56,11 @@ public class FileSelector {
 			LOG.info("Starting writer: {}", writerWorker.getName());
 			writerWorker.start();
 		}
+		return true;
 	}
 	
-	public void stopFileSelector(){
+	@Override
+	public boolean stopSelector() {
 		// Stop readers
 		if(readerWorker != null){
 			LOG.info("Stopping reader: {}", readerWorker.getName());
@@ -68,6 +72,13 @@ public class FileSelector {
 			LOG.info("Stopping writer: {}", writerWorker.getName());
 			writer.stop();
 		}
+		return true;
+	}
+	
+	@Override
+	public boolean initSelector() {
+		
+		return true;
 	}
 	
 	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, InputAdapter> dataAdapters){

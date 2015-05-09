@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.query.MaterializedQueryManager;
 import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 
 public class SimpleConsoleUI implements UI {
@@ -135,7 +134,7 @@ public class SimpleConsoleUI implements UI {
 		this.working = false;
 	}
 	
-	private String getUserInput(String msg) throws IOException{
+	private String getUserInput(String msg) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println(msg);
 		String option = br.readLine();
