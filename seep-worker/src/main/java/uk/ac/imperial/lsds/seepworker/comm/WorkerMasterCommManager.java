@@ -14,11 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
-import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -92,20 +92,23 @@ public class WorkerMasterCommManager {
 							// TODO: throw error
 						}
 						// TODO: get filename from properties file
-						File f = Utils.writeDataToFile(file, "query.jar");
+						String pathToQueryJar = "query.jar";
+						File f = Utils.writeDataToFile(file, pathToQueryJar);
 						out.println("ack");
 						loadCodeToRuntime(f);
+						// Instantiate Seep Logical Query
+						api.handleQueryInstantiation(pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
 					}
-					// QUERYDEPLOY command
-					else if(cType == MasterWorkerProtocolAPI.QUERYDEPLOY.type()){
-						LOG.info("RX QueryDeploy command");
-						QueryDeployCommand qdc = c.getQueryDeployCommand();
+					// MATERIALIZED_TASK command
+					else if(cType == MasterWorkerProtocolAPI.MATERIALIZE_TASK.type()) {
+						LOG.info("RX MATERIALIZED_TASK command");
+						MaterializeTaskCommand mtc = c.getMaterializeTaskCommand();
 						out.println("ack");
-						api.handleQueryDeploy(qdc);
+						api.handleMaterializeTask(mtc);
 					}
-					// SCHEDULEDEPLOY command
-					else if(cType == MasterWorkerProtocolAPI.SCHEDULEDEPLOY.type()){
-						LOG.info("RX ScheduleDeploy command");
+					// SCHEDULE_TASKS command
+					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()){
+						LOG.info("RX Schedule_Tasks command");
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
 						api.handleScheduleDeploy(sdc);

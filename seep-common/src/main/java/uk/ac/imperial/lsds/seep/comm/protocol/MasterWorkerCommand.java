@@ -7,13 +7,14 @@ public class MasterWorkerCommand {
 	private BootstrapCommand bc;
 	private CrashCommand cc;
 	private CodeCommand coc;
-	private QueryDeployCommand qdc;
+//	private QueryDeployCommand qdc;
 	private StartQueryCommand sqc;
 	private StopQueryCommand stqc;
 	private DeadWorkerCommand dwc;
 	private ScheduleDeployCommand sdc;
 	private ScheduleStageCommand esc;
 	private StageStatusCommand ssc;
+	private MaterializeTaskCommand mtc;
 	
 	public MasterWorkerCommand(){}
 	
@@ -29,9 +30,9 @@ public class MasterWorkerCommand {
 		else if(type == MasterWorkerProtocolAPI.CODE.type()){
 			this.coc = (CodeCommand)ct;
 		}
-		else if(type == MasterWorkerProtocolAPI.QUERYDEPLOY.type()){
-			this.qdc = (QueryDeployCommand)ct;
-		}
+//		else if(type == MasterWorkerProtocolAPI.QUERYDEPLOY.type()){
+//			this.qdc = (QueryDeployCommand)ct;
+//		}
 		else if(type == MasterWorkerProtocolAPI.STARTQUERY.type()){
 			this.sqc = (StartQueryCommand)ct;
 		}
@@ -41,11 +42,14 @@ public class MasterWorkerCommand {
 		else if(type == MasterWorkerProtocolAPI.DEADWORKER.type()){
 			this.dwc = (DeadWorkerCommand)ct;
 		}
-		else if(type == MasterWorkerProtocolAPI.SCHEDULEDEPLOY.type()){
+		else if(type == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()){
 			this.sdc = (ScheduleDeployCommand)ct;
 		}
 		else if(type == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
 			this.esc = (ScheduleStageCommand)ct;
+		}
+		else if(type == MasterWorkerProtocolAPI.MATERIALIZE_TASK.type()) {
+			this.mtc = (MaterializeTaskCommand)ct;
 		}
 		else{
 			try {
@@ -73,9 +77,9 @@ public class MasterWorkerCommand {
 		return coc;
 	}
 	
-	public QueryDeployCommand getQueryDeployCommand(){
-		return qdc;
-	}
+//	public QueryDeployCommand getQueryDeployCommand(){
+//		return qdc;
+//	}
 	
 	public StartQueryCommand getStartQueryCommand(){
 		return sqc;
@@ -99,5 +103,9 @@ public class MasterWorkerCommand {
 	
 	public StageStatusCommand getStageStatusCommand() {
 		return ssc;
+	}
+	
+	public MaterializeTaskCommand getMaterializeTaskCommand() {
+		return mtc;
 	}
 }

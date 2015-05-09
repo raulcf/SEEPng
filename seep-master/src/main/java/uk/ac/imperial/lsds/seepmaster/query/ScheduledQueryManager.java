@@ -14,10 +14,12 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngine;
@@ -81,12 +83,12 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToJar, String definitionClass, String[] queryArgs) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
 		throw new NotImplementedException("ScheduledQueryManager.loadQueryFromFile not implemented !!");
 	}
 
 	@Override
-	public boolean deployQueryToNodes() {
+	public boolean deployQueryToNodes(String definitionClass, String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -101,14 +103,17 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		// Ugly. Get all eu available
 		// FIXME: how are we dealing with this? workers should run wherever there's data to process
 		Set<Integer> involvedEUId = new HashSet<>();
+		Set<EndPoint> allEndPoints = new HashSet<>();
 		int totalEUAvailable = inf.executionUnitsAvailable();
 		for(int i = 0; i < totalEUAvailable; i++) {
-			involvedEUId.add(inf.getExecutionUnit().getId());
+			ExecutionUnit eu = inf.getExecutionUnit();
+			involvedEUId.add(eu.getId());
+			allEndPoints.add(eu.getEndPoint());
 		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		LOG.info("Sending query and schedule to nodes");
-		sendQueryCodeToNodes(connections);
-		sendScheduleToNodes(connections);
+		sendQueryToNodes(connections, definitionClass, queryArgs, composeMethod);
+		sendScheduleToNodes(connections, allEndPoints);
 		LOG.info("Seding query and schedule to nodes...OK {}");
 		
 		LOG.info("Prepare scheduler engine...");
@@ -133,19 +138,19 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
 	// FIXME: this code is repeated in materialisedQueryManager. please refactor
 	// FIXME: in particular, consider moving this to MasterWorkerAPIImplementation (that already handles a comm and k)
-	private boolean sendQueryCodeToNodes(Set<Connection> connections){
+	private void sendQueryToNodes(Set<Connection> connections, String definitionClassName, String[] queryArgs, String composeMethodName) {
+		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile);
-		boolean success = comm.send_object_sync(code, connections, k);
+		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
-		return success;
 	}
 	
-	private boolean sendScheduleToNodes(Set<Connection> connections){
+	private boolean sendScheduleToNodes(Set<Connection> connections, Set<EndPoint> allEndPoints){
 		LOG.info("Sending Schedule Deploy Command");
 		// Send physical query to all nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
+		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription, allEndPoints);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
 	}

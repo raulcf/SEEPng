@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
@@ -24,9 +26,9 @@ public class Conductor {
 	final private Logger LOG = LoggerFactory.getLogger(Conductor.class.getName());
 	
 	private WorkerConfig wc;
-	
-	private int dataPort;
 	private InetAddress myIp;
+	private int id;
+	private SeepPhysicalQuery query;
 	
 	private List<DataStoreSelector> dataStoreSelectors;
 	
@@ -34,39 +36,30 @@ public class Conductor {
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
 	
-	private SeepTask task;
-	private SeepState state;
 	
 	public Conductor(InetAddress myIp, WorkerConfig wc){
 		this.myIp = myIp;
 		this.wc = wc;
-		this.dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
 	}
 	
-	public void startProcessing(){
-		LOG.info("Starting processing engine...");
-		for(DataStoreSelector dss : dataStoreSelectors) {
-			dss.startSelector();
-		}
-		engine.start();
+	public void setQuery(int id, SeepPhysicalQuery query) {
+		// TODO: We don't know yet what is this for anyway...
+		Set<EndPoint> meshTopology = query.getMeshTopology(id);
+		this.id = id;
+		this.query = query;
 	}
 	
-	public void stopProcessing(){
-		LOG.info("Stopping processing engine...");
-		engine.stop();
-		for(DataStoreSelector dss : dataStoreSelectors) {
-			dss.stopSelector();
-		}
-		LOG.info("Stopping processing engine...OK");
-	}
-	
-	public void deployPhysicalOperator(PhysicalOperator o, SeepPhysicalQuery query){
-		this.task = o.getSeepTask();
+	public void materializeAndConfigureTask(){
+		PhysicalOperator o = query.getOperatorLivingInExecutionUnitId(id);
+		LOG.info("Found PhysicalOperator: {} to execute in this executionUnit: {} stateful: {}", o.getOperatorName(), 
+				id, o.isStateful());
+		
+		SeepTask task = o.getSeepTask();
 		LOG.info("Configuring local task: {}", task.toString());
 		// set up state if any
+		SeepState state = o.getState();
 		if(o.isStateful()){
-			this.state = o.getState();
 			LOG.info("Configuring state of local task: {}", state.toString());
 			((StatefulSeepTask)task).setState(state);
 		}
@@ -76,7 +69,7 @@ public class Conductor {
 		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, query);
 		
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
-				coreOutput, wc, o, myIp, dataPort);
+				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
 
 		// FIXME: this is ugly, why ns is special?
 		for(DataStoreSelector dss : dataStoreSelectors) {
@@ -96,6 +89,23 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.initSelector();
 		}
+	}
+	
+	public void startProcessing(){
+		LOG.info("Starting processing engine...");
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			dss.startSelector();
+		}
+		engine.start();
+	}
+	
+	public void stopProcessing(){
+		LOG.info("Stopping processing engine...");
+		engine.stop();
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			dss.stopSelector();
+		}
+		LOG.info("Stopping processing engine...OK");
 	}
 		
 }

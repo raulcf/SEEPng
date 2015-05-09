@@ -1,6 +1,5 @@
 package uk.ac.imperial.lsds.seepmaster.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -61,7 +60,6 @@ public class MasterWorkerCommManager {
 		@Override
 		public void run() {
 			while(working){
-				BufferedReader bis = null;
 				Input i = null;
 				Socket incomingSocket = null;
 				try{
@@ -73,20 +71,23 @@ public class MasterWorkerCommManager {
 					
 					MasterWorkerCommand command = k.readObject(i, MasterWorkerCommand.class);
 					short type = command.type();
-					
+					// BOOTSTRAP command
 					if(type == MasterWorkerProtocolAPI.BOOTSTRAP.type()){
 						LOG.info("RX-> Bootstrap command");
 						BootstrapCommand bc = command.getBootstrapCommand();
 						api.bootstrapCommand(bc);
 					}
+					// STAGE_STATUS command
 					else if(type == MasterWorkerProtocolAPI.STAGE_STATUS.type()) {
 						LOG.info("RX-> Stage Status update command");
 						StageStatusCommand ssc = command.getStageStatusCommand();
 						api.stageStatusCommand(ssc);
 					}
+					// CRASH command
 					else if(type == MasterWorkerProtocolAPI.CRASH.type()){
 						LOG.info("RX-> Crash command");
 					}
+					// DEADWORKER command
 					else if(type == MasterWorkerProtocolAPI.DEADWORKER.type()){
 						LOG.info("RX-> DeadWorker command");
 						DeadWorkerCommand dwc = command.getDeadWorkerCommand();

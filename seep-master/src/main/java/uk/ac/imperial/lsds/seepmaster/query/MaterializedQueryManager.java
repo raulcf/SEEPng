@@ -45,7 +45,8 @@ public class MaterializedQueryManager implements QueryManager {
 	private final Kryo k;
 	
 	// convenience method for testing
-	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm){
+	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, 
+			InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm) {
 		return new MaterializedQueryManager(lsq, inf, mapOpToEndPoint, comm);
 	}
 	
@@ -56,7 +57,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	private MaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, 
-			Map<Integer, EndPoint> opToEndpointMapping, Comm comm){
+			Map<Integer, EndPoint> opToEndpointMapping, Comm comm) {
 		this.slq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
@@ -66,7 +67,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
-			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc) {
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
@@ -76,7 +77,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	public static MaterializedQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
-			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+			Comm comm, LifecycleManager lifeManager, MasterConfig mc) {
 		if(qm == null){
 			return new MaterializedQueryManager(inf, mapOpToEndPoint, comm, lifeManager, mc);
 		}
@@ -85,7 +86,7 @@ public class MaterializedQueryManager implements QueryManager {
 		}
 	}
 	
-	private boolean canStartExecution(){
+	private boolean canStartExecution() {
 		return inf.executionUnitsAvailable() >= executionUnitsRequiredToStart;
 	}
 	
@@ -106,14 +107,13 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
 		this.pathToQueryJar = pathToQueryJar;
-		// FIXME: eliminate hardcoded name
 		// get logical query 
 		this.slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, "compose");
 		LOG.debug("Logical query loaded: {}", slq.toString());
@@ -124,7 +124,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean deployQueryToNodes() {
+	public boolean deployQueryToNodes(String definitionClassName, String[] queryArgs, String composeMethodName) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -141,13 +141,14 @@ public class MaterializedQueryManager implements QueryManager {
 		LOG.debug("Building physicalQuery from logicalQuery...OK {}", originalQuery.toString());
 		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
-		sendQueryInformationToNodes(connections);
+		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
+		sendMaterializeTaskToNodes(connections);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		return true;
 	}
 	
 	@Override
-	public boolean startQuery(){
+	public boolean startQuery() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -164,7 +165,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean stopQuery(){
+	public boolean stopQuery() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_STOPPED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -181,7 +182,7 @@ public class MaterializedQueryManager implements QueryManager {
 		return true;
 	}
 	
-	private SeepPhysicalQuery createOriginalPhysicalQuery(){
+	private SeepPhysicalQuery createOriginalPhysicalQuery() {
 		Set<SeepPhysicalOperator> physicalOperators = new HashSet<>();
 		
 		// use pre-defined description if exists
@@ -208,22 +209,24 @@ public class MaterializedQueryManager implements QueryManager {
 		return psq;
 	}
 	
-	private int computeRequiredExecutionUnits(SeepLogicalQuery lsq){
+	private int computeRequiredExecutionUnits(SeepLogicalQuery lsq) {
 		return lsq.getAllOperators().size();
 	}
 	
-	private void sendQueryInformationToNodes(Set<Connection> connections){
+	private void sendQueryToNodes(Set<Connection> connections, String definitionClassName, String[] queryArgs, String composeMethodName) {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile);
+		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
-		LOG.info("Sending Query Deploy Command");
-		// Send physical query to all nodes
-		MasterWorkerCommand queryDeploy = ProtocolCommandFactory.buildQueryDeployCommand(originalQuery);
-		comm.send_object_sync(queryDeploy, connections, k);
-		LOG.info("Sending Query Deploy Command...DONE!");
+	}
+	
+	private void sendMaterializeTaskToNodes(Set<Connection> connections) {
+		LOG.info("Sending materialize task command to nodes...");
+		MasterWorkerCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(this.opToEndpointMapping);
+		comm.send_object_sync(materializeCommand, connections, k);
+		LOG.info("Sending materialize task command to nodes...OK");
 	}
 	
 }

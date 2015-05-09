@@ -73,14 +73,20 @@ public class SimpleConsoleUI implements UI {
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String option = br.readLine();
 				boolean allowed = false;
+				String pathToJar = null; 
+				String definitionClass = null;
+				String[] queryArgs = null;
+				String composeMethod = null;
 				switch(option){
 				case "0":
 					LOG.info("Loading query in Master...");
-					String pathToJar = getUserInput("Write absolute path to query (jar file): ");
-					String definitionClass = getUserInput("Write definition class name: ");
+					pathToJar = getUserInput("Write absolute path to query (jar file): ");
+					definitionClass = getUserInput("Write definition class name: ");
 					// FIXME: allow to specify query parameters here as well
-					String[] queryParams = new String[]{""};
-					allowed = qm.loadQueryFromFile(pathToJar, definitionClass, queryParams);
+					queryArgs = new String[]{""};
+					// FIXME: get rid of harcoded name
+					composeMethod = "compose";
+					allowed = qm.loadQueryFromFile(pathToJar, definitionClass, queryArgs, composeMethod);
 					if(!allowed){
 						LOG.warn("Could not load query");
 						break;
@@ -89,7 +95,7 @@ public class SimpleConsoleUI implements UI {
 					break;
 				case "1":
 					LOG.info("Deploying query to nodes...");
-					allowed = qm.deployQueryToNodes();
+					allowed = qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
 					if(!allowed){
 						LOG.warn("Could not deploy query");
 						break;

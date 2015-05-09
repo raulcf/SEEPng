@@ -30,6 +30,11 @@ public class GenericQueryManager implements QueryManager {
 	private Comm comm;
 	private LifecycleManager lifeManager;
 	
+	// Info query loading
+	private String definitionClassName;
+	private String[] queryArgs;
+	private String composeMethodName;
+	
 	public static GenericQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
 			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		if(gqm == null){
@@ -66,17 +71,19 @@ public class GenericQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
 		// Check whether the action is valid, but GenericQueryManager does not change Lifecycle
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
-		// FIXME: eliminate hardcoded name
+		this.definitionClassName = definitionClass;
+		this.queryArgs = queryArgs;
+		this.composeMethodName = composeMethod;
 		// get logical query
-		SeepLogicalQuery lsq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, "compose");
-		return this.loadQueryFromParameter(lsq, pathToQueryJar);
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, composeMethod);
+		return this.loadQueryFromParameter(slq, pathToQueryJar);
 	}
 	
 	private QueryManager getQueryManagerForExecutionMode(QueryExecutionMode qem) {
@@ -102,8 +109,8 @@ public class GenericQueryManager implements QueryManager {
 	}
 
 	@Override
-	public boolean deployQueryToNodes() {
-		return this.qm.deployQueryToNodes();
+	public boolean deployQueryToNodes(String definitionClass, String[] queryArgs, String composeMethod) {
+		return this.qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
 	}
 
 	@Override

@@ -2,21 +2,24 @@ package uk.ac.imperial.lsds.seepworker.comm;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.Operator;
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.SeepPhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
-import uk.ac.imperial.lsds.seep.comm.protocol.QueryDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -40,6 +43,11 @@ public class WorkerMasterAPIImplementation {
 	private int myPort;
 	private int retriesToMaster;
 	private int retryBackOffMs;
+	
+	private String pathToQueryJar;
+	private String definitionClass;
+	private String[] queryArgs;
+	private String methodName;
 	
 	public WorkerMasterAPIImplementation(Comm comm, Conductor c, WorkerConfig wc){
 		this.comm = comm;
@@ -67,28 +75,36 @@ public class WorkerMasterAPIImplementation {
 		LOG.info("Sending bye message to master...OK");
 	}
 	
-	public void handleQueryDeploy(QueryDeployCommand qdc){
-		InetAddress ip = null;
-		try {
-			ip = InetAddress.getByName(myIp);
-		} 
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		int myOwnId = Utils.computeIdFromIpAndPort(ip, myPort);
-		SeepPhysicalQuery query = qdc.getQuery();
-		
-		// We don't know yet what is this for anyway...
-		Set<EndPoint> meshTopology = query.getMeshTopology(myOwnId);
-		
-		PhysicalOperator po = query.getOperatorLivingInExecutionUnitId(myOwnId);
-		LOG.info("Found PhysicalOperator: {} to execute in this executionUnit: {} stateful: {}", po.getOperatorName(), myOwnId, po.isStateful());
-		c.deployPhysicalOperator(po, query);
+	public void handleQueryInstantiation(String pathToQueryJar, String definitionClass, String[] queryArgs, String methodName) {
+		this.pathToQueryJar = pathToQueryJar;
+		this.definitionClass = definitionClass;
+		this.queryArgs = queryArgs;
+		this.methodName = methodName;
+	}
+	
+	public void handleMaterializeTask(MaterializeTaskCommand mtc) {
+		// Instantiate logical query
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+		// Get physical info from command
+		Map<Integer, EndPoint> mapping = mtc.getMapping();
+		SeepPhysicalQuery query = makePhysicalQueryFrom(slq, mapping);
+		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		c.setQuery(myOwnId, query);
+		c.materializeAndConfigureTask();
 	}
 	
 	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
-		SeepLogicalQuery slq = sdc.getQuery();
+		// Instantiate logical query
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+		// Get physical info from command
+		Set<EndPoint> endpoints = sdc.getEndPoints();
 		ScheduleDescription sd = sdc.getSchedule();
+		// TODO:
+		// TODO: in this case get all nodes involved in the schedule and then check shuffle phases
+		SeepPhysicalQuery query = null;
+		
+		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		c.setQuery(myOwnId, query);
 		
 	}
 
@@ -103,6 +119,31 @@ public class WorkerMasterAPIImplementation {
 	public void handleScheduleStage(ScheduleStageCommand esc) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private InetAddress getMyIp() {
+		InetAddress ip = null;
+		try {
+			ip = InetAddress.getByName(myIp);
+		} 
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip;
+	}
+	
+	private SeepPhysicalQuery makePhysicalQueryFrom(SeepLogicalQuery slq, Map<Integer, EndPoint> mapping) {
+		Set<SeepPhysicalOperator> physicalOperators = new HashSet<>();
+		
+		for(Operator slo : slq.getAllOperators()) {
+			int opId = slo.getOperatorId();
+			EndPoint ep = mapping.get(opId);
+			SeepPhysicalOperator po = SeepPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(slo, ep);
+			physicalOperators.add(po);
+		}
+		
+		SeepPhysicalQuery psq = SeepPhysicalQuery.buildPhysicalQueryFrom(physicalOperators, slq);
+		return psq;
 	}
 	
 }

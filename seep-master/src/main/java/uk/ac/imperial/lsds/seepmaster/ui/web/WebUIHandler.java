@@ -32,6 +32,11 @@ public class WebUIHandler extends HttpServlet {
 	
 	private GenericQueryManager qm;
 	private InfrastructureManager inf;
+	
+	private String pathToJar;
+	private String definitionClass;
+	private String[] queryArgs;
+	private String composeMethod;
 
 	public WebUIHandler(GenericQueryManager qm, InfrastructureManager inf){
 		this.qm = qm;
@@ -88,8 +93,6 @@ public class WebUIHandler extends HttpServlet {
 	}
 	
 	private boolean handleFileItems(List<FileItem> items){
-		String baseClass = null;
-		String pathToJar = null;
 		Iterator<FileItem> iter = items.iterator();
 		while (iter.hasNext()) {
 		    FileItem item = iter.next();
@@ -97,14 +100,14 @@ public class WebUIHandler extends HttpServlet {
 		    if (item.isFormField()) {	        
 		        String name = item.getFieldName();
 		        if(name.equals("baseclass")){
-		        	baseClass = item.getString();
+		        	definitionClass = item.getString();
 		        }
 		    } 
 		    else {
 		        pathToJar = processUploadedFile(item);
 		    }
 		}
-		return qm.loadQueryFromFile(pathToJar, baseClass, new String[]{});
+		return qm.loadQueryFromFile(pathToJar, definitionClass, new String[]{}, "compose");
 	}
 	
 	private String processUploadedFile(FileItem item){
@@ -150,7 +153,7 @@ public class WebUIHandler extends HttpServlet {
 		switch(action){
 		case 1:
 			LOG.info("Deploying query to nodes...");
-			allowed = qm.deployQueryToNodes();
+			allowed = qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
 			if(!allowed){
 				LOG.warn("Could not deploy query");
 			}

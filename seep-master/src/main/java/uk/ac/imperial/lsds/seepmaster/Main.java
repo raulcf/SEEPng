@@ -54,12 +54,14 @@ public class Main {
 		
 		String queryPathFile = null;
 		String baseClass = null;
+		String composeMethod = null;
 		// TODO: find a more appropriate way of checking whether a property is defined in config
 		if(! mc.getString(MasterConfig.QUERY_FILE).equals("") && (! mc.getString(MasterConfig.BASECLASS_NAME).equals(""))){
 			queryPathFile = mc.getString(MasterConfig.QUERY_FILE);
 			baseClass = mc.getString(MasterConfig.BASECLASS_NAME);
+			composeMethod = mc.getString(MasterConfig.COMPOSE_METHOD_NAME);
 			LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
-			boolean success = qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs);
+			boolean success = qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs, composeMethod);
 			if(! success){
 				throw new InvalidLifecycleStatusException("Could not load query due to attempt to violate app lifecycle");
 			}
