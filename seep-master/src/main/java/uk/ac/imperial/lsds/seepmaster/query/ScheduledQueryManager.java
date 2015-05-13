@@ -35,7 +35,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private SchedulerEngine se;
 	private ScheduleDescription scheduleDescription;
 	private SeepLogicalQuery slq;
+	
 	private String pathToQueryJar;
+	private String definitionClassName;
+	private String[] queryArgs;
+	private String composeMethodName;
 	
 	private InfrastructureManager inf;
 	private Comm comm;
@@ -61,7 +65,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
+			String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -69,6 +74,10 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 		this.slq = slq;
 		this.pathToQueryJar = pathToQueryJar;
+		this.definitionClassName = definitionClass;
+		this.queryArgs = queryArgs;
+		this.composeMethodName = composeMethod;
+		
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		
 		// Create Scheduler Engine and build scheduling plan for the given query
@@ -88,7 +97,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	}
 
 	@Override
-	public boolean deployQueryToNodes(String definitionClass, String[] queryArgs, String composeMethod) {
+	public boolean deployQueryToNodes() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -112,7 +121,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		LOG.info("Sending query and schedule to nodes");
-		sendQueryToNodes(connections, definitionClass, queryArgs, composeMethod);
+		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
 		sendScheduleToNodes(connections, allEndPoints);
 		LOG.info("Seding query and schedule to nodes...OK {}");
 		

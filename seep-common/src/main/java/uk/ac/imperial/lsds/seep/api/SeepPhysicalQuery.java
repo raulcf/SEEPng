@@ -8,6 +8,7 @@ import java.util.Set;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
+@Deprecated
 public class SeepPhysicalQuery {
 
 	private List<PhysicalOperator> physicalOperators;

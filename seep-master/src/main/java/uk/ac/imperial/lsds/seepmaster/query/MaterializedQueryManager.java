@@ -34,7 +34,6 @@ public class MaterializedQueryManager implements QueryManager {
 	private MasterConfig mc;
 	private static MaterializedQueryManager qm;
 	private LifecycleManager lifeManager;
-	private String pathToQueryJar;
 	private SeepLogicalQuery slq;
 	private SeepPhysicalQuery originalQuery;
 	private SeepPhysicalQuery runtimeQuery;
@@ -43,6 +42,12 @@ public class MaterializedQueryManager implements QueryManager {
 	private Map<Integer, EndPoint> opToEndpointMapping;
 	private final Comm comm;
 	private final Kryo k;
+	
+	// Query information
+	private String pathToQueryJar;
+	private String definitionClassName;
+	private String[] queryArgs;
+	private String composeMethodName;
 	
 	// convenience method for testing
 	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, 
@@ -91,7 +96,8 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
+			String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -99,6 +105,9 @@ public class MaterializedQueryManager implements QueryManager {
 		}
 		this.slq = slq;
 		this.pathToQueryJar = pathToQueryJar;
+		this.definitionClassName = definitionClass;
+		this.queryArgs = queryArgs;
+		this.composeMethodName = composeMethod;
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(slq);
 		LOG.info("New query requires: {} units to start execution", this.executionUnitsRequiredToStart);
@@ -124,7 +133,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean deployQueryToNodes(String definitionClassName, String[] queryArgs, String composeMethodName) {
+	public boolean deployQueryToNodes() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");

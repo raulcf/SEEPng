@@ -30,11 +30,6 @@ public class GenericQueryManager implements QueryManager {
 	private Comm comm;
 	private LifecycleManager lifeManager;
 	
-	// Info query loading
-	private String definitionClassName;
-	private String[] queryArgs;
-	private String composeMethodName;
-	
 	public static GenericQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
 			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		if(gqm == null){
@@ -53,7 +48,8 @@ public class GenericQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar) {
+	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, 
+			String definitionClassName, String[] queryArgs, String composeMethodName) {
 		// Check whether the action is valid, but GenericQueryManager does not change Lifecycle
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
@@ -66,24 +62,21 @@ public class GenericQueryManager implements QueryManager {
 		// delegates all operations to that one
 		QueryExecutionMode qem = slq.getQueryExecutionMode();
 		qm = this.getQueryManagerForExecutionMode(qem);
-		boolean success = qm.loadQueryFromParameter(slq, pathToQueryJar);
+		boolean success = qm.loadQueryFromParameter(slq, pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
 		return success;
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClassName, String[] queryArgs, String composeMethodName) {
 		// Check whether the action is valid, but GenericQueryManager does not change Lifecycle
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
-		this.definitionClassName = definitionClass;
-		this.queryArgs = queryArgs;
-		this.composeMethodName = composeMethod;
 		// get logical query
-		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, composeMethod);
-		return this.loadQueryFromParameter(slq, pathToQueryJar);
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
+		return this.loadQueryFromParameter(slq, pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
 	}
 	
 	private QueryManager getQueryManagerForExecutionMode(QueryExecutionMode qem) {
@@ -109,8 +102,8 @@ public class GenericQueryManager implements QueryManager {
 	}
 
 	@Override
-	public boolean deployQueryToNodes(String definitionClass, String[] queryArgs, String composeMethod) {
-		return this.qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
+	public boolean deployQueryToNodes() {
+		return this.qm.deployQueryToNodes();
 	}
 
 	@Override

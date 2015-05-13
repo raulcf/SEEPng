@@ -95,7 +95,7 @@ public class SimpleConsoleUI implements UI {
 					break;
 				case "1":
 					LOG.info("Deploying query to nodes...");
-					allowed = qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
+					allowed = qm.deployQueryToNodes();
 					if(!allowed){
 						LOG.warn("Could not deploy query");
 						break;

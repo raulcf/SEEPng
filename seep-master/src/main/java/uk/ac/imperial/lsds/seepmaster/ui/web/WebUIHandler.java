@@ -153,7 +153,7 @@ public class WebUIHandler extends HttpServlet {
 		switch(action){
 		case 1:
 			LOG.info("Deploying query to nodes...");
-			allowed = qm.deployQueryToNodes(definitionClass, queryArgs, composeMethod);
+			allowed = qm.deployQueryToNodes();
 			if(!allowed){
 				LOG.warn("Could not deploy query");
 			}

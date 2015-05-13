@@ -7,6 +7,7 @@ import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
+@Deprecated
 public class SeepPhysicalOperator implements PhysicalOperator{
 	
 	private int opId;
