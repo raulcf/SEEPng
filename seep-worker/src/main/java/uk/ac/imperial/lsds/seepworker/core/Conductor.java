@@ -13,11 +13,14 @@ import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
 import uk.ac.imperial.lsds.seep.api.PhysicalSeepQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
+import uk.ac.imperial.lsds.seep.api.Source;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.comm.HdfsSelector;
+import uk.ac.imperial.lsds.seepcontrib.hdfs.config.HdfsConfig;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -38,6 +41,7 @@ public class Conductor {
 	private NetworkSelector ns;
 	private FileSelector fs;
 	private KafkaSelector ks;
+	private HdfsSelector hs;
 	
 	private PhysicalOperator o;
 	private CoreInput coreInput;
@@ -59,6 +63,7 @@ public class Conductor {
 		if(ns != null) ns.startNetworkSelector();
 		if(fs != null) fs.startFileSelector();
 		if(ks != null) ks.startKafkaSelector();
+		if(hs != null) hs.startHdfsSelector();
 		engine.start();
 	}
 	
@@ -69,6 +74,7 @@ public class Conductor {
 		if(ns != null) ns.stopNetworkSelector();
 		if(fs != null) fs.stopFileSelector();
 		if(ks != null) ks.stopKafkaSelector();
+		if(hs != null) hs.stopHdfsSelector();
 		LOG.info("Stopping processing engine...OK");
 	}
 	
@@ -90,6 +96,8 @@ public class Conductor {
 		this.ns = maybeConfigureNetworkSelector();
 		this.fs = maybeConfigureFileSelector();
 		this.ks = maybeConfigureKafkaSelector();
+		System.out.println("Here is operator:"+o.getOperatorId()+"=============");
+		this.hs = maybeConfigureHdfsSelector();
 		
 		coreOutput.setEventAPI(ns);
 		
@@ -153,6 +161,29 @@ public class Conductor {
 			// Not needed
 		}
 		return ks;
+	}
+	
+	private HdfsSelector maybeConfigureHdfsSelector(){
+		HdfsSelector hs = null;
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.HDFS)){
+			int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
+			hs = new HdfsSelector(headroom);
+			Map<Integer, DataStore> fileOrigins = new HashMap<>();
+			for(UpstreamConnection uc : o.upstreamConnections()){
+				int opId = uc.getUpstreamOperator().getOperatorId();
+				if(uc.getDataOriginType() == DataStoreType.HDFS){
+					if(uc.getUpstreamOperator().getSeepTask() instanceof Source)
+						hs.source();
+					LOG.info(uc.getUpstreamOperator().getOperatorId()+"-"+o.getOperatorId());
+					fileOrigins.put(opId, uc.getDataOrigin());
+				}
+			}
+			hs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
+		}
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.HDFS)){
+			//TODO: implement for output to HDFS
+		}
+		return hs;
 	}
 	
 	public void plugSeepTask(SeepTask task){

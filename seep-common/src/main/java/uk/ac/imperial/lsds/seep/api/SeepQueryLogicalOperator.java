@@ -98,6 +98,10 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	@Override
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
 		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
+		if(downstreamOperator instanceof HdfsSink){		
+			dO = ((HdfsSink)downstreamOperator).getDS();
+			downstreamOperator = ((HdfsSink)downstreamOperator).getlo();
+		}
 		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
 	}
 	
@@ -105,6 +109,9 @@ public class SeepQueryLogicalOperator implements LogicalOperator {
 	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
 		// Add downstream to this operator
 		this.addDownstream(downstreamOperator, streamId, schema, connectionType, dSrc);
+		if(downstreamOperator instanceof MR){		
+			downstreamOperator = ((MR) downstreamOperator).returnlO();
+		}
 		// Add this, as upstream, to the downstream operator
 		((SeepQueryLogicalOperator)downstreamOperator).addUpstream(this, connectionType, streamId, schema, dSrc);
 	}

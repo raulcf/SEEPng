@@ -7,4 +7,6 @@ include \
 	"simple-pipeline-stateful-query",
 	"simple-cycle-stateless-query",
 	"simple-sourcefile-stateless-query",
-	"simple-kafka-stateless-pipeline"
+	"simple-kafka-stateless-pipeline",
+	"simple-hdfs-stateless-query",
+	"MRex"

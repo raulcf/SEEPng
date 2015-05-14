@@ -28,6 +28,10 @@ public class Collector implements API {
 				SINGLE_SEND_NOT_DEFINED = false;
 				// Configure the unique outputadapter in this collector to avoid one lookup
 				outputAdapter = outputAdapters.get(0);
+				//************************************
+				this.outputAdapters = outputAdapters;
+				this.streamIdToOutputAdapter = createMap(outputAdapters);
+				//************************************
 			}
 			else{
 				SINGLE_SEND_NOT_DEFINED = true;

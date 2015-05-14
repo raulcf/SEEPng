@@ -117,7 +117,9 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			while(working) {
 				while(it.hasNext()){
 					InputAdapter ia = it.next();
+					
 					if(ia.returnType() == one){
+						//long start = System.currentTimeMillis();
 						DataItem di = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
 						if(di != null){
 							boolean consume = true;
@@ -125,6 +127,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 								ITuple d = di.consume();
 								if(d != null) {
 									task.processData(d, api);
+									//long end = SYS.CURENT
+									
 									m.mark();
 								} else consume = false;
 							}

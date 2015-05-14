@@ -44,7 +44,7 @@ public class LogicalSeepQuery {
 		Iterator<Operator> it = logicalOperators.iterator();
 		while(it.hasNext()){
 			Operator o = it.next();
-			if(o.getSeepTask() instanceof Source){
+			if(o.getSeepTask() instanceof Source||o.getSeepTask() instanceof Sink){
 				it.remove();
 			}
 		}
