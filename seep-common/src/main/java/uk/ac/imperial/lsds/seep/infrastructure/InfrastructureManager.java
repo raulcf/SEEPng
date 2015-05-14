@@ -4,9 +4,12 @@ import java.net.InetAddress;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.config.Config;
 
 public interface InfrastructureManager {
 	
+    public void init(Config config);
+    
 	public ExecutionUnit buildExecutionUnit(InetAddress ip, int port, int dataPort);
 	
 	public void addExecutionUnit(ExecutionUnit eu);
