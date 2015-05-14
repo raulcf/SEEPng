@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -228,6 +229,15 @@ public class Utils {
 		}
 		//Finally we return the queryPlan
 		return lsq;
+	}
+	
+	public static <K,V> String printMap(Map<K, V> map) {
+		StringBuffer sb = new StringBuffer();
+		for(K k : map.keySet()) {
+			sb.append("K: "+k.toString()+" V: "+map.get(k).toString());
+			sb.append(Utils.NL);
+		}
+		return sb.toString();
 	}
 	
 }

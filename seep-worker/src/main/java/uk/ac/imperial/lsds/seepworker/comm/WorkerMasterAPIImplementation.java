@@ -2,17 +2,13 @@ package uk.ac.imperial.lsds.seepworker.comm;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.Operator;
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -87,9 +83,8 @@ public class WorkerMasterAPIImplementation {
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		// Get physical info from command
 		Map<Integer, EndPoint> mapping = mtc.getMapping();
-		SeepPhysicalQuery query = makePhysicalQueryFrom(slq, mapping);
 		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
-		c.setQuery(myOwnId, query);
+		c.setQuery(myOwnId, slq, mapping);
 		c.materializeAndConfigureTask();
 	}
 	
@@ -99,12 +94,7 @@ public class WorkerMasterAPIImplementation {
 		// Get physical info from command
 		Set<EndPoint> endpoints = sdc.getEndPoints();
 		ScheduleDescription sd = sdc.getSchedule();
-		// TODO:
-		// TODO: in this case get all nodes involved in the schedule and then check shuffle phases
-		SeepPhysicalQuery query = null;
-		
-		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
-		c.setQuery(myOwnId, query);
+		// TODO: 
 		
 	}
 
@@ -130,20 +120,6 @@ public class WorkerMasterAPIImplementation {
 			e.printStackTrace();
 		}
 		return ip;
-	}
-	
-	private SeepPhysicalQuery makePhysicalQueryFrom(SeepLogicalQuery slq, Map<Integer, EndPoint> mapping) {
-		Set<SeepPhysicalOperator> physicalOperators = new HashSet<>();
-		
-		for(Operator slo : slq.getAllOperators()) {
-			int opId = slo.getOperatorId();
-			EndPoint ep = mapping.get(opId);
-			SeepPhysicalOperator po = SeepPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(slo, ep);
-			physicalOperators.add(po);
-		}
-		
-		SeepPhysicalQuery psq = SeepPhysicalQuery.buildPhysicalQueryFrom(physicalOperators, slq);
-		return psq;
 	}
 	
 }

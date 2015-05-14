@@ -49,7 +49,7 @@ public class QueryBuilder implements QueryAPI {
 	}
 
 	@Override
-	public List<Operator> getQueryOperators() {
+	public List<LogicalOperator> getQueryOperators() {
 		return qp.getAllOperators();
 	}
 
@@ -64,12 +64,12 @@ public class QueryBuilder implements QueryAPI {
 	}
 
 	@Override
-	public List<Operator> getSources() {
+	public List<LogicalOperator> getSources() {
 		return qp.getSources();
 	}
 
 	@Override
-	public Operator getSink() {
+	public LogicalOperator getSink() {
 		return qp.getSink();
 	}
 

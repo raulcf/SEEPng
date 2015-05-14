@@ -28,10 +28,10 @@ public class SeepLogicalQuery {
 	
 	final private static Logger LOG = LoggerFactory.getLogger(SeepLogicalQuery.class);
 	
-	private List<Operator> logicalOperators = new ArrayList<>();
-	private List<Operator> sources = new ArrayList<>();
+	private List<LogicalOperator> logicalOperators = new ArrayList<>();
+	private List<LogicalOperator> sources = new ArrayList<>();
 	// TODO: there could be many sinks
-	private Operator sink;
+	private LogicalOperator sink;
 	private List<SeepState> states = new ArrayList<>();
 	private Map<Integer, Integer> initialPhysicalInstancesPerOperator = new HashMap<>();
 	
@@ -56,12 +56,12 @@ public class SeepLogicalQuery {
 		return true;
 	}
 	
-	public List<Operator> getAllOperators(){
+	public List<LogicalOperator> getAllOperators(){
 		return logicalOperators;
 	}
 	
-	public Operator getOperatorWithId(int opId){
-		for(Operator lo : logicalOperators){
+	public LogicalOperator getOperatorWithId(int opId){
+		for(LogicalOperator lo : logicalOperators){
 			if(lo.getOperatorId() == opId)
 				return lo;
 		}
@@ -69,7 +69,7 @@ public class SeepLogicalQuery {
 	}
 	
 	public void cleanMarkerOperators(){
-		Iterator<Operator> it = logicalOperators.iterator();
+		Iterator<LogicalOperator> it = logicalOperators.iterator();
 		while(it.hasNext()){
 			Operator o = it.next();
 			if(o.getSeepTask() instanceof Source){
@@ -89,7 +89,7 @@ public class SeepLogicalQuery {
 		return states;
 	}
 	
-	public List<Operator> getSources(){
+	public List<LogicalOperator> getSources(){
 		return sources;
 	}
 	
@@ -97,7 +97,7 @@ public class SeepLogicalQuery {
 		this.sources.add(lo);
 	}
 	
-	public Operator getSink(){
+	public LogicalOperator getSink(){
 		return sink;
 	}
 	

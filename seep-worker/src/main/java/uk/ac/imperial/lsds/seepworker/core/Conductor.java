@@ -2,13 +2,14 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
+import uk.ac.imperial.lsds.seep.api.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
@@ -28,7 +29,8 @@ public class Conductor {
 	private WorkerConfig wc;
 	private InetAddress myIp;
 	private int id;
-	private SeepPhysicalQuery query;
+	private SeepLogicalQuery query;
+	private Map<Integer, EndPoint> mapping;
 	
 	private List<DataStoreSelector> dataStoreSelectors;
 	
@@ -43,16 +45,16 @@ public class Conductor {
 		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
 	}
 	
-	public void setQuery(int id, SeepPhysicalQuery query) {
-		// TODO: We don't know yet what is this for anyway...
-		Set<EndPoint> meshTopology = query.getMeshTopology(id);
+	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping) {
 		this.id = id;
 		this.query = query;
+		this.mapping = mapping;
 	}
 	
 	public void materializeAndConfigureTask(){
-		PhysicalOperator o = query.getOperatorLivingInExecutionUnitId(id);
-		LOG.info("Found PhysicalOperator: {} to execute in this executionUnit: {} stateful: {}", o.getOperatorName(), 
+		int opId = getOpIdLivingInThisEU(id);
+		LogicalOperator o = query.getOperatorWithId(opId);
+		LOG.info("Found LogicalOperator: {} mapped to this executionUnit: {} stateful: {}", o.getOperatorName(), 
 				id, o.isStateful());
 		
 		SeepTask task = o.getSeepTask();
@@ -66,7 +68,7 @@ public class Conductor {
 		// This creates one inputAdapter per upstream stream Id
 		coreInput = CoreInputFactory.buildCoreInputForOperator(wc, o);
 		// This creates one outputAdapter per downstream stream Id
-		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, query);
+		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, mapping);
 		
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
 				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
@@ -89,6 +91,13 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.initSelector();
 		}
+	}
+	
+	private int getOpIdLivingInThisEU(int id) {
+		for(Entry<Integer, EndPoint> entry : mapping.entrySet()) {
+			if(entry.getValue().getId() == id) return entry.getKey();
+		}
+		return -1;
 	}
 	
 	public void startProcessing(){

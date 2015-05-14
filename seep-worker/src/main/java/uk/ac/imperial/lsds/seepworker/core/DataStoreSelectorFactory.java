@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
@@ -29,7 +29,7 @@ public class DataStoreSelectorFactory {
 	final private static Logger LOG = LoggerFactory.getLogger(DataStoreSelectorFactory.class.getName());
 	
 	public static List<DataStoreSelector> buildDataStoreSelector(CoreInput coreInput, CoreOutput coreOutput, 
-			WorkerConfig wc, PhysicalOperator o, InetAddress myIp, int dataPort) {
+			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort) {
 		List<DataStoreSelector> selectors = new ArrayList<>();
 		
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK) ||
@@ -56,7 +56,7 @@ public class DataStoreSelectorFactory {
 	}
 	
 	public static NetworkSelector maybeConfigureNetworkSelector(CoreInput coreInput, CoreOutput coreOutput, 
-			WorkerConfig wc, PhysicalOperator o, InetAddress myIp, int dataPort){
+			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
 		NetworkSelector ns = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
 			LOG.info("Configuring networkSelector for input");
@@ -73,7 +73,7 @@ public class DataStoreSelectorFactory {
 	}
 
 	public static FileSelector maybeConfigureFileSelector(CoreInput coreInput, CoreOutput coreOutput, 
-			WorkerConfig wc, PhysicalOperator o, InetAddress myIp, int dataPort){
+			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
 		FileSelector fs = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			fs = new FileSelector(wc);
@@ -93,7 +93,7 @@ public class DataStoreSelectorFactory {
 	}
 
 	public static KafkaSelector maybeConfigureKafkaSelector(CoreInput coreInput, CoreOutput coreOutput, 
-			WorkerConfig wc, PhysicalOperator o, InetAddress myIp, int dataPort){
+			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
 		KafkaSelector ks = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
 			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataOrigin().getConfig() );

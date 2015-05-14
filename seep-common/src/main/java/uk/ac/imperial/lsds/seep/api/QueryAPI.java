@@ -8,11 +8,11 @@ import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 public interface QueryAPI {
 	
-	public List<Operator> getQueryOperators();
+	public List<LogicalOperator> getQueryOperators();
 	public List<SeepState> getQueryState();
 	public int getInitialPhysicalInstancesPerLogicalOperator(int logicalOperatorId);
-	public List<Operator> getSources();
-	public Operator getSink();
+	public List<LogicalOperator> getSources();
+	public LogicalOperator getSink();
 	
 	public Operator newStatefulSource(Source seepTask, SeepState state, int opId);
 	public Operator newStatelessSource(Source seepTask, int opId);

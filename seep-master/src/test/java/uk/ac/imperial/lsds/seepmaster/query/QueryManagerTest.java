@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 import org.junit.Test;
 
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
@@ -51,8 +50,7 @@ public class QueryManagerTest {
 		MaterializedQueryManager qm = MaterializedQueryManager.buildTestMaterializedQueryManager(lsq, inf, mapOperatorToEndPoint, cu);
 		
 		// Use helper method to create physical query
-		SeepPhysicalQuery psq = qm.createOriginalPhysicalQueryFrom(lsq);
-		System.out.println(psq.toString());
+		System.out.println(qm.createMappingOfOperatorWithEndPoint(lsq));
 		assert(true);
 	}
 	

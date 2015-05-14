@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
+import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -20,7 +20,7 @@ public class CoreOutputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreOutputFactory.class);
 	
-	public static CoreOutput buildCoreOutputForOperator(WorkerConfig wc, PhysicalOperator o, SeepPhysicalQuery query){
+	public static CoreOutput buildCoreOutputForOperator(WorkerConfig wc, LogicalOperator o, Map<Integer, EndPoint> mapping){
 		LOG.info("Building coreOutput...");
 		List<OutputAdapter> outputAdapters = new ArrayList<>();
 		// Create an InputAdapter per upstream connection -> know with the streamId
@@ -49,13 +49,13 @@ public class CoreOutputFactory {
 			if(dOriginType == DataStoreType.NETWORK){
 				// Create outputAdapter
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "NETWORK");
-				oa = OutputAdapterFactory.buildOutputAdapterOfTypeNetworkForOps(wc, streamId, doCon, query);
+				oa = OutputAdapterFactory.buildOutputAdapterOfTypeNetworkForOps(wc, streamId, doCon, mapping);
 			}
 			else if(dOriginType == DataStoreType.KAFKA){
 				// Create outputAdapter to send data to Kafka, and *not* to the downstream operator
 				KafkaConfig kc = new KafkaConfig( doCon.get(0).getExpectedDataOriginOfDownstream().getConfig() );
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");
-				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(kc, streamId, doCon, query);
+				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(kc, streamId, doCon);
 			}
 			outputAdapters.add(oa);
 		}

@@ -1,9 +1,9 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.Operator;
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -35,8 +33,6 @@ public class MaterializedQueryManager implements QueryManager {
 	private static MaterializedQueryManager qm;
 	private LifecycleManager lifeManager;
 	private SeepLogicalQuery slq;
-	private SeepPhysicalQuery originalQuery;
-	private SeepPhysicalQuery runtimeQuery;
 	private int executionUnitsRequiredToStart;
 	private InfrastructureManager inf;
 	private Map<Integer, EndPoint> opToEndpointMapping;
@@ -53,12 +49,6 @@ public class MaterializedQueryManager implements QueryManager {
 	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, 
 			InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm) {
 		return new MaterializedQueryManager(lsq, inf, mapOpToEndPoint, comm);
-	}
-	
-	// convenience method for testing
-	public SeepPhysicalQuery createOriginalPhysicalQueryFrom(SeepLogicalQuery lsq) {
-		this.slq = lsq;
-		return this.createOriginalPhysicalQuery();
 	}
 	
 	private MaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, 
@@ -145,10 +135,16 @@ public class MaterializedQueryManager implements QueryManager {
 					, executionUnitsRequiredToStart, inf.executionUnitsAvailable());
 			return false;
 		}
-		LOG.info("Building physicalQuery from logicalQuery...");
-		originalQuery = createOriginalPhysicalQuery();
-		LOG.debug("Building physicalQuery from logicalQuery...OK {}", originalQuery.toString());
-		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
+		// Build mapping for logicalquery
+		if(this.opToEndpointMapping != null){
+			LOG.info("Using provided mapping for logicalQuery...");
+		} 
+		else {
+			LOG.info("Building mapping for logicalQuery...");
+			this.opToEndpointMapping = createMappingOfOperatorWithEndPoint(slq);
+		}
+		LOG.debug("Mapping for logicalQuery...OK {}", Utils.printMap(opToEndpointMapping));
+		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
 		sendMaterializeTaskToNodes(connections);
@@ -156,6 +152,14 @@ public class MaterializedQueryManager implements QueryManager {
 		return true;
 	}
 	
+	private Set<Integer> getInvolvedEuIdIn(Collection<EndPoint> values) {
+		Set<Integer> involvedEUs = new HashSet<>();
+		for(EndPoint ep : values) {
+			involvedEUs.add(ep.getId());
+		}
+		return involvedEUs;
+	}
+
 	@Override
 	public boolean startQuery() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
@@ -164,7 +168,7 @@ public class MaterializedQueryManager implements QueryManager {
 			return false;
 		}
 		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
-		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
+		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		// Send start query command
 		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
@@ -181,7 +185,7 @@ public class MaterializedQueryManager implements QueryManager {
 			return false;
 		}
 		// TODO: take a look at the following two lines. Stateless is good to keep everything lean. Yet consider caching
-		Set<Integer> involvedEUId = originalQuery.getIdOfEUInvolved();
+		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		
 		// Send start query command
@@ -191,33 +195,18 @@ public class MaterializedQueryManager implements QueryManager {
 		return true;
 	}
 	
-	private SeepPhysicalQuery createOriginalPhysicalQuery() {
-		Set<SeepPhysicalOperator> physicalOperators = new HashSet<>();
-		
-		// use pre-defined description if exists
-		if(this.opToEndpointMapping != null){
-			for(Entry<Integer, EndPoint> e : opToEndpointMapping.entrySet()){
-				// TODO: implement manual mapping from the description
-			}
+	public Map<Integer, EndPoint> createMappingOfOperatorWithEndPoint(SeepLogicalQuery slq) {
+		Map<Integer, EndPoint> mapping = new HashMap<>();
+		for(Operator lso : slq.getAllOperators()){
+			int opId = lso.getOperatorId();
+			ExecutionUnit eu = inf.getExecutionUnit();
+			EndPoint ep = eu.getEndPoint();
+			LOG.debug("LogicalOperator: {} will run on: {} -> ({})", opId, ep.getId(), ep.getIp().toString());
+			mapping.put(opId, ep);
 		}
-		// otherwise map to random workers
-		else{
-			this.opToEndpointMapping = new HashMap<>();
-			
-			for(Operator lso : slq.getAllOperators()){
-				ExecutionUnit eu = inf.getExecutionUnit();
-				EndPoint ep = eu.getEndPoint();
-				SeepPhysicalOperator po = SeepPhysicalOperator.createPhysicalOperatorFromLogicalOperatorAndEndPoint(lso, ep);
-				int pOpId = po.getOperatorId();
-				LOG.debug("LogicalOperator: {} will run on: {} -> ({})", pOpId, po.getWrappingEndPoint().getId(), po.getWrappingEndPoint().getIp().toString());
-				opToEndpointMapping.put(pOpId, po.getWrappingEndPoint());
-				physicalOperators.add(po);
-			}
-		}
-		SeepPhysicalQuery psq = SeepPhysicalQuery.buildPhysicalQueryFrom(physicalOperators, slq);
-		return psq;
+		return mapping;
 	}
-	
+
 	private int computeRequiredExecutionUnits(SeepLogicalQuery lsq) {
 		return lsq.getAllOperators().size();
 	}

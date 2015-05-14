@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.SeepPhysicalQuery;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
@@ -21,12 +20,6 @@ public class ProtocolCommandFactory {
 		MasterWorkerCommand c = new MasterWorkerCommand(cc);
 		return c;
 	}
-
-//	public static MasterWorkerCommand buildQueryDeployCommand(SeepPhysicalQuery originalQuery) {
-//		QueryDeployCommand qdc = new QueryDeployCommand(originalQuery);
-//		MasterWorkerCommand c = new MasterWorkerCommand(qdc);
-//		return c;
-//	}
 	
 	public static MasterWorkerCommand buildStartQueryCommand(){
 		StartQueryCommand sqc = new StartQueryCommand();

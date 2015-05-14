@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.PhysicalOperator;
+import uk.ac.imperial.lsds.seep.api.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -20,7 +20,7 @@ public class CoreInputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreInputFactory.class);
 	
-	public static CoreInput buildCoreInputForOperator(WorkerConfig wc, PhysicalOperator o) {
+	public static CoreInput buildCoreInputForOperator(WorkerConfig wc, LogicalOperator o) {
 		LOG.info("Building Core Input...");
 		List<InputAdapter> inputAdapters = new LinkedList<>();
 		// Create an InputAdapter per upstream connection -> know with the streamId
