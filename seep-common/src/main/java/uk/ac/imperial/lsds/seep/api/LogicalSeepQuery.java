@@ -75,7 +75,7 @@ public class LogicalSeepQuery {
 	
 	public void setInitialPhysicalInstancesPerLogicalOperator(int opId, int numInstances) {
 		// Sanity checks
-		if(numInstances - 1 < 1){
+		if(numInstances < 1){
 			throw new InvalidQueryDefinitionException("Minimum num Instances per logicalOperator is 1");
 		}
 		if(this.initialPhysicalInstancesPerOperator.containsKey(opId)){
