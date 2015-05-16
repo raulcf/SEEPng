@@ -7,7 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 
 public class RouterFactory {
 

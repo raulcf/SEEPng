@@ -19,7 +19,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 
 public class Utils {
 

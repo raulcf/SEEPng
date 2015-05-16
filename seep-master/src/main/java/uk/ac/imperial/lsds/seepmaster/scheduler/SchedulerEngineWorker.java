@@ -7,6 +7,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
@@ -45,8 +46,8 @@ public class SchedulerEngineWorker implements Runnable {
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
-			MasterWorkerCommand esc = ProtocolCommandFactory.buildExecuteStageCommand(nextStage.getStageId());
-			
+			MasterWorkerCommand esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStage.getStageId(), 
+					nextStage.getInputDataReferences(), nextStage.getOutputDataReferences());
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
 			// Send stage to all workers and wait... (easy to get only a subset, since we have inf here)
 			boolean success = comm.send_object_sync(esc, euInvolved, k);
@@ -56,9 +57,13 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
-		// TODO: for now all workers execute all stages...
-		
-		return connections;
+		Set<EndPoint> eps = stage.getInvolvedNodes();
+		Set<Connection> cons = new HashSet<>();
+		for(EndPoint ep : eps) {
+			Connection c = new Connection(ep);
+			cons.add(c);
+		}
+		return cons;
 	}
 	
 	private void waitForNodes(Stage stage, Set<Connection> euInvolved) {

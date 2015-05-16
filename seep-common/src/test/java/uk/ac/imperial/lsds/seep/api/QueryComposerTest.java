@@ -4,6 +4,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+
 public class QueryComposerTest {
 
 	@Test

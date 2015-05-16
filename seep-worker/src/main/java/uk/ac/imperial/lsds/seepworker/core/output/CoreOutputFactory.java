@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.DownstreamConnection;
-import uk.ac.imperial.lsds.seep.api.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;

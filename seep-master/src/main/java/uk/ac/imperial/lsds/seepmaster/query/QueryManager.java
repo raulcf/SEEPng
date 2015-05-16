@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 
 public interface QueryManager {
 

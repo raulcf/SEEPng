@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.kryo.Kryo;
 
-import uk.ac.imperial.lsds.seep.api.SeepLogicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
-import uk.ac.imperial.lsds.seep.api.sinks.Sink;
-import uk.ac.imperial.lsds.seep.api.sources.Source;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
@@ -88,6 +88,7 @@ public class SchedulerEngine {
 		boolean success = true;
 		for(Stage stage : stages) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
+				// TODO: configure inputDataReference at this point ??
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}

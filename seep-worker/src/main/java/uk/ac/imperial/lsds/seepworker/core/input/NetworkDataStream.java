@@ -81,6 +81,7 @@ public class NetworkDataStream implements InputAdapter{
 			RowBatchITuple dataItem = appBatch.build();
 			try {
 				queue.put(dataItem);
+				qSize.inc();
 			} 
 			catch (InterruptedException e) {
 				// TODO Auto-generated catch block

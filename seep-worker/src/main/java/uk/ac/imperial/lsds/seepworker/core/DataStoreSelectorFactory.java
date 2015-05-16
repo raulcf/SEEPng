@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;

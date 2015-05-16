@@ -3,6 +3,8 @@ package uk.ac.imperial.lsds.seep.api;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 
 public class BaseTest implements QueryComposer {
 
@@ -28,7 +30,7 @@ public class BaseTest implements QueryComposer {
 	}
 
 	
-	class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
+	class Source implements uk.ac.imperial.lsds.seep.api.operator.sources.Source {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
@@ -66,7 +68,7 @@ public class BaseTest implements QueryComposer {
 		}
 	}
 	
-	class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
+	class Sink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	

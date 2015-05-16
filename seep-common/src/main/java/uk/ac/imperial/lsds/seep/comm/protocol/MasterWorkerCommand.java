@@ -97,7 +97,7 @@ public class MasterWorkerCommand {
 		return sdc;
 	}
 	
-	public ScheduleStageCommand getExecuteStageCommand() {
+	public ScheduleStageCommand getScheduleStageCommand() {
 		return esc;
 	}
 	

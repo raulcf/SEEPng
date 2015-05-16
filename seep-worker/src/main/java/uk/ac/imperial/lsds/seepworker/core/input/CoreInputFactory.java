@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -57,7 +57,7 @@ public class CoreInputFactory {
 			DataStoreType dOriginType = upCon.get(0).getDataOriginType();
 			if(dOriginType.equals(DataStoreType.NETWORK)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeNetworkForOps(wc, streamId, upCon);
-			} 
+			}
 			else if(dOriginType.equals(DataStoreType.FILE)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeFileForOps(wc, streamId, upCon);
 			}

@@ -6,8 +6,10 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.api.sources.FileConfig;
-import uk.ac.imperial.lsds.seep.api.sources.FileSource;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
+import uk.ac.imperial.lsds.seep.api.operator.sources.FileSource;
 
 public class FileBase implements QueryComposer {
 
@@ -57,7 +59,7 @@ public class FileBase implements QueryComposer {
 		public void close() {		}
 	}
 	
-	class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
+	class Sink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
 		@Override
 		public void setUp() {		}
 		@Override

@@ -1,5 +1,7 @@
-package uk.ac.imperial.lsds.seep.api;
+package uk.ac.imperial.lsds.seep.api.operator;
 
+import uk.ac.imperial.lsds.seep.api.ConnectionType;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
 public interface Connectable {

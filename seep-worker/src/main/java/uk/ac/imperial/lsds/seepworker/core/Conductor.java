@@ -1,22 +1,30 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -28,6 +36,8 @@ public class Conductor {
 	
 	private WorkerConfig wc;
 	private InetAddress myIp;
+	private WorkerMasterAPIImplementation masterApi;
+	private Connection masterConn;
 	private int id;
 	private SeepLogicalQuery query;
 	private Map<Integer, EndPoint> mapping;
@@ -38,11 +48,16 @@ public class Conductor {
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
 	
+	// Keep stageId - scheduleTask
+	private Map<Integer, ScheduleTask> scheduleTasks;
 	
-	public Conductor(InetAddress myIp, WorkerConfig wc){
+	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc){
 		this.myIp = myIp;
+		this.masterApi = masterApi;
+		this.masterConn = masterConn;
 		this.wc = wc;
-		engine = ProcessingEngineFactory.buildProcessingEngine(wc);
+		this.engine = ProcessingEngineFactory.buildProcessingEngine(wc);
+		this.scheduleTasks = new HashMap<>();
 	}
 	
 	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping) {
@@ -51,7 +66,7 @@ public class Conductor {
 		this.mapping = mapping;
 	}
 	
-	public void materializeAndConfigureTask(){
+	public void materializeAndConfigureTask() {
 		int opId = getOpIdLivingInThisEU(id);
 		LogicalOperator o = query.getOperatorWithId(opId);
 		LOG.info("Found LogicalOperator: {} mapped to this executionUnit: {} stateful: {}", o.getOperatorName(), 
@@ -91,6 +106,27 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.initSelector();
 		}
+	}
+	
+	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
+		this.id = id;
+		this.query = slq;
+		// Create ScheduleTask for every stage
+		for(Stage s : sd.getStages()) {
+			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
+			scheduleTasks.put(s.getStageId(), st);
+		}
+	}
+	
+	public void scheduleTask(int stageId, Set<DataReference> input, Set<DataReference> output) {
+		ScheduleTask task = this.scheduleTasks.get(stageId);
+		// TODO: configure input and output data and then run this task
+		// TODO: we may need a datareferencemanager that can keep track of those even when tasks are not alive here
+		
+		// TODO: do the processing while storing the data in output data references
+		
+		// TODO: notify processing is done, so scheduleTask is done, and point out to the datareferences
+		masterApi.scheduleTaskStatus(masterConn, stageId, id, StageStatusCommand.Status.OK, output);
 	}
 	
 	private int getOpIdLivingInThisEU(int id) {

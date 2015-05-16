@@ -1,7 +1,8 @@
-package uk.ac.imperial.lsds.seep.api;
+package uk.ac.imperial.lsds.seep.api.operator;
 
 import java.util.List;
 
+import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 public interface Operator extends Connectable {

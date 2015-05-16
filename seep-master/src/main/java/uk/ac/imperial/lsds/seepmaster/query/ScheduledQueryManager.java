@@ -6,7 +6,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -14,7 +14,6 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
@@ -109,21 +108,18 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			return false;
 		}
 		
-		// Ugly. Get all eu available
-		// FIXME: how are we dealing with this? workers should run wherever there's data to process
+		// We want to be able to schedule tasks in any node in the cluster, so send to all
 		Set<Integer> involvedEUId = new HashSet<>();
-		Set<EndPoint> allEndPoints = new HashSet<>();
 		int totalEUAvailable = inf.executionUnitsAvailable();
 		for(int i = 0; i < totalEUAvailable; i++) {
 			ExecutionUnit eu = inf.getExecutionUnit();
 			involvedEUId.add(eu.getId());
-			allEndPoints.add(eu.getEndPoint());
 		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		LOG.info("Sending query and schedule to nodes");
 		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
-		sendScheduleToNodes(connections, allEndPoints);
-		LOG.info("Seding query and schedule to nodes...OK {}");
+		sendScheduleToNodes(connections);
+		LOG.info("Sending query and schedule to nodes...OK {}");
 		
 		LOG.info("Prepare scheduler engine...");
 		se.prepareForStart(connections);
@@ -156,10 +152,10 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		LOG.info("Sending query file...DONE!");
 	}
 	
-	private boolean sendScheduleToNodes(Set<Connection> connections, Set<EndPoint> allEndPoints){
+	private boolean sendScheduleToNodes(Set<Connection> connections){
 		LOG.info("Sending Schedule Deploy Command");
 		// Send physical query to all nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription, allEndPoints);
+		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
 	}

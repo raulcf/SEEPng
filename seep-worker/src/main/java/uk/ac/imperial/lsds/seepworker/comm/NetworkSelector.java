@@ -67,7 +67,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.writersConfiguredLatch = new CountDownLatch(0); // Initially non-defined, nobody waits here
 		this.iapMap = iapMap;
 		int expectedUpstream = 0;
-		for(InputAdapter ia : iapMap.values()){
+		for(InputAdapter ia : iapMap.values()) {
 			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
 		}
 		this.numUpstreamConnections  = expectedUpstream;
@@ -341,7 +341,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 				if(readBytes != Type.INT.sizeOf(null)){
 					// TODO: throw some type of error
 				}
-			} 
+			}
 			catch (IOException e) {
 				e.printStackTrace();
 			}

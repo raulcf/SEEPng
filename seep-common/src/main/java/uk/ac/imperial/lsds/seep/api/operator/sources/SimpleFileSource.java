@@ -1,24 +1,21 @@
-package uk.ac.imperial.lsds.seep.api.sinks;
+package uk.ac.imperial.lsds.seep.api.operator.sources;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
-public class SimpleConsoleSink implements SeepTask, Sink {
+public class SimpleFileSource implements SeepTask {
 
-	private int numTuple = 0;
-	
 	@Override
 	public void setUp() {
-		// TODO: Check that there's a console available and that we have access to it
-		// FIXME: assume that is the case
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void processData(ITuple data, API api) {
-		// Simply print every tuple with an always increasing number
-		System.out.println(numTuple+" - "+data.toString());
-		numTuple++;
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override

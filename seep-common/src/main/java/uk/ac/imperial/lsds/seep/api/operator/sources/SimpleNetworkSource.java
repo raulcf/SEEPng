@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seep.api.sources;
+package uk.ac.imperial.lsds.seep.api.operator.sources;
 
 import java.io.IOException;
 import java.io.InputStream;

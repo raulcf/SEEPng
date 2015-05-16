@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seep.api.sinks;
+package uk.ac.imperial.lsds.seep.api.operator.sinks;
 
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 

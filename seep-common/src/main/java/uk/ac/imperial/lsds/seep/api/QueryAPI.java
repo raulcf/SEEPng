@@ -2,8 +2,10 @@ package uk.ac.imperial.lsds.seep.api;
 
 import java.util.List;
 
-import uk.ac.imperial.lsds.seep.api.sinks.Sink;
-import uk.ac.imperial.lsds.seep.api.sources.Source;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 public interface QueryAPI {

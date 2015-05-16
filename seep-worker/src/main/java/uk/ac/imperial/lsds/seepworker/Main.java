@@ -61,16 +61,18 @@ public class Main {
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		
-		// Create workerMaster comm manager
+		// Create comm object
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
-		// Create conductor
-		Conductor c = new Conductor(Utils.getLocalIp(), wc);
+		// Create master-worker API handler (to send commands to master)
+		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
 		
-		// Start master-worker communication manager
-		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, c, wc);
+		// Create conductor
+		Conductor c = new Conductor(Utils.getLocalIp(), api, wc);
+		
+		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());
-		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myPort, api, rcl);
+		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myPort, wc, rcl, c);
 		wmcm.start();
 		
 		// Start worker-worker communication manager

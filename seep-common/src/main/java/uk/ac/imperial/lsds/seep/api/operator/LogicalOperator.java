@@ -1,4 +1,5 @@
-package uk.ac.imperial.lsds.seep.api;
+package uk.ac.imperial.lsds.seep.api.operator;
+
 
 
 /**

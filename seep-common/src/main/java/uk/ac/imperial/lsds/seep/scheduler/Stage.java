@@ -5,6 +5,8 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
@@ -15,6 +17,8 @@ public class Stage {
 	private StageType type;
 	private Set<Stage> upstream;
 	private Set<Stage> downstream;
+	private Set<DataReference> inputDataReferences;
+	private Set<DataReference> outputDataReferences;
 	private Deque<Integer> wrapping;
 	
 	private boolean hasPartitionedState = false;
@@ -24,6 +28,8 @@ public class Stage {
 		this.stageId = stageId;
 		this.upstream = new HashSet<>();
 		this.downstream = new HashSet<>();
+		this.inputDataReferences = new HashSet<>();
+		this.outputDataReferences = new HashSet<>();
 		this.wrapping = new ArrayDeque<>();
 	}
 	
@@ -33,6 +39,26 @@ public class Stage {
 	
 	public void add(int opId){
 		this.wrapping.push(opId);
+	}
+	
+	public Deque<Integer> getWrappedOperators() {
+		return wrapping;
+	}
+	
+	public Set<DataReference> getInputDataReferences() {
+		return inputDataReferences;
+	}
+	
+	public Set<DataReference> getOutputDataReferences() {
+		return outputDataReferences;
+	}
+	
+	public Set<EndPoint> getInvolvedNodes() {
+		Set<EndPoint> in = new HashSet<>();
+		for(DataReference dr : inputDataReferences) {
+			in.add(dr.getEndPoint());
+		}
+		return in;
 	}
 	
 	public boolean responsibleFor(int opId) {
@@ -47,7 +73,7 @@ public class Stage {
 		this.hasPartitionedState = true;
 	}
 	
-	public boolean hasParitionedStage(){
+	public boolean hasPartitionedStage(){
 		return hasPartitionedState;
 	}
 	

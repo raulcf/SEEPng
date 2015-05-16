@@ -9,10 +9,15 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
@@ -22,8 +27,12 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.Conductor;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -36,11 +45,21 @@ public class WorkerMasterCommManager {
 	private Kryo k;
 	private Thread listener;
 	private boolean working = false;
-	private WorkerMasterAPIImplementation api;
 	private RuntimeClassLoader rcl;
 	
-	public WorkerMasterCommManager(int port, WorkerMasterAPIImplementation api, RuntimeClassLoader rcl){
-		this.api = api;
+	private Conductor c;
+	
+	private String myIp;
+	private int myPort;
+	
+	private String pathToQueryJar;
+	private String definitionClass;
+	private String[] queryArgs;
+	private String methodName;
+	
+	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
+		this.c = c;
+		this.myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		this.rcl = rcl;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol(rcl);
 		try {
@@ -97,42 +116,42 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						loadCodeToRuntime(f);
 						// Instantiate Seep Logical Query
-						api.handleQueryInstantiation(pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
+						handleQueryInstantiation(pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
 					}
 					// MATERIALIZED_TASK command
 					else if(cType == MasterWorkerProtocolAPI.MATERIALIZE_TASK.type()) {
 						LOG.info("RX MATERIALIZED_TASK command");
 						MaterializeTaskCommand mtc = c.getMaterializeTaskCommand();
 						out.println("ack");
-						api.handleMaterializeTask(mtc);
+						handleMaterializeTask(mtc);
 					}
 					// SCHEDULE_TASKS command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()){
 						LOG.info("RX Schedule_Tasks command");
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
-						api.handleScheduleDeploy(sdc);
+						handleScheduleDeploy(sdc);
 					}
 					// SCHEDULE_STAGE command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
 						LOG.info("RX Schedule Stage command");
-						ScheduleStageCommand esc = c.getExecuteStageCommand();
+						ScheduleStageCommand esc = c.getScheduleStageCommand();
 						out.println("ack");
-						api.handleScheduleStage(esc);
+						handleScheduleStage(esc);
 					}
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()){
 						LOG.info("RX StartRuntime command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
-						api.handleStartQuery(sqc);
+						handleStartQuery(sqc);
 					}
 					// STOPQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()){
 						LOG.info("RX StopRuntime command");
 						StopQueryCommand sqc = c.getStopQueryCommand();
 						out.println("ack");
-						api.handleStopQuery(sqc);
+						handleStopQuery(sqc);
 					}
 				}
 				catch(IOException io){
@@ -151,6 +170,58 @@ public class WorkerMasterCommManager {
 			}		
 		}	
 	}	
+	
+	public void handleQueryInstantiation(String pathToQueryJar, String definitionClass, String[] queryArgs, String methodName) {
+		this.pathToQueryJar = pathToQueryJar;
+		this.definitionClass = definitionClass;
+		this.queryArgs = queryArgs;
+		this.methodName = methodName;
+	}
+	
+	public void handleMaterializeTask(MaterializeTaskCommand mtc) {
+		// Instantiate logical query
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+		// Get physical info from command
+		Map<Integer, EndPoint> mapping = mtc.getMapping();
+		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		c.setQuery(myOwnId, slq, mapping);
+		c.materializeAndConfigureTask();
+	}
+	
+	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
+		// Instantiate logical query
+		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+		// Get schedule description
+		ScheduleDescription sd = sdc.getSchedule();
+		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		c.configureScheduleTasks(myOwnId, sd, slq);
+	}
+
+	public void handleStartQuery(StartQueryCommand sqc) {
+		c.startProcessing();
+	}
+	
+	public void handleStopQuery(StopQueryCommand sqc) {
+		c.stopProcessing();
+	}
+
+	public void handleScheduleStage(ScheduleStageCommand esc) {
+		int stageId = esc.getStageId();
+		Set<DataReference> input = esc.getInputDataReferences();
+		Set<DataReference> output = esc.getOutputDataReference();
+		c.scheduleTask(stageId, input, output);
+	}
+	
+	private InetAddress getMyIp() {
+		InetAddress ip = null;
+		try {
+			ip = InetAddress.getByName(myIp);
+		} 
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip;
+	}
 	
 	private void loadCodeToRuntime(File pathToCode){
 		URL urlToCode = null;

@@ -9,7 +9,7 @@
  *     Raul Castro Fernandez - initial design and implementation
  ******************************************************************************/
 
-package uk.ac.imperial.lsds.seep.api;
+package uk.ac.imperial.lsds.seep.api.operator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +20,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.sources.Source;
+import uk.ac.imperial.lsds.seep.api.InvalidQueryDefinitionException;
+import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
+import uk.ac.imperial.lsds.seep.api.SeepTask;
+import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
