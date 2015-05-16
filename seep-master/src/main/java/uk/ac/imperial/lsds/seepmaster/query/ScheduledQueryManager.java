@@ -6,7 +6,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
+import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -15,13 +21,17 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngine;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
+import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
+import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
 
 import com.esotericsoftware.kryo.Kryo;
 
@@ -31,8 +41,6 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	
 	private MasterConfig mc;
 	private static ScheduledQueryManager sqm;
-	private SchedulerEngine se;
-	private ScheduleDescription scheduleDescription;
 	private SeepLogicalQuery slq;
 	
 	private String pathToQueryJar;
@@ -45,12 +53,17 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private Kryo k;
 	private LifecycleManager lifeManager;
 	
+	// Scheduler machinery
+	private ScheduleDescription scheduleDescription;
+	private Thread worker;
+	private SchedulerEngineWorker seWorker;
+	
 	private ScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+		this.mc = mc;
 		this.inf = inf;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
-		this.mc = mc;
 	}
 	
 	public static ScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm, 
@@ -62,6 +75,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			return sqm;
 		}
 	}
+	
+	/** Implement QueryManager interface **/
 	
 	@Override
 	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
@@ -80,9 +95,15 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		
 		// Create Scheduler Engine and build scheduling plan for the given query
-		se = SchedulerEngine.getInstance(mc);
-		scheduleDescription = se.buildSchedulingPlanForQuery(slq);
-		se.initializeSchedulerEngine(inf, comm, k);
+		scheduleDescription = this.buildSchedulingPlanForQuery(slq);
+		// Initialize the schedulerThread
+		seWorker = new SchedulerEngineWorker(
+				scheduleDescription, 
+				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), 
+				inf, 
+				comm, 
+				k);
+		worker = new Thread(seWorker);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
 		
@@ -122,7 +143,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		LOG.info("Sending query and schedule to nodes...OK {}");
 		
 		LOG.info("Prepare scheduler engine...");
-		se.prepareForStart(connections);
+		seWorker.prepareForStart(connections);
 		LOG.info("Prepare scheduler engine...OK");
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
@@ -132,13 +153,21 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	@Override
 	public boolean startQuery() {
 		LOG.info("Start scheduling.");
-		return se.startScheduling();
+		worker.start();
+		return true;
 	}
 
 	@Override
 	public boolean stopQuery() {
 		LOG.info("Stop scheduling");
-		return se.stopScheduling();
+		try {
+			worker.join();
+		} 
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 	// FIXME: this code is repeated in materialisedQueryManager. please refactor
@@ -160,26 +189,173 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		return success;
 	}
 	
-	/** Implement ScheduleManager interface **/
+	public ScheduleDescription buildSchedulingPlanForQuery(SeepLogicalQuery slq) {
+		Set<Integer> opsAlreadyInSchedule = new HashSet<>();
+		// Start building from sink
+		SeepLogicalOperator op = (SeepLogicalOperator) slq.getSink();
+		// Recursive method, with opsAlreadyInSchedule to detect already incorporated stages
+		Set<Stage> stages = new HashSet<>();
+		int stageId = 0;
+		buildScheduleFromStage(null, op,  opsAlreadyInSchedule, slq, stages, stageId);
+		ScheduleDescription sd = new ScheduleDescription(stages);
+		return sd;
+	}
+	
+	private void buildScheduleFromStage(Stage parent, SeepLogicalOperator slo,  
+			Set<Integer> opsAlreadyInSchedule, SeepLogicalQuery slq, Set<Stage> stages, int stageId) {
+		// Check whether this op has already been incorporated to a stage and abort if so
+		int opId = slo.getOperatorId();
+		if(opsAlreadyInSchedule.contains(opId)){
+			// Create dependency with the stage governing opId in this case and return
+			parent.dependsOn(stageResponsibleFor(opId));
+			return;
+		}
+		// Create new stage and dependency with parent
+		Stage stage = new Stage(stageId);
+		if(parent != null){
+			parent.dependsOn(stage);
+		}
+		stage = createStageFromLogicalOperator(stage, opsAlreadyInSchedule, slo);
+		stages.add(stage);
+		StageType type = stage.getStageType();
 
+		// If we hit a source or unique stage, then just finish
+		if(type.equals(StageType.SOURCE_STAGE) || type.equals(StageType.UNIQUE_STAGE)) {
+			return;
+		}
+		
+		// Update slo after stage creation
+		slo = (SeepLogicalOperator) slq.getOperatorWithId(stage.getIdOfOperatorBoundingStage());
+		
+		// If multiple input explore for each
+		if(stage.hasMultipleInput()){
+			for(UpstreamConnection uc : slo.upstreamConnections()){
+				SeepLogicalOperator upstreamOp = (SeepLogicalOperator) uc.getUpstreamOperator();
+				stageId++;
+				buildScheduleFromStage(stage, upstreamOp, opsAlreadyInSchedule, slq, stages, stageId);
+			}
+		// If not explore the previous op
+		} 
+		else {
+			SeepLogicalOperator upstreamOp = (SeepLogicalOperator)slo.upstreamConnections().get(0).getUpstreamOperator();
+			stageId++;
+			buildScheduleFromStage(stage, upstreamOp,  opsAlreadyInSchedule, slq, stages, stageId);
+		}
+			
+	}
+	
+	private Stage stageResponsibleFor(int opId) {
+		for(Stage s : scheduleDescription.getStages()) {
+			if(s.responsibleFor(opId)) {
+				return s;
+			}
+		}
+		return null;
+	}
+	
+	private Stage createStageFromLogicalOperator(Stage stage, Set<Integer> opsAlreadyInSchedule, SeepLogicalOperator slo){
+		StageType type = null;
+		boolean containsSinkOperator = false;
+		boolean containsSourceOperator = false;
+		
+		boolean finishesStage = false;
+		do {
+			// get opId of current op
+			int opId = slo.getOperatorId();
+			// Add opId to stage
+			stage.add(opId);
+			opsAlreadyInSchedule.add(opId);
+			if (isSink(slo)) containsSinkOperator = true;
+			if (isSource(slo)) containsSourceOperator = true;
+			// Check if it terminates stage
+			// has partitioned state?
+			if(slo.isStateful()) {
+				if(slo.getState().getDMS().equals(DistributedMutableState.PARTITIONED)) {
+					stage.setHasPartitionedState();
+					finishesStage = true;
+				}
+			}
+			
+			// has multiple inputs?
+			if(slo.upstreamConnections().size() > 1) {
+				stage.setRequiresMultipleInput();
+				finishesStage = true;
+			}
+			
+			// is source operator?
+			if(containsSourceOperator) {
+				finishesStage = true;
+			}
+			// if not source op, then...
+			else {
+				// has upstream downstreams other than me?
+				if(slo.upstreamConnections().get(0).getUpstreamOperator().downstreamConnections().size() > 1){	
+					finishesStage = true;
+				}
+			}
+			
+			// Get next operator
+			if(!finishesStage){
+				slo = (SeepLogicalOperator)slo.upstreamConnections().get(0).getUpstreamOperator();
+			}
+			
+		} while(!finishesStage);
+		
+		// Set stage type
+		if(containsSourceOperator && containsSinkOperator){
+			type = StageType.UNIQUE_STAGE;
+		} else if(containsSourceOperator){
+			type = StageType.SOURCE_STAGE;
+		} else if(containsSinkOperator){
+			type = StageType.SINK_STAGE;
+		} else {
+			type = StageType.INTERMEDIATE_STAGE;
+		}
+		stage.setStageType(type);
+		return stage;
+	}
+	
+	private boolean isSink(SeepLogicalOperator slo){
+		if(slo.getSeepTask() instanceof Sink) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isSource(SeepLogicalOperator slo){
+		if(slo.getSeepTask() instanceof Source) {
+			return true;
+		}
+		return false;
+	}
+	
+	/** Implement ScheduleManager interface **/
+	
 	@Override
 	public void notifyStageStatus(StageStatusCommand ssc) {
 		int stageId = ssc.getStageId();
 		int euId = ssc.getEuId();
+		Set<DataReference> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
-		switch(status) {
-		case OK:
-			LOG.info("EU {} finishes stage {}", euId, stageId);
-			se.finishStage(euId, stageId);
-			break;
-		case FAIL:
-			LOG.info("EU {} has failed executing stage {}", euId, stageId);
-			
-			break;
-		default:
-			
-			LOG.error("Unrecognized STATUS in StageStatusCommand");
-		}
-		
+		seWorker.newStageStatus(stageId, euId, results, status);
 	}
+	
+	/** Methods to facilitate testing **/
+	
+	public void __initializeEverything(){
+		seWorker.prepareForStart(null);
+	}
+	
+	public ScheduleTracker __tracker_for_test(){
+		return seWorker.__tracker_for_testing();
+	}
+	
+	public Stage __get_next_stage_to_schedule_fot_test(){
+		return seWorker.__next_stage_scheduler();
+	}
+	
+	public void __reset_schedule() {
+		seWorker.__reset_schedule();
+	}
+	
 }

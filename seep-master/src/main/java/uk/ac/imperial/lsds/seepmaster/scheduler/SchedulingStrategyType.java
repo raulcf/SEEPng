@@ -1,7 +1,8 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 public enum SchedulingStrategyType {
-	SEQUENTIAL((short)0, new SequentialSchedulingStrategy());
+	SEQUENTIAL((short)0, new SequentialSchedulingStrategy()),
+	RANDOM((short)1, new RandomSchedulingStrategy());
 	
 	private int type;
 	private SchedulingStrategy strategy;

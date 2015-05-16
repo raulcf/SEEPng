@@ -49,6 +49,10 @@ public class Stage {
 		return inputDataReferences;
 	}
 	
+	public void addInputDataReference(Set<DataReference> dataReferences) {
+		this.inputDataReferences.addAll(dataReferences);
+	}
+	
 	public Set<DataReference> getOutputDataReferences() {
 		return outputDataReferences;
 	}
@@ -104,6 +108,10 @@ public class Stage {
 	
 	public Set<Stage> getDependants() {
 		return downstream;
+	}
+	
+	public void registerProducedResults() {
+		
 	}
 	
 	@Override

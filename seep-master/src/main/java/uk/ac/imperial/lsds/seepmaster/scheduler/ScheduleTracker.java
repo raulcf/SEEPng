@@ -1,12 +1,14 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -15,12 +17,14 @@ public class ScheduleTracker {
 
 	final private Logger LOG = LoggerFactory.getLogger(ScheduleTracker.class);
 	
+	private Set<Stage> stages;
 	private ScheduleStatus status;
 	private Stage sink;
 	private Map<Stage, StageStatus> scheduleStatus;
 	private StageTracker currentStageTracker;
 	
 	public ScheduleTracker(Set<Stage> stages) {
+		this.stages = stages;
 		status = ScheduleStatus.NON_INITIALIZED;
 		// Keep track of overall schedule
 		scheduleStatus = new HashMap<>();
@@ -51,15 +55,27 @@ public class ScheduleTracker {
 		return true;
 	}
 	
-	public boolean setFinished(Stage stage) {
+	public Set<Stage> getReadySet() {
+		Set<Stage> toReturn = new HashSet<>();
+		for(Stage stage : stages) {
+			if(this.isStageReady(stage)) {
+				toReturn.add(stage);
+			}
+		}
+		return toReturn;
+	}
+	
+	public boolean setFinished(Stage stage, Set<DataReference> results) {
 		// Set finish
 		this.scheduleStatus.put(stage, StageStatus.FINISHED);
 		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
 			// Finished schedule
 			this.status = ScheduleStatus.FINISHED;
+			// TODO: what to do with results in this case
 		}
-		// Check whether the new stage makes ready new stages
+		// Check whether the new stage makes ready new stages, and propagate results
 		for(Stage downstream : stage.getDependants()) {
+			downstream.addInputDataReference(results);
 			if(isStageReadyToRun(downstream)) {
 				this.scheduleStatus.put(downstream, StageStatus.READY);
 			}
@@ -96,13 +112,21 @@ public class ScheduleTracker {
 	}
 	
 	public void trackAndWait(Stage stage, Set<Integer> euInvolved) {
-		// TODO: necessary to encapsulate stageTracker ??
-		currentStageTracker = new StageTracker(stage, euInvolved);
+		currentStageTracker = new StageTracker(stage.getStageId(), euInvolved);
 		currentStageTracker.await();
+		// Check status of the stage
+		if(currentStageTracker.finishedSuccessfully()) {
+			Set<DataReference> results = currentStageTracker.getStageResults();
+			setFinished(stage, results);
+		}
+		else{
+			LOG.warn("Not successful stage... CHECK");
+			System.exit(-1);
+		}
 	}
 
-	public void finishStage(int euId, int stageId) {
-		currentStageTracker.notifyOk(euId, stageId);
+	public void finishStage(int euId, int stageId, Set<DataReference> results) {
+		currentStageTracker.notifyOk(euId, stageId, results);
 	}
 	
 }

@@ -68,7 +68,7 @@ public class Main {
 		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
 		
 		// Create conductor
-		Conductor c = new Conductor(Utils.getLocalIp(), api, wc);
+		Conductor c = new Conductor(Utils.getLocalIp(), api, masterConnection, wc);
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());
