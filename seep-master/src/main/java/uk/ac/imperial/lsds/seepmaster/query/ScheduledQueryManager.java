@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -164,7 +165,6 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			worker.join();
 		} 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return true;
@@ -335,7 +335,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	public void notifyStageStatus(StageStatusCommand ssc) {
 		int stageId = ssc.getStageId();
 		int euId = ssc.getEuId();
-		Set<DataReference> results = ssc.getResultDataReference();
+		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
 		seWorker.newStageStatus(stageId, euId, results, status);
 	}

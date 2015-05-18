@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.comm;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -48,8 +49,8 @@ public class WorkerMasterAPIImplementation {
 		LOG.info("Sending bye message to master...OK");
 	}
 	
-	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Set<DataReference> resultDataReference) {
-		MasterWorkerCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, resultDataReference);
+	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
+		MasterWorkerCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput);
 		LOG.debug("Send stage {} status {} to master...", stageId, status.toString());
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 	}

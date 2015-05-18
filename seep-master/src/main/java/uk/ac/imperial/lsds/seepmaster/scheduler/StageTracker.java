@@ -1,6 +1,9 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,17 +21,17 @@ public class StageTracker {
 	private Set<Integer> euInvolved;
 	private final CountDownLatch countDown;
 	private Set<Integer> completed;
-	private Set<DataReference> results;
+	private Map<Integer, Set<DataReference>> results;
 	
 	public StageTracker(int stageId, Set<Integer> euInvolved) {
 		this.stageId = stageId;
 		this.euInvolved = euInvolved;
 		this.countDown = new CountDownLatch(euInvolved.size());
 		this.completed = new HashSet<>();
-		this.results = new HashSet<>();
+		this.results = new HashMap<>();
 	}
 	
-	public Set<DataReference> getStageResults() {
+	public Map<Integer, Set<DataReference>> getStageResults() {
 		return results;
 	}
 	
@@ -42,7 +45,7 @@ public class StageTracker {
 		}
 	}
 	
-	public void notifyOk(int euId, int stageId, Set<DataReference> partialResults) {
+	public void notifyOk(int euId, int stageId, Map<Integer, Set<DataReference>> newResults) {
 		if(this.stageId != stageId) {
 			System.out.println("ERROR, notifying for non-current stage");
 			System.exit(-1);
@@ -52,7 +55,11 @@ public class StageTracker {
 			LOG.warn("Notified {} that was already present", euId);
 		}
 		else{
-			results.addAll(partialResults);
+			for(Entry<Integer, Set<DataReference>> entry : newResults.entrySet()) {
+				int key = entry.getKey();
+				if(! results.containsKey(key)) results.put(key, new HashSet<>());
+				results.get(key).addAll(newResults.get(entry.getValue()));
+			}
 			countDown.countDown();
 		}
 	}

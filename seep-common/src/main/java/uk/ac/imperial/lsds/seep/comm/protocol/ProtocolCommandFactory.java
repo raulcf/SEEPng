@@ -47,8 +47,8 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 
-	public static MasterWorkerCommand buildScheduleStageCommand(int stageId, Set<DataReference> input, Set<DataReference> output) {
-		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId, input, output);
+	public static MasterWorkerCommand buildScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut) {
+		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId, input, ouptut);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		return c;
 	}
@@ -59,8 +59,8 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 
-	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Set<DataReference> resultDataReference) {
-		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, resultDataReference);
+	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
+		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
 		return c;
 	}

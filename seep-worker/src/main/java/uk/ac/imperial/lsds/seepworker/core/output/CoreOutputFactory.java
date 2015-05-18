@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
@@ -62,5 +64,9 @@ public class CoreOutputFactory {
 		CoreOutput cOutput = new CoreOutput(outputAdapters);
 		LOG.info("Building coreOutput...OK");
 		return cOutput;
+	}
+
+	public static CoreOutput buildCoreOutputForStage(WorkerConfig wc, Map<Integer, Set<DataReference>> output) {
+		return null;
 	}
 }

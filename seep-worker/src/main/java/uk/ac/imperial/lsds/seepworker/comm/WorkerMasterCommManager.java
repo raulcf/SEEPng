@@ -207,8 +207,8 @@ public class WorkerMasterCommManager {
 
 	public void handleScheduleStage(ScheduleStageCommand esc) {
 		int stageId = esc.getStageId();
-		Set<DataReference> input = esc.getInputDataReferences();
-		Set<DataReference> output = esc.getOutputDataReference();
+		Map<Integer, Set<DataReference>> input = esc.getInputDataReferences();
+		Map<Integer, Set<DataReference>> output = esc.getOutputDataReference();
 		c.scheduleTask(stageId, input, output);
 	}
 	

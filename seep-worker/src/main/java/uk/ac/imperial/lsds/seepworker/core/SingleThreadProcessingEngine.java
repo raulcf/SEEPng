@@ -34,43 +34,22 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	private int id;
 	private CoreInput coreInput;
 	private CoreOutput coreOutput;
-	
 	private SeepTask task;
 	private SeepState state;
 	
 	// Metrics
 	final private Meter m;
 	
-	public SingleThreadProcessingEngine(WorkerConfig wc) {
+	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput) {
+		this.id = id;
+		this.task = task;
+		this.state = state;
+		this.coreInput = coreInput;
+		this.coreOutput = coreOutput;
 		this.MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = wc.getInt(WorkerConfig.MAX_WAIT_TIME_PER_INPUTADAPTER_MS);
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
 		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
-	}
-	
-	@Override
-	public void setId(int id) {
-		this.id = id;
-	}
-	
-	@Override
-	public void setCoreInput(CoreInput coreInput) {
-		this.coreInput = coreInput;
-	}
-
-	@Override
-	public void setCoreOutput(CoreOutput coreOutput) {
-		this.coreOutput = coreOutput;
-	}
-	
-	@Override
-	public void setTask(SeepTask task) {
-		this.task = task;
-	}
-	
-	@Override
-	public void setSeepState(SeepState state) {
-		this.state = state;
 	}
 
 	@Override
@@ -153,6 +132,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 				if(working){
 					LOG.info("About to call processData without data. Am I a source?");
 					task.processData(null, api);
+					working = false; // run source only once
 				}
 			}
 			this.closeEngine();

@@ -2,7 +2,9 @@ package uk.ac.imperial.lsds.seep.scheduler;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
@@ -17,8 +19,8 @@ public class Stage {
 	private StageType type;
 	private Set<Stage> upstream;
 	private Set<Stage> downstream;
-	private Set<DataReference> inputDataReferences;
-	private Set<DataReference> outputDataReferences;
+	private Map<Integer, Set<DataReference>> inputDataReferences;
+	private Map<Integer, Set<DataReference>> outputDataReferences;
 	private Deque<Integer> wrapping;
 	
 	private boolean hasPartitionedState = false;
@@ -28,8 +30,8 @@ public class Stage {
 		this.stageId = stageId;
 		this.upstream = new HashSet<>();
 		this.downstream = new HashSet<>();
-		this.inputDataReferences = new HashSet<>();
-		this.outputDataReferences = new HashSet<>();
+		this.inputDataReferences = new HashMap<>();
+		this.outputDataReferences = new HashMap<>();
 		this.wrapping = new ArrayDeque<>();
 	}
 	
@@ -45,22 +47,27 @@ public class Stage {
 		return wrapping;
 	}
 	
-	public Set<DataReference> getInputDataReferences() {
+	public Map<Integer, Set<DataReference>> getInputDataReferences() {
 		return inputDataReferences;
 	}
 	
-	public void addInputDataReference(Set<DataReference> dataReferences) {
-		this.inputDataReferences.addAll(dataReferences);
+	public void addInputDataReference(int stageId, Set<DataReference> dataReferences) {
+		if(! this.inputDataReferences.containsKey(stageId)){
+			this.inputDataReferences.put(stageId, new HashSet<>());
+		}
+		this.inputDataReferences.get(stageId).addAll(dataReferences);
 	}
 	
-	public Set<DataReference> getOutputDataReferences() {
+	public Map<Integer, Set<DataReference>> getOutputDataReferences() {
 		return outputDataReferences;
 	}
 	
 	public Set<EndPoint> getInvolvedNodes() {
 		Set<EndPoint> in = new HashSet<>();
-		for(DataReference dr : inputDataReferences) {
-			in.add(dr.getEndPoint());
+		for(Set<DataReference> drs : inputDataReferences.values()){
+			for(DataReference dr : drs) {
+				in.add(dr.getEndPoint());
+			}
 		}
 		return in;
 	}
@@ -108,10 +115,6 @@ public class Stage {
 	
 	public Set<Stage> getDependants() {
 		return downstream;
-	}
-	
-	public void registerProducedResults() {
-		
 	}
 	
 	@Override

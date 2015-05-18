@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import uk.ac.imperial.lsds.seep.api.data.ITuple;
+
 
 public interface CommAPI {
 	

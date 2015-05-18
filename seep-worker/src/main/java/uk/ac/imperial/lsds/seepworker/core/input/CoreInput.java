@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class CoreInput {
 	
@@ -29,6 +32,10 @@ public class CoreInput {
 			}
 		}
 		LOG.info("Configured CoreInput with {} inputAdapters", inputAdapters.size());
+	}
+	
+	public CoreInput(WorkerConfig wc, Map<Integer, Set<DataReference>> input) {
+		
 	}
 	
 	public List<InputAdapter> getInputAdapters(){

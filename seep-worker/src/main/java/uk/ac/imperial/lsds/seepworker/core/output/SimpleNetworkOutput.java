@@ -3,7 +3,9 @@ package uk.ac.imperial.lsds.seepworker.core.output;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
@@ -133,6 +135,12 @@ public class SimpleNetworkOutput implements OutputAdapter {
 	public void send_opid(int opId, byte[] o) {
 		// TODO Auto-generated method stub
 		// careful again
+	}
+
+	@Override
+	public Set<DataReference> getOutputDataReference() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

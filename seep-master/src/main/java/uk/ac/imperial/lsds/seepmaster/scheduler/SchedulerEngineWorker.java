@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -54,6 +55,10 @@ public class SchedulerEngineWorker implements Runnable {
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
+			if(nextStage == null) {
+				// TODO: means the computation finished, do something
+			}
+			// TODO: Come up with a plan: which workers process which dataReferences and where they output data
 			MasterWorkerCommand esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStage.getStageId(), 
 					nextStage.getInputDataReferences(), nextStage.getOutputDataReferences());
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
@@ -98,7 +103,7 @@ public class SchedulerEngineWorker implements Runnable {
 		return success;
 	}
 	
-	public void newStageStatus(int stageId, int euId, Set<DataReference> results, StageStatusCommand.Status status) {
+	public void newStageStatus(int stageId, int euId, Map<Integer, Set<DataReference>> results, StageStatusCommand.Status status) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);

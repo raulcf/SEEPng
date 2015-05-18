@@ -23,5 +23,14 @@ public class ScheduleDescription {
 		sb.append(Utils.NL);
 		return sb.toString();
 	}
+
+	public Stage getStageWithId(int stageId) {
+		for(Stage s : stages) {
+			if(s.getStageId() == stageId){
+				return s;
+			}
+		}
+		return null;
+	}
 	
 }

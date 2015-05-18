@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
@@ -7,15 +8,15 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 public class ScheduleStageCommand implements CommandType {
 
 	private int stageId;
-	private Set<DataReference> inputDataReferences;
-	private Set<DataReference> outputDataReferences;
+	private Map<Integer, Set<DataReference>> inputDataReferences;
+	private Map<Integer, Set<DataReference>> outputDataReferences;
 	
 	public ScheduleStageCommand() {}
 	
-	public ScheduleStageCommand(int stageId, Set<DataReference> input, Set<DataReference> output) {
+	public ScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut) {
 		this.stageId = stageId;
 		this.inputDataReferences = input;
-		this.outputDataReferences = output;
+		this.outputDataReferences = ouptut;
 	}
 	
 	@Override
@@ -27,11 +28,11 @@ public class ScheduleStageCommand implements CommandType {
 		return stageId;
 	}
 	
-	public Set<DataReference> getInputDataReferences() {
+	public Map<Integer, Set<DataReference>> getInputDataReferences() {
 		return inputDataReferences;
 	}
 	
-	public Set<DataReference> getOutputDataReference() {
+	public Map<Integer, Set<DataReference>> getOutputDataReference() {
 		return outputDataReferences;
 	}
 

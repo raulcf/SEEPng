@@ -20,6 +20,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -48,15 +49,15 @@ public class Conductor {
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
 	
-	// Keep stageId - scheduleTask
-	private Map<Integer, ScheduleTask> scheduleTasks;
+	// Keep stage - scheduleTask
+	private Map<Stage, ScheduleTask> scheduleTasks;
+	private ScheduleDescription sd;
 	
 	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
 		this.wc = wc;
-		this.engine = ProcessingEngineFactory.buildProcessingEngine(wc);
 		this.scheduleTasks = new HashMap<>();
 	}
 	
@@ -92,12 +93,10 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			if(dss instanceof EventAPI) coreOutput.setEventAPI((EventAPI)dss);
 		}
+
+		int id = o.getOperatorId();
 		
-		engine.setId(o.getOperatorId());
-		engine.setTask(task);
-		engine.setSeepState(state);
-		engine.setCoreInput(coreInput);
-		engine.setCoreOutput(coreOutput);
+		engine = ProcessingEngineFactory.buildProcessingEngine(wc, id, task, state, coreInput, coreOutput);
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -111,22 +110,23 @@ public class Conductor {
 	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
 		this.id = id;
 		this.query = slq;
+		this.sd = sd;
 		// Create ScheduleTask for every stage
 		for(Stage s : sd.getStages()) {
-			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
-			scheduleTasks.put(s.getStageId(), st);
+			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq, masterApi, masterConn);
+			scheduleTasks.put(s, st);
 		}
 	}
 	
-	public void scheduleTask(int stageId, Set<DataReference> input, Set<DataReference> output) {
-		ScheduleTask task = this.scheduleTasks.get(stageId);
+	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {
+		Stage s = sd.getStageWithId(stageId);
+		ScheduleTask task = this.scheduleTasks.get(s);
 		// TODO: configure input and output data and then run this task
-		// TODO: we may need a datareferencemanager that can keep track of those even when tasks are not alive here
-		
-		// TODO: do the processing while storing the data in output data references
-		
-		// TODO: notify processing is done, so scheduleTask is done, and point out to the datareferences
-		masterApi.scheduleTaskStatus(masterConn, stageId, id, StageStatusCommand.Status.OK, output);
+		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
+		coreOutput = CoreOutputFactory.buildCoreOutputForStage(wc, output);
+
+		ProcessingEngine engine = ProcessingEngineFactory.buildAdHocProcessingEngine(wc, coreInput, coreOutput, task);
+		engine.start();
 	}
 	
 	private int getOpIdLivingInThisEU(int id) {

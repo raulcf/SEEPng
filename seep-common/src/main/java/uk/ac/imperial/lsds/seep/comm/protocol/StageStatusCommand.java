@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
@@ -9,15 +10,15 @@ public class StageStatusCommand implements CommandType {
 	private int stageId;
 	private int euId;
 	private Status status;
-	private Set<DataReference> resultDataReference;
+	private Map<Integer, Set<DataReference>> resultDataReference;
 	
 	public StageStatusCommand() {}
 	
-	public StageStatusCommand(int stageId, int euId, Status status, Set<DataReference> resultDataReference) {
+	public StageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		this.stageId = stageId;
 		this.euId = euId;
 		this.status = status;
-		this.resultDataReference = resultDataReference;
+		this.resultDataReference = producedOutput;
 	}
 	
 	@Override
@@ -37,7 +38,7 @@ public class StageStatusCommand implements CommandType {
 		return status;
 	}
 	
-	public Set<DataReference> getResultDataReference() {
+	public Map<Integer, Set<DataReference>> getResultDataReference() {
 		return resultDataReference;
 	}
 	

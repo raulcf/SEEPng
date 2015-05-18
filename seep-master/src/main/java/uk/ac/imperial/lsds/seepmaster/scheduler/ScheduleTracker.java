@@ -65,7 +65,7 @@ public class ScheduleTracker {
 		return toReturn;
 	}
 	
-	public boolean setFinished(Stage stage, Set<DataReference> results) {
+	public boolean setFinished(Stage stage, Map<Integer, Set<DataReference>> results) {
 		// Set finish
 		this.scheduleStatus.put(stage, StageStatus.FINISHED);
 		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
@@ -75,7 +75,8 @@ public class ScheduleTracker {
 		}
 		// Check whether the new stage makes ready new stages, and propagate results
 		for(Stage downstream : stage.getDependants()) {
-			downstream.addInputDataReference(results);
+			Set<DataReference> resultsForThisStage = results.get(downstream.getStageId()); 
+			downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
 			if(isStageReadyToRun(downstream)) {
 				this.scheduleStatus.put(downstream, StageStatus.READY);
 			}
@@ -116,7 +117,7 @@ public class ScheduleTracker {
 		currentStageTracker.await();
 		// Check status of the stage
 		if(currentStageTracker.finishedSuccessfully()) {
-			Set<DataReference> results = currentStageTracker.getStageResults();
+			Map<Integer, Set<DataReference>> results = currentStageTracker.getStageResults();
 			setFinished(stage, results);
 		}
 		else{
@@ -125,7 +126,7 @@ public class ScheduleTracker {
 		}
 	}
 
-	public void finishStage(int euId, int stageId, Set<DataReference> results) {
+	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results) {
 		currentStageTracker.notifyOk(euId, stageId, results);
 	}
 	
