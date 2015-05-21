@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class CoreOutputFactory {
 	public static CoreOutput buildCoreOutputForOperator(WorkerConfig wc, LogicalOperator o, Map<Integer, EndPoint> mapping){
 		LOG.info("Building coreOutput...");
 		List<OutputAdapter> outputAdapters = new ArrayList<>();
-		// Create an InputAdapter per upstream connection -> know with the streamId
+		// Create an OutputAdapter per downstream connection -> know with the streamId
 		Map<Integer, List<DownstreamConnection>> streamToOpConn = new HashMap<>();
 		for(DownstreamConnection dc : o.downstreamConnections()){
 			int streamId = dc.getStreamId();
@@ -67,6 +68,15 @@ public class CoreOutputFactory {
 	}
 
 	public static CoreOutput buildCoreOutputForStage(WorkerConfig wc, Map<Integer, Set<DataReference>> output) {
-		return null;
+		LOG.info("Building coreOutput...");
+		List<OutputAdapter> outputAdapters = new ArrayList<>();
+		// we are already given the downstream streamId
+		for(Entry<Integer, Set<DataReference>> entry : output.entrySet()){
+			OutputAdapter oa = OutputAdapterFactory.buildOutputAdapterForDataReference(wc, entry.getKey(), entry.getValue());
+			outputAdapters.add(oa);
+		}
+		CoreOutput cOutput = new CoreOutput(outputAdapters);
+		LOG.info("Building coreOutput...OK");
+		return cOutput;
 	}
 }

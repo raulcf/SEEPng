@@ -3,7 +3,9 @@ package uk.ac.imperial.lsds.seepworker.core.output;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
@@ -40,6 +42,11 @@ public class OutputAdapterFactory {
 	public static OutputAdapter buildOutputAdapterOfTypeKafkaForOps(KafkaConfig kc, int streamId, List<DownstreamConnection> cons){
 		OutputAdapter oa = new KafkaOutputAdapter(kc.getString(KafkaConfig.KAFKA_SERVER), kc.getString(KafkaConfig.BASE_TOPIC),
 				kc.getString(KafkaConfig.PRODUCER_CLIENT_ID), streamId);
+		return oa;
+	}
+
+	public static OutputAdapter buildOutputAdapterForDataReference(WorkerConfig wc, int streamId, Set<DataReference> value) {
+		OutputAdapter oa = new DataReferenceOutputAdapter(wc, streamId, value);
 		return oa;
 	}
 

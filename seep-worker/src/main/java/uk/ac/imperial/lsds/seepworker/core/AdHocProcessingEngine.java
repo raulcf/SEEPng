@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,6 @@ import java.util.Set;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
-import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -67,18 +66,14 @@ public class AdHocProcessingEngine implements ProcessingEngine {
 			
 			// then just return results and notify
 			// TODO: notify processing is done, so scheduleTask is done, and point out to the datareferences
-			Map<Integer, Set<DataReference>> producedOutput = null;
+			Map<Integer, Set<DataReference>> producedOutput = new HashMap<>();
 			for(OutputAdapter oa : coreOutput.getOutputAdapters()){
 				Set<DataReference> outputResults = oa.getOutputDataReference();
 				producedOutput.put(oa.getStreamId(), outputResults);
 			}
 			
-			
-			
 			task.notifyStatusOk(producedOutput);
-			
 		}
-		
 	}
 
 }
