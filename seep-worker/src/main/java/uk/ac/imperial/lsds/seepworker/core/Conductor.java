@@ -116,12 +116,15 @@ public class Conductor {
 			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq, masterApi, masterConn);
 			scheduleTasks.put(s, st);
 		}
+		
+//		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
+//		coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
 	}
 	
 	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {
 		Stage s = sd.getStageWithId(stageId);
 		ScheduleTask task = this.scheduleTasks.get(s);
-		// TODO: configure input and output data and then run this task
+		
 		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
 		coreOutput = CoreOutputFactory.buildCoreOutputForStage(wc, output);
 

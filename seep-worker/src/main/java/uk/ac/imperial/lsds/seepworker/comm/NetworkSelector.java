@@ -143,7 +143,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	public void configureConnect(Set<OutputBuffer> obufs){
 		int writerIdx = 0;
 		int totalWriters = writers.length;
-		for(OutputBuffer obuf : obufs){
+		for(OutputBuffer obuf : obufs) {
 			writers[(writerIdx++)%totalWriters].newConnection(obuf);
 		}
 		this.writersConfiguredLatch = new CountDownLatch(obufs.size()); // Initialize countDown with num of outputConns

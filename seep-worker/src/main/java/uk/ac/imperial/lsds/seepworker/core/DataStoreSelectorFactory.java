@@ -58,12 +58,12 @@ public class DataStoreSelectorFactory {
 	public static NetworkSelector maybeConfigureNetworkSelector(CoreInput coreInput, CoreOutput coreOutput, 
 			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
 		NetworkSelector ns = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)){
+		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
 			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
 			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
