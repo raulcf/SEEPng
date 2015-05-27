@@ -27,8 +27,8 @@ public class StatefulBaseTest implements QueryComposer {
 		System.out.println(pSchema.toString());
 		
 		/** Connect operators **/
-		src.connectTo(p, 0, srcSchema);
-		p.connectTo(snk, 0, pSchema);
+		src.connectTo(p, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p.connectTo(snk, 0, new DataStore(pSchema, DataStoreType.NETWORK, null));
 		
 		/**
 		 * Example of how to create a source with only java2sdg information

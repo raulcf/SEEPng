@@ -46,7 +46,7 @@ public class CoreOutputFactory {
 		for(Integer streamId : streamToOpConn.keySet()){
 			
 			List<DownstreamConnection> doCon = streamToOpConn.get(streamId);
-			DataStoreType dOriginType = doCon.get(0).getExpectedDataOriginTypeOfDownstream();
+			DataStoreType dOriginType = doCon.get(0).getExpectedDataStoreTypeOfDownstream();
 			
 			OutputAdapter oa = null;
 			if(dOriginType == DataStoreType.NETWORK){
@@ -56,7 +56,7 @@ public class CoreOutputFactory {
 			}
 			else if(dOriginType == DataStoreType.KAFKA){
 				// Create outputAdapter to send data to Kafka, and *not* to the downstream operator
-				KafkaConfig kc = new KafkaConfig( doCon.get(0).getExpectedDataOriginOfDownstream().getConfig() );
+				KafkaConfig kc = new KafkaConfig( doCon.get(0).getExpectedDataStoreOfDownstream().getConfig() );
 				LOG.info("Building outputAdapter for downstream streamId: {} of type: {}", streamId, "KAFKA");
 				oa = OutputAdapterFactory.buildOutputAdapterOfTypeKafkaForOps(kc, streamId, doCon);
 			}

@@ -56,7 +56,7 @@ public class CoreInputFactory {
 		for(Integer streamId : streamToOpConn.keySet()){
 			List<InputAdapter> ias = null;
 			List<UpstreamConnection> upCon = streamToOpConn.get(streamId);
-			DataStoreType dOriginType = upCon.get(0).getDataOriginType();
+			DataStoreType dOriginType = upCon.get(0).getDataStoreType();
 			if(dOriginType.equals(DataStoreType.NETWORK)){
 				ias = InputAdapterFactory.buildInputAdapterOfTypeNetworkForOps(wc, streamId, upCon);
 			}

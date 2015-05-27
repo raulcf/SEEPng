@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,12 +16,11 @@ import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
-import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -83,6 +83,8 @@ public class Conductor {
 		}
 		// This creates one inputAdapter per upstream stream Id
 		coreInput = CoreInputFactory.buildCoreInputForOperator(wc, o);
+		Map<Integer, Set<DataReference>> input = getInputDataReferencesFor(o);
+//		Map<Integer, Set<DataReference>> output = getOutputDataReferencesFor(o);
 		// This creates one outputAdapter per downstream stream Id
 		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, mapping);
 		
@@ -107,6 +109,25 @@ public class Conductor {
 		}
 	}
 	
+	private Map<Integer, Set<DataReference>> getInputDataReferencesFor(LogicalOperator o) {
+		Map<Integer, Set<DataReference>> input = new HashMap<>();
+		for(UpstreamConnection uc : o.upstreamConnections()) {
+			int streamId = uc.getStreamId();
+			DataReference dRef = createDataReferenceFrom(uc);
+			if(! input.containsKey(streamId)) {
+				input.put(streamId, new HashSet<>());
+			}
+			input.get(streamId).add(dRef);
+		}
+		return input;
+	}
+	
+	private DataReference createDataReferenceFrom(UpstreamConnection uc) {
+		// TODO:
+		
+		return null;
+	}
+
 	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
 		this.id = id;
 		this.query = slq;

@@ -8,65 +8,71 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 public class UpstreamConnection {
 
 	private Operator upstreamOperator;
-	private ConnectionType connectionType;
 	private int streamId;
-	private Schema schema;
-	private DataStore dSrc;
+	private DataStore dataStore;
+	private ConnectionType connectionType;
+	
+//	public UpstreamConnection(Operator upstreamOperator, ConnectionType connectionType, int streamId, Schema schema, DataStore dSrc){
+//		this.setUpstreamOperator(upstreamOperator);
+//		this.setConnectionType(connectionType);
+//		this.setStreamId(streamId);
+//		this.setExpectedSchema(schema);
+//		this.setDataOrigin(dSrc);
+//	}
+	
+	public UpstreamConnection(Operator lo, int streamId, DataStore dataStore, ConnectionType connectionType) {
+		this.upstreamOperator = lo;
+		this.streamId = streamId;
+		this.dataStore = dataStore;
+		this.connectionType = connectionType;
+	}
 
 	public Operator getUpstreamOperator() {
 		return upstreamOperator;
 	}
 
-	public void setUpstreamOperator(Operator upstreamOperator) {
-		this.upstreamOperator = upstreamOperator;
-	}
+//	public void setUpstreamOperator(Operator upstreamOperator) {
+//		this.upstreamOperator = upstreamOperator;
+//	}
 
 	public ConnectionType getConnectionType() {
 		return connectionType;
 	}
 
-	public void setConnectionType(ConnectionType connectionType) {
-		this.connectionType = connectionType;
-	}
+//	public void setConnectionType(ConnectionType connectionType) {
+//		this.connectionType = connectionType;
+//	}
 
 	public int getStreamId() {
 		return streamId;
 	}
 
-	public void setStreamId(int streamId) {
-		this.streamId = streamId;
-	}
+//	public void setStreamId(int streamId) {
+//		this.streamId = streamId;
+//	}
 	
 	public Schema getExpectedSchema(){
-		return schema;
+		return dataStore.getSchema();
 	}
 	
-	public void setExpectedSchema(Schema schema){
-		this.schema = schema;
+//	public void setExpectedSchema(Schema schema){
+//		this.schema = schema;
+//	}
+	
+	public DataStore getDataStore(){
+		return dataStore;
 	}
 	
-	public DataStore getDataOrigin(){
-		return dSrc;
+	public DataStoreType getDataStoreType(){
+		return dataStore.type();
 	}
 	
-	public DataStoreType getDataOriginType(){
-		return dSrc.type();
-	}
-	
-	public void setDataOrigin(DataStore dSrc){
-		this.dSrc = dSrc;
-	}
-	
-	public UpstreamConnection(Operator upstreamOperator, ConnectionType connectionType, int streamId, Schema schema, DataStore dSrc){
-		this.setUpstreamOperator(upstreamOperator);
-		this.setConnectionType(connectionType);
-		this.setStreamId(streamId);
-		this.setExpectedSchema(schema);
-		this.setDataOrigin(dSrc);
-	}
-	
-	public void replaceOperator(Operator upstreamOperator) {
-		this.upstreamOperator = upstreamOperator;
-	}
+//	public void setDataOrigin(DataStore dSrc){
+//		this.dataStore = dSrc;
+//	}
+
+//	public void replaceOperator(Operator upstreamOperator) {
+//		this.upstreamOperator = upstreamOperator;
+//	}
 	
 }

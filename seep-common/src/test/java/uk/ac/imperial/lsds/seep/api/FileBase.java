@@ -29,10 +29,10 @@ public class FileBase implements QueryComposer {
 		LogicalOperator parameterServer = queryAPI.newStatelessOperator(new ParameterServer(), 1);
 		LogicalOperator sink = queryAPI.newStatelessSink(new Sink(), 2);
 		
-		source.connectTo(trainer, 0, s);
-		trainer.connectTo(parameterServer, 0, s, ConnectionType.UPSTREAM_SYNC_BARRIER);
-		parameterServer.connectTo(trainer, 1, s);
-		parameterServer.connectTo(sink, 10, s);
+		source.connectTo(trainer, 0, new DataStore(s, DataStoreType.FILE, null));
+		trainer.connectTo(parameterServer, 0, new DataStore(s, DataStoreType.NETWORK, null), ConnectionType.UPSTREAM_SYNC_BARRIER);
+		parameterServer.connectTo(trainer, 1, new DataStore(s, DataStoreType.NETWORK, null));
+		parameterServer.connectTo(sink, 10, new DataStore(s, DataStoreType.NETWORK, null));
 		
 		return queryAPI.build();
 	}

@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -45,32 +47,32 @@ public class ComplexManyBranchesMultipleSourcesQuery implements QueryComposer {
 		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		
 		/** Connect operators **/ // Note streamId is totally wrong here
-		src.connectTo(p13, 0, srcSchema);
-		src3.connectTo(p2, 0, srcSchema);
-		src2.connectTo(p1, 0, srcSchema);
-		p1.connectTo(p2, 0, srcSchema);
-		p1.connectTo(p3, 0, srcSchema);
-		src2.connectTo(p6, 0, srcSchema);
-		src2.connectTo(p12, 0, srcSchema);
-		p2.connectTo(p4, 0, srcSchema);
-		p3.connectTo(p4, 0, srcSchema);
-		p4.connectTo(p5, 0, srcSchema);
-		p6.connectTo(p7, 0, srcSchema);
-		p7.connectTo(p8, 0, srcSchema);
-		p8.connectTo(p9, 0, srcSchema);
-		p9.connectTo(p10, 0, srcSchema);
-		p5.connectTo(p10, 0, srcSchema);
-		p10.connectTo(p11, 0, srcSchema);
-		p12.connectTo(p13, 0, srcSchema);
-		p13.connectTo(p14, 0, srcSchema);
-		p14.connectTo(p15, 0, srcSchema);
-		p15.connectTo(p18, 0, srcSchema);
-		p15.connectTo(p16, 0, srcSchema);
-		p16.connectTo(p17, 0, srcSchema);
-		p18.connectTo(p19, 0, srcSchema);
-		p11.connectTo(p19, 0, srcSchema);
-		p17.connectTo(snk, 0, srcSchema);
-		p19.connectTo(snk, 0, srcSchema);
+		src.connectTo(p13, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		src3.connectTo(p2, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		src2.connectTo(p1, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p1.connectTo(p2, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p1.connectTo(p3, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		src2.connectTo(p6, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		src2.connectTo(p12, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p2.connectTo(p4, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p3.connectTo(p4, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p4.connectTo(p5, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p6.connectTo(p7, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p7.connectTo(p8, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p8.connectTo(p9, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p9.connectTo(p10, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p5.connectTo(p10, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p10.connectTo(p11, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p12.connectTo(p13, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p13.connectTo(p14, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p14.connectTo(p15, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p15.connectTo(p18, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p15.connectTo(p16, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p16.connectTo(p17, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p18.connectTo(p19, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p11.connectTo(p19, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p17.connectTo(snk, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p19.connectTo(snk, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
 		
 		
 		return QueryBuilder.build();

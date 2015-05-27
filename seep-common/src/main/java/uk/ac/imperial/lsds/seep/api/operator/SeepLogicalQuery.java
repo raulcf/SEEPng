@@ -137,10 +137,10 @@ public class SeepLogicalQuery {
 	
 	private void connectInstance(LogicalOperator original, LogicalOperator newInstance){
 		for(DownstreamConnection dc : original.downstreamConnections()){
-			newInstance.connectTo(dc.getDownstreamOperator(), dc.getStreamId(), dc.getSchema(), dc.getConnectionType(), dc.getExpectedDataOriginOfDownstream());
+			newInstance.connectTo(dc.getDownstreamOperator(), dc.getStreamId(), dc.getExpectedDataStoreOfDownstream(), dc.getConnectionType());
 		}
 		for(UpstreamConnection uc : original.upstreamConnections()){
-			uc.getUpstreamOperator().connectTo(newInstance, uc.getStreamId(), uc.getExpectedSchema(), uc.getConnectionType(), uc.getDataOrigin());
+			uc.getUpstreamOperator().connectTo(newInstance, uc.getStreamId(), uc.getDataStore(), uc.getConnectionType());
 		}
 	}
 		

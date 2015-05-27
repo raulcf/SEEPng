@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -26,8 +28,8 @@ public class BaseTest implements QueryComposer {
 		Schema pSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").newField(Type.BYTES, "payload").build();
 		
 		/** Connect operators **/
-		src.connectTo(p, 0, srcSchema);
-		p.connectTo(snk, 0, pSchema);
+		src.connectTo(p, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p.connectTo(snk, 0, new DataStore(pSchema, DataStoreType.NETWORK, null));
 		
 		queryAPI.setInitialPhysicalInstancesForLogicalOperator(1, 2);
 		

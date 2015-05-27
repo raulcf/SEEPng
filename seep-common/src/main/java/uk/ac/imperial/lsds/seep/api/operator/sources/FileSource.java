@@ -41,29 +41,53 @@ public class FileSource implements Connectable, DataStoreDescriptor {
 		return DataStoreType.FILE;
 	}
 	
+	@Override
+	public Properties getConfig() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Schema getSchema() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	/** Implement Connetable **/
 	
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema){
-		DataStore dO = new DataStore(DataStoreType.FILE, config);
-		lo.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dO);
+	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore) {
+		// TODO: check dataStore is of the right type = FILE
+		lo.connectTo(downstreamOperator, streamId, dataStore);
 	}
 
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dO){
-		throw new NotSupportedException("Cannot override DataOrigin");
+	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore, ConnectionType connectionType) {
+		// TODO: check dataStore is of the right type = FILE
+		lo.connectTo(downstreamOperator, streamId, dataStore, connectionType);
 	}
-
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
-		DataStore dO = new DataStore(DataStoreType.FILE, config);
-		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);
-	}
-
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc) {
-		throw new NotSupportedException("Cannot override DataOrigin");
-	}
+	
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema){
+//		DataStore dO = new DataStore(DataStoreType.FILE, config);
+//		lo.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dO);
+//	}
+//
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dO){
+//		throw new NotSupportedException("Cannot override DataOrigin");
+//	}
+//
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
+//		DataStore dO = new DataStore(DataStoreType.FILE, config);
+//		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);
+//	}
+//
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc) {
+//		throw new NotSupportedException("Cannot override DataOrigin");
+//	}
 	
 	private static class FileSourceImpl implements SeepTask, Source{
 		@Override
@@ -74,12 +98,6 @@ public class FileSource implements Connectable, DataStoreDescriptor {
 		public void processDataGroup(ITuple dataBatch, API api) {		}
 		@Override
 		public void close() {		}
-	}
-
-	@Override
-	public Properties getConfig() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

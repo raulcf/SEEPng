@@ -80,8 +80,8 @@ public class DataStoreSelectorFactory {
 			Map<Integer, DataStore> fileOrigins = new HashMap<>();
 			for(UpstreamConnection uc : o.upstreamConnections()){
 				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataOriginType() == DataStoreType.FILE) {
-					fileOrigins.put(opId, uc.getDataOrigin());
+				if(uc.getDataStoreType() == DataStoreType.FILE) {
+					fileOrigins.put(opId, uc.getDataStore());
 				}
 			}
 			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
@@ -96,7 +96,7 @@ public class DataStoreSelectorFactory {
 			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
 		KafkaSelector ks = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.KAFKA)){
-			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataOrigin().getConfig() );
+			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataStore().getConfig() );
 			LOG.info("Configuring kafkaSelector for input");
 			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
 					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			

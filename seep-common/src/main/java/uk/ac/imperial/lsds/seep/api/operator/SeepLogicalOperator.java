@@ -5,9 +5,7 @@ import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -90,39 +88,50 @@ public class SeepLogicalOperator implements LogicalOperator {
 		return upstream;
 	}
 
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema) {
-		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME);
-	}
-
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dSrc) {
-		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dSrc);
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema) {
+//		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME);
+//	}
+//
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dSrc) {
+//		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dSrc);
+//	}
+//	
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
+//		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
+//		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
+//	}
+//	
+//	@Override
+//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
+//		// Add downstream to this operator
+//		this.addDownstream(downstreamOperator, streamId, schema, connectionType, dSrc);
+//		// Add this, as upstream, to the downstream operator
+//		((SeepLogicalOperator)downstreamOperator).addUpstream(this, connectionType, streamId, schema, dSrc);
+//	}
+	
+	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore) {
+		this.connectTo(downstreamOperator, streamId, dataStore, ConnectionType.ONE_AT_A_TIME);
 	}
 	
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
-		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
-		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
-	}
-	
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
+	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore, ConnectionType connectionType){
 		// Add downstream to this operator
-		this.addDownstream(downstreamOperator, streamId, schema, connectionType, dSrc);
+		this.addDownstream(downstreamOperator, streamId, dataStore, connectionType);
 		// Add this, as upstream, to the downstream operator
-		((SeepLogicalOperator)downstreamOperator).addUpstream(this, connectionType, streamId, schema, dSrc);
+		((SeepLogicalOperator)downstreamOperator).addUpstream(this, streamId, dataStore, connectionType);
 	}
 	
 	/* Methods to manage logicalOperator connections */
 	
-	private void addDownstream(Operator lo, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
-		DownstreamConnection dc = new DownstreamConnection(lo, streamId, schema, connectionType, dSrc);
+	private void addDownstream(Operator lo, int streamId, DataStore dataStore, ConnectionType connectionType) {
+		DownstreamConnection dc = new DownstreamConnection(lo, streamId, dataStore, connectionType);
 		this.downstream.add(dc);
 	}
 	
-	private void addUpstream(Operator lo, ConnectionType connectionType, int streamId, Schema schema, DataStore dSrc){
-		UpstreamConnection uc = new UpstreamConnection(lo, connectionType, streamId, schema, dSrc);
+	private void addUpstream(Operator lo, int streamId, DataStore dataStore, ConnectionType connectionType) {
+		UpstreamConnection uc = new UpstreamConnection(lo, streamId, dataStore, connectionType);
 		this.upstream.add(uc);
 	}
 	
@@ -153,7 +162,7 @@ public class SeepLogicalOperator implements LogicalOperator {
 			UpstreamConnection up = upstream.get(i);
 			sb.append("  Up-conn-"+i+"-> StreamId: "+up.getStreamId()+" to opId: "
 					+ ""+up.getUpstreamOperator().getOperatorId()+""
-							+ " with connType: "+up.getConnectionType()+" and dataOrigin: "+up.getDataOriginType());
+							+ " with connType: "+up.getConnectionType()+" and dataOrigin: "+up.getDataStoreType());
 			sb.append(Utils.NL);
 		}
 		return sb.toString();

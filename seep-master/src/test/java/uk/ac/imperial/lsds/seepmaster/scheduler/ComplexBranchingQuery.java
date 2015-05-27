@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -29,13 +31,13 @@ public class ComplexBranchingQuery implements QueryComposer {
 		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		
 		/** Connect operators **/
-		src.connectTo(p, 0, srcSchema);
-		src.connectTo(p3, 0, srcSchema);
-		p.connectTo(p2, 0, srcSchema);
-		p3.connectTo(p4, 0, srcSchema);
-		p4.connectTo(p5, 0, srcSchema);
-		p5.connectTo(snk, 0, srcSchema);
-		p2.connectTo(snk, 0, srcSchema);
+		src.connectTo(p, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		src.connectTo(p3, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p.connectTo(p2, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p3.connectTo(p4, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p4.connectTo(p5, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p5.connectTo(snk, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
+		p2.connectTo(snk, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
 		
 		return QueryBuilder.build();
 	}

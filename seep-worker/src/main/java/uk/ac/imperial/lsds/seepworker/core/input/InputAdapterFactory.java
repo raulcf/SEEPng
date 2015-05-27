@@ -39,15 +39,6 @@ public class InputAdapterFactory {
 			InputAdapter ia = new NetworkBarrier(wc, streamId, expectedSchema, upc);
 			ias.add(ia);
 		}
-		else if(cType == ConnectionType.BATCH.ofType()){
-			
-		}
-		else if(cType == ConnectionType.ORDERED.ofType()){
-			
-		}
-		else if(cType == ConnectionType.WINDOW.ofType()){
-			
-		}
 		return ias;
 	}
 	
