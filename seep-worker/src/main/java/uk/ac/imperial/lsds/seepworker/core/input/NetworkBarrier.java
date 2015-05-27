@@ -11,6 +11,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -33,7 +34,7 @@ public class NetworkBarrier implements InputAdapter {
 	private Map<Integer, InputBuffer> inputBuffers;
 	private List<byte[]> data;
 	
-	public NetworkBarrier(WorkerConfig wc, int streamId, Schema expectedSchema, List<UpstreamConnection> upc) {
+	public NetworkBarrier(WorkerConfig wc, int streamId, Schema expectedSchema, Set<DataReference> drefs) {
 		this.streamId = streamId;
 		this.iTuple = new ITuple(expectedSchema);
 		this.queueSize = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
@@ -42,11 +43,16 @@ public class NetworkBarrier implements InputAdapter {
 		this.barrierMembers = new HashSet<>();
 		int headroom = wc.getInt(WorkerConfig.BATCH_SIZE) * 2;
 		this.inputBuffers = new HashMap<>();
-		for(UpstreamConnection uc : upc){
-			int id = uc.getUpstreamOperator().getOperatorId();
+		for(DataReference dref : drefs) {
+			int id = dref.getId();
 			barrierMembers.add(id);
 			inputBuffers.put(id, new InputBuffer(headroom));
 		}
+//		for(UpstreamConnection uc : drefs){
+//			int id = uc.getUpstreamOperator().getOperatorId();
+//			barrierMembers.add(id);
+//			inputBuffers.put(id, new InputBuffer(headroom));
+//		}
 		this.data = new ArrayList<>();
 	}
 

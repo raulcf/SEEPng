@@ -11,11 +11,22 @@ public final class DataReference {
 	private final DataStore dataStore;
 	private final EndPoint endPoint;
 	
+	private DataReference(int uid, DataStore dataStore, EndPoint endPoint, boolean managed) {
+		this.uid = uid;
+		this.dataStore = dataStore;
+		this.endPoint = endPoint;
+		this.managed = managed;
+	}
+	
 	private DataReference(DataStore dataStore, EndPoint endPoint, boolean managed) {
 		this.uid = new UID().hashCode();
 		this.dataStore = dataStore;
 		this.endPoint = endPoint;
 		this.managed = managed;
+	}
+	
+	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, EndPoint endPoint) {
+		return new DataReference(ownerId, dataStore, endPoint, true);
 	}
 	
 	public static DataReference makeManagedDataReference(DataStore dataStore, EndPoint endPoint) {

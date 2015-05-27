@@ -3,21 +3,27 @@ package uk.ac.imperial.lsds.seep.api;
 
 public enum DataStoreType {
 	
-	NETWORK((short)0),
-	FILE((short)1),
-	IPC((short)2), // ??
-	RDD((short)3),
-	KAFKA((short)4),
-	HDFS((short)5),
-	MEMORYMAPPED_BYTEBUFFER((short)6);
+	NETWORK((short)0, false),
+	FILE((short)1, false),
+	IPC((short)2, false), // ??
+	RDD((short)3, false),
+	KAFKA((short)4, true),
+	HDFS((short)5, true),
+	MEMORYMAPPED_BYTEBUFFER((short)6, false);
 	
 	private short type;
+	private boolean external;
 	
-	DataStoreType(short type){
+	DataStoreType(short type, boolean external) {
 		this.type = type;
+		this.external = external;
 	}
 	
-	public short ofType(){
+	public boolean isExternal() {
+		return external;
+	}
+	
+	public short ofType() {
 		return type;
 	}
 	
