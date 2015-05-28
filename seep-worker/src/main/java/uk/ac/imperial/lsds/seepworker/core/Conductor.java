@@ -2,7 +2,6 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -106,7 +105,7 @@ public class Conductor {
 
 		int id = o.getOperatorId();
 		
-		engine = ProcessingEngineFactory.buildProcessingEngine(wc, id, task, state, coreInput, coreOutput);
+		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, new ConductorCallback(true));
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -123,7 +122,7 @@ public class Conductor {
 		this.sd = sd;
 		// Create ScheduleTask for every stage
 		for(Stage s : sd.getStages()) {
-			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq, masterApi, masterConn);
+			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
 			scheduleTasks.put(s, st);
 		}
 		
@@ -138,7 +137,9 @@ public class Conductor {
 		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
 		coreOutput = CoreOutputFactory.buildCoreOutputForStage(wc, output);
 
-		ProcessingEngine engine = ProcessingEngineFactory.buildAdHocProcessingEngine(wc, coreInput, coreOutput, task);
+		SeepState state = null;
+		
+		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, s.getStageId(), task, state, coreInput, coreOutput, new ConductorCallback(false));
 		engine.start();
 	}
 	
@@ -199,6 +200,25 @@ public class Conductor {
 			if(entry.getValue().getId() == id) return entry.getKey();
 		}
 		return -1;
+	}
+	
+	class ConductorCallback {
+
+		private boolean continuousTask;
+		
+		public ConductorCallback(boolean continuousTask) {
+			this.continuousTask = continuousTask;
+		}
+		
+		public boolean isContinuousTask() {
+			return continuousTask;
+		}
+
+		public void notifyOk() {
+//			masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
+			
+		}
+		
 	}
 		
 }

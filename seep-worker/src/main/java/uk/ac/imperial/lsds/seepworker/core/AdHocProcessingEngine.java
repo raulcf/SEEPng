@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 
+@Deprecated
 public class AdHocProcessingEngine implements ProcessingEngine {
 
 	private final int MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS;
@@ -49,7 +50,7 @@ public class AdHocProcessingEngine implements ProcessingEngine {
 			// while there are input data references left keep reading and processing
 			List<InputAdapter> inputAdapters = coreInput.getInputAdapters();
 			Iterator<InputAdapter> it = inputAdapters.iterator();
-			task.configureScheduleTaskLazily(coreOutput.getOutputAdapters());
+//			task.configureScheduleTaskLazily(coreOutput.getOutputAdapters());
 			while(it.hasNext()) {
 				InputAdapter ia = it.next();
 				DataItem di = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
@@ -58,7 +59,7 @@ public class AdHocProcessingEngine implements ProcessingEngine {
 					while(consume) {
 						ITuple d = di.consume();
 						if(d != null) {
-							task.triggerProcessingPipeline(d);
+//							task.triggerProcessingPipeline(d);
 						} else consume = false;
 					}
 				}
@@ -72,7 +73,7 @@ public class AdHocProcessingEngine implements ProcessingEngine {
 				producedOutput.put(oa.getStreamId(), outputResults);
 			}
 			
-			task.notifyStatusOk(producedOutput);
+//			task.notifyStatusOk(producedOutput);
 		}
 	}
 

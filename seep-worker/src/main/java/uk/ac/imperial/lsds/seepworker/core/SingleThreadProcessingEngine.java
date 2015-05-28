@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.Conductor.ConductorCallback;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -30,6 +31,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	
 	private boolean working = false;
 	private Thread worker;
+	private CollectorType collectorType;
+	private ConductorCallback callback;
 	
 	private int id;
 	private CoreInput coreInput;
@@ -40,13 +43,15 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	// Metrics
 	final private Meter m;
 	
-	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput) {
+	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, CollectorType collectorType) {
 		this.id = id;
 		this.task = task;
 		this.state = state;
 		this.coreInput = coreInput;
 		this.coreOutput = coreOutput;
+		this.callback = callback;
 		this.MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = wc.getInt(WorkerConfig.MAX_WAIT_TIME_PER_INPUTADAPTER_MS);
+		this.collectorType = collectorType;
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
 		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
@@ -92,13 +97,23 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			short many = InputAdapterReturnType.MANY.ofType();
 			List<OutputAdapter> outputAdapters = coreOutput.getOutputAdapters();
 			LOG.info("Configuring SINGLETHREAD processing engine with {} outputAdapters", outputAdapters.size());
-			API api = new Collector(id, outputAdapters);
+			
+			API api = null;
+			switch(collectorType){
+			case SIMPLE:
+				api = new Collector(id, outputAdapters);
+				break;
+			case COMPOSED_SEQUENTIAL_TASK:
+				api = new SchedulePipelineCollector(id, outputAdapters, task);
+				break;
+			}
+			
 			while(working) {
-				while(it.hasNext()){
+				while(it.hasNext()) {
 					InputAdapter ia = it.next();
-					if(ia.returnType() == one){
+					if(ia.returnType() == one) {
 						DataItem di = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(di != null){
+						if(di != null) {
 							boolean consume = true;
 							while(consume) {
 								ITuple d = di.consume();
@@ -109,9 +124,9 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							}
 						}
 					}
-					else if(ia.returnType() == many){
+					else if(ia.returnType() == many) {
 						DataItem ld = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(ld != null){
+						if(ld != null) {
 							boolean consume = true;
 							while(consume) {
 								ITuple d = ld.consume();
@@ -124,9 +139,15 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							
 						}
 					}
-					if(!it.hasNext() && working){
-						it = inputAdapters.iterator();
+					if(callback.isContinuousTask()) {
+						if(!it.hasNext() && working) {
+							it = inputAdapters.iterator();
+						}
 					}
+					else {
+						callback.notifyOk();
+					}
+					
 				}
 				// If there are no input adapters, assume processData contain all necessary and give null input data
 				if(working){
