@@ -22,10 +22,6 @@ public class ScheduleTask implements SeepTask {
 	private Iterator<LogicalOperator> opIt;
 	private List<SeepTask> tasks;
 	private Iterator<SeepTask> taskIterator;
-	private SchedulePipelineCollector api;
-	
-//	private WorkerMasterAPIImplementation masterApi;
-//	private Connection masterConn;
 	
 	private ScheduleTask(int euId, int stageId, Deque<LogicalOperator> operators) {
 		this.stageId = stageId;
@@ -37,8 +33,6 @@ public class ScheduleTask implements SeepTask {
 			tasks.add(opIt.next().getSeepTask());
 		}
 		this.taskIterator = tasks.iterator();
-//		this.masterApi = masterApi;
-//		this.masterConn = masterConn;
 	}
 	
 	public static ScheduleTask buildTaskFor(int id, Stage s, SeepLogicalQuery slq) {
@@ -82,6 +76,7 @@ public class ScheduleTask implements SeepTask {
 			data.setData(o);
 		}
 		taskIterator = tasks.iterator();
+		opIt = operators.iterator();
 	}
 	
 	public boolean hasMoreTasks() {
@@ -103,18 +98,4 @@ public class ScheduleTask implements SeepTask {
 			taskIterator = tasks.iterator();
 		}
 	}
-	
-//	public void configureScheduleTaskLazily(List<OutputAdapter> outputAdapters) {
-//		this.api = new SchedulePipelineCollector(operators, outputAdapters);
-//	}
-//	
-//	public void triggerProcessingPipeline(ITuple iTuple) {
-//		api.processData(iTuple);
-//		api.rewindPipeline();
-//	}
-
-//	public void notifyStatusOk(Map<Integer, Set<DataReference>> producedOutput) {
-//		masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
-//	}
-
 }

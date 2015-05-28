@@ -3,9 +3,8 @@ package uk.ac.imperial.lsds.seep.core;
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
-import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.data.DataItem;
 
 public interface InputAdapter {
 

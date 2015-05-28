@@ -1,16 +1,11 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.data.ITuple;
-import uk.ac.imperial.lsds.seep.api.data.Schema;
-import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.NotEnoughRoutingInformation;
@@ -19,9 +14,6 @@ public class SchedulePipelineCollector implements API {
 
 	private int id;
 	private ScheduleTask callbackTask;
-//	private Deque<LogicalOperator> operators;
-//	private Iterator<LogicalOperator> opIterator;
-	private List<OutputAdapter> outputAdapters;
 	
 	Map<Integer, OutputAdapter> streamIdToOutputAdapter;
 	private OutputAdapter theOutputAdapter;
@@ -29,37 +21,7 @@ public class SchedulePipelineCollector implements API {
 	private final boolean SINGLE_SEND_NOT_DEFINED;
 	
 	private byte[] dataToCollect;
-	
-	
-//	public SchedulePipelineCollector(Deque<LogicalOperator> operators, List<OutputAdapter> outputAdapters) {
-//		this.operators = operators;
-//		this.opIterator = operators.iterator();
-//		if(this.outputAdapters.size() > 1) {
-//			this.theOutputAdapter = outputAdapters.get(0);
-//		}
-//		int numOutputAdapters = outputAdapters.size();
-//		if(numOutputAdapters > 0){
-//			NOT_SEND_API = false;
-//			if(numOutputAdapters == 1){
-//				SINGLE_SEND_NOT_DEFINED = false;
-//				// Configure the unique outputadapter in this collector to avoid one lookup
-//				theOutputAdapter = outputAdapters.get(0);
-//			}
-//			else{
-//				SINGLE_SEND_NOT_DEFINED = true;
-//				this.outputAdapters = outputAdapters;
-//				this.streamIdToOutputAdapter = createMap(outputAdapters);
-//			}	
-//		}
-//		else if(numOutputAdapters == 0){
-//			NOT_SEND_API = true;
-//			SINGLE_SEND_NOT_DEFINED = true;
-//		}
-//		else{
-//			NOT_SEND_API = true;
-//			SINGLE_SEND_NOT_DEFINED = true;
-//		}
-//	}
+
 	
 	public SchedulePipelineCollector(int id, List<OutputAdapter> outputAdapters, SeepTask task) {
 		this.id = id;
@@ -75,7 +37,6 @@ public class SchedulePipelineCollector implements API {
 			}
 			else{
 				SINGLE_SEND_NOT_DEFINED = true;
-				this.outputAdapters = outputAdapters;
 				this.streamIdToOutputAdapter = createMap(outputAdapters);
 			}	
 		}
@@ -96,20 +57,12 @@ public class SchedulePipelineCollector implements API {
 		}
 		return tr;
 	}
-	
-//	public void rewindPipeline(){
-//		opIterator = operators.iterator();
-//	}
 
 	@Override
 	public int id() {
 		return id;
 	}
-	
-//	public void processData(ITuple iTuple) {
-//		opIterator.next().getSeepTask().processData(iTuple, this);
-//	}
-	
+
 	@Override
 	public void send(byte[] o) {
 		if(callbackTask.hasMoreTasks()) {
@@ -128,27 +81,6 @@ public class SchedulePipelineCollector implements API {
 	public byte[] collect(){
 		return dataToCollect;
 	}
-
-//	@Override
-//	public void _send(byte[] o) {
-//		// somehow build a ituple from o
-//		if(opIterator.hasNext()) {
-//			// FIXME: clearly avoid serde here
-//			LogicalOperator next = opIterator.next();
-//			Schema schema = next.upstreamConnections().get(0).getExpectedSchema(); // 0 cause there's only 1
-//			ITuple nextTuple = new ITuple(schema);
-//			nextTuple.setData(o);
-//			next.getSeepTask().processData(nextTuple, this);
-//		}
-//		else{
-//			if(NOT_SEND_API) throw new UnsupportedOperationException("Send API not defined, maybe this is a sink?");
-//			if(SINGLE_SEND_NOT_DEFINED){
-//				throw new NotEnoughRoutingInformation("There are more than one streamId downstream; you must specify where "
-//						+ "you are sending to");
-//			}
-//			theOutputAdapter.send(o);
-//		}
-//	}
 
 	@Override
 	public void sendAll(byte[] o) {

@@ -168,33 +168,6 @@ public class Conductor {
 		return ct;
 	}
 
-//	private Map<Integer, Set<DataReference>> getInputDataReferencesFor(LogicalOperator o) {
-//		Map<Integer, Set<DataReference>> input = new HashMap<>();
-//		for(UpstreamConnection uc : o.upstreamConnections()) {
-//			int streamId = uc.getStreamId();
-//			DataReference dRef = createDataReferenceFrom(uc);
-//			if(! input.containsKey(streamId)) {
-//				input.put(streamId, new HashSet<>());
-//			}
-//			input.get(streamId).add(dRef);
-//		}
-//		return input;
-//	}
-	
-//	private DataReference createDataReferenceFrom(UpstreamConnection uc) {
-//		DataReference dref = null;
-//		EndPoint ep = mapping.get(uc.getUpstreamOperator().getOperatorId());
-//		boolean managed = ! uc.getDataStoreType().isExternal();
-//		if(managed) {
-//			dref = DataReference.makeManagedDataReferenceWithOwner(uc.getUpstreamOperator().getOperatorId(), uc.getDataStore(), ep);
-//		}
-//		else {
-//			// FIXME: maybe not ep, but take EP from config??
-//			dref = DataReference.makeExternalDataReference(uc.getDataStore(), ep);
-//		}
-//		return dref;
-//	}
-	
 	private int getOpIdLivingInThisEU(int id) {
 		for(Entry<Integer, EndPoint> entry : mapping.entrySet()) {
 			if(entry.getValue().getId() == id) return entry.getKey();

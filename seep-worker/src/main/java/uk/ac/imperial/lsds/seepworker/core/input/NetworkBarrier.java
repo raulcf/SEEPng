@@ -15,7 +15,6 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
-import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -48,11 +47,6 @@ public class NetworkBarrier implements InputAdapter {
 			barrierMembers.add(id);
 			inputBuffers.put(id, new InputBuffer(headroom));
 		}
-//		for(UpstreamConnection uc : drefs){
-//			int id = uc.getUpstreamOperator().getOperatorId();
-//			barrierMembers.add(id);
-//			inputBuffers.put(id, new InputBuffer(headroom));
-//		}
 		this.data = new ArrayList<>();
 	}
 

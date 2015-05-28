@@ -88,30 +88,6 @@ public class SeepLogicalOperator implements LogicalOperator {
 		return upstream;
 	}
 
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema) {
-//		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME);
-//	}
-//
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dSrc) {
-//		this.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dSrc);
-//	}
-//	
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType) {
-//		DataStore dO = new DataStore(DataStoreType.NETWORK, null);
-//		this.connectTo(downstreamOperator, streamId, schema, connectionType, dO);
-//	}
-//	
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc){
-//		// Add downstream to this operator
-//		this.addDownstream(downstreamOperator, streamId, schema, connectionType, dSrc);
-//		// Add this, as upstream, to the downstream operator
-//		((SeepLogicalOperator)downstreamOperator).addUpstream(this, connectionType, streamId, schema, dSrc);
-//	}
-	
 	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore) {
 		this.connectTo(downstreamOperator, streamId, dataStore, ConnectionType.ONE_AT_A_TIME);
 	}

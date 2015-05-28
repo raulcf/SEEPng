@@ -14,7 +14,6 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;

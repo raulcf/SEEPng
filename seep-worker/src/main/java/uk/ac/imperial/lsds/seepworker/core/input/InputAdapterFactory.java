@@ -11,10 +11,8 @@ import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
-import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
-import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class InputAdapterFactory {
@@ -35,11 +33,6 @@ public class InputAdapterFactory {
 				ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
 				ias.add(ia);
 			}
-//			for(UpstreamConnection uc : upc){
-//				int opId = uc.getUpstreamOperator().getOperatorId();
-//				ia = new NetworkDataStream(wc, opId, streamId, expectedSchema);
-//				ias.add(ia);
-//			}
 		}
 		else if(cType == ConnectionType.UPSTREAM_SYNC_BARRIER.ofType()){
 			// one barrier for all connections within the same barrier
@@ -62,11 +55,6 @@ public class InputAdapterFactory {
 				InputAdapter ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
 				ias.add(ia);
 			}
-//			for(UpstreamConnection uc : upc){
-//				int opId = uc.getUpstreamOperator().getOperatorId();
-//				InputAdapter ia = new FileDataStream(wc, opId, streamId, expectedSchema);
-//				ias.add(ia);
-//			}
 		}
 		return ias;
 	}
@@ -83,12 +71,6 @@ public class InputAdapterFactory {
 				InputAdapter ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
 				ias.add(ia);
 			}
-//			for(UpstreamConnection uc : upc){
-//				int opId = uc.getUpstreamOperator().getOperatorId();
-//				// FIXME: get worker configs from WorkerConfig and KAFKA-specific configs from (KafkaConfig)uc.getDataOrigin().getConfig()
-//				InputAdapter ia = new KafkaDataStream(opId, streamId, expectedSchema);
-//				ias.add(ia);
-//			}
 		}
 		return ias;
 	}

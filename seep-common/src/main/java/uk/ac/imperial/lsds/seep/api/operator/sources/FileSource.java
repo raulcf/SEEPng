@@ -64,28 +64,6 @@ public class FileSource implements Connectable, DataStoreDescriptor {
 		lo.connectTo(downstreamOperator, streamId, dataStore, connectionType);
 	}
 	
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema){
-//		DataStore dO = new DataStore(DataStoreType.FILE, config);
-//		lo.connectTo(downstreamOperator, streamId, schema, ConnectionType.ONE_AT_A_TIME, dO);
-//	}
-//
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, DataStore dO){
-//		throw new NotSupportedException("Cannot override DataOrigin");
-//	}
-//
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType conType){
-//		DataStore dO = new DataStore(DataStoreType.FILE, config);
-//		lo.connectTo(downstreamOperator, streamId, schema, conType, dO);
-//	}
-//
-//	@Override
-//	public void connectTo(Operator downstreamOperator, int streamId, Schema schema, ConnectionType connectionType, DataStore dSrc) {
-//		throw new NotSupportedException("Cannot override DataOrigin");
-//	}
-	
 	private static class FileSourceImpl implements SeepTask, Source{
 		@Override
 		public void setUp() {		}
