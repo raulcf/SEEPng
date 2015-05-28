@@ -4,13 +4,19 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -138,18 +144,23 @@ public class MaterializedQueryManager implements QueryManager {
 		// Build mapping for logicalquery
 		if(this.opToEndpointMapping != null){
 			LOG.info("Using provided mapping for logicalQuery...");
+			// TODO: do this
 		} 
 		else {
 			LOG.info("Building mapping for logicalQuery...");
 			this.opToEndpointMapping = createMappingOfOperatorWithEndPoint(slq);
 		}
+		// Materialize all DataReference once there exists a mapping
+		Map<Integer, Map<Integer, Set<DataReference>>> outputs = generateOutputDataReferences(slq, opToEndpointMapping);
+		Map<Integer, Map<Integer, Set<DataReference>>> inputs = generateInputDataReferences(slq, outputs);
+		
 		LOG.debug("Mapping for logicalQuery...OK {}", Utils.printMap(opToEndpointMapping));
 		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
-		sendMaterializeTaskToNodes(connections);
+		sendMaterializeTaskToNodes(connections, this.opToEndpointMapping, inputs, outputs);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
-		return true;
+		return true; 
 	}
 	
 	private Set<Integer> getInvolvedEuIdIn(Collection<EndPoint> values) {
@@ -158,6 +169,51 @@ public class MaterializedQueryManager implements QueryManager {
 			involvedEUs.add(ep.getId());
 		}
 		return involvedEUs;
+	}
+	
+	private Map<Integer, Map<Integer, Set<DataReference>>> generateInputDataReferences(SeepLogicalQuery slq, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
+		Map<Integer, Map<Integer, Set<DataReference>>> inputs = new HashMap<>();
+		for(LogicalOperator lo : slq.getAllOperators()) {
+			int opId = lo.getOperatorId();
+			Map<Integer, Set<DataReference>> input = new HashMap<>();
+			for(UpstreamConnection uc : lo.upstreamConnections()) {
+				int streamId = uc.getStreamId();
+				// Find all DataReferences that produce to this streamId filter by upstream operator
+				int upstreamOpId = uc.getUpstreamOperator().getOperatorId();
+				for(Entry<Integer, Set<DataReference>> produces : outputs.get(upstreamOpId).entrySet()) {
+					if(produces.getKey() == streamId) {
+						if(! input.containsKey(streamId)) {
+							input.put(streamId, new HashSet<>());
+						}
+						input.get(streamId).addAll(produces.getValue());
+					}
+				}
+			}
+			inputs.put(opId, input);
+		}
+		return inputs;
+	}
+	
+	private Map<Integer, Map<Integer, Set<DataReference>>> generateOutputDataReferences(SeepLogicalQuery slq, Map<Integer, EndPoint> mapping) {
+		Map<Integer, Map<Integer, Set<DataReference>>> outputs = new HashMap<>();
+		// Generate per operator the dataReferences it produces
+		for(LogicalOperator lo : slq.getAllOperators()) {
+			Map<Integer, Set<DataReference>> output = new HashMap<>();
+			int opId = lo.getOperatorId();
+			EndPoint ep = mapping.get(opId);
+			// One dataReference per downstream, group by streamId
+			for(DownstreamConnection dc : lo.downstreamConnections()) {
+				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
+				DataReference dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep);
+				int streamId = dc.getStreamId();
+				if(! output.containsKey(streamId)) {
+					output.put(streamId, new HashSet<>());
+				}
+				output.get(streamId).add(dref);
+			}
+			outputs.put(opId, output);
+		}
+		return outputs;
 	}
 
 	@Override
@@ -197,7 +253,7 @@ public class MaterializedQueryManager implements QueryManager {
 	
 	public Map<Integer, EndPoint> createMappingOfOperatorWithEndPoint(SeepLogicalQuery slq) {
 		Map<Integer, EndPoint> mapping = new HashMap<>();
-		for(Operator lso : slq.getAllOperators()){
+		for(LogicalOperator lso : slq.getAllOperators()){
 			int opId = lso.getOperatorId();
 			ExecutionUnit eu = inf.getExecutionUnit();
 			EndPoint ep = eu.getEndPoint();
@@ -220,9 +276,13 @@ public class MaterializedQueryManager implements QueryManager {
 		LOG.info("Sending query file...DONE!");
 	}
 	
-	private void sendMaterializeTaskToNodes(Set<Connection> connections) {
+	private void sendMaterializeTaskToNodes(
+			Set<Connection> connections, 
+			Map<Integer, EndPoint> mapping, 
+			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
+			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		LOG.info("Sending materialize task command to nodes...");
-		MasterWorkerCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(this.opToEndpointMapping);
+		MasterWorkerCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
 		comm.send_object_sync(materializeCommand, connections, k);
 		LOG.info("Sending materialize task command to nodes...OK");
 	}

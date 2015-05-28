@@ -43,6 +43,9 @@ public class Conductor {
 	private int id;
 	private SeepLogicalQuery query;
 	private Map<Integer, EndPoint> mapping;
+	// TODO: these two are only specific to materialise tasks
+	private Map<Integer, Map<Integer, Set<DataReference>>> inputs;
+	private Map<Integer, Map<Integer, Set<DataReference>>> outputs;
 	
 	private List<DataStoreSelector> dataStoreSelectors;
 	
@@ -62,10 +65,12 @@ public class Conductor {
 		this.scheduleTasks = new HashMap<>();
 	}
 	
-	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping) {
+	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		this.id = id;
 		this.query = query;
 		this.mapping = mapping;
+		this.inputs = inputs;
+		this.outputs = outputs;
 	}
 	
 	public void materializeAndConfigureTask() {
@@ -83,13 +88,13 @@ public class Conductor {
 			((StatefulSeepTask)task).setState(state);
 		}
 		// This creates one inputAdapter per upstream stream Id
-//		coreInput = CoreInputFactory.buildCoreInputForOperator(wc, o);
-		Map<Integer, Set<DataReference>> input = getInputDataReferencesFor(o);
+		Map<Integer, Set<DataReference>> input = inputs.get(o.getOperatorId());
+		Map<Integer, Set<DataReference>> output = outputs.get(o.getOperatorId());
 		Map<Integer, ConnectionType> connTypeInformation = getInputConnectionType(o);
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
-//		Map<Integer, Set<DataReference>> output = getOutputDataReferencesFor(o);
 		// This creates one outputAdapter per downstream stream Id
 		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, mapping);
+		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, output);
 		
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
 				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
@@ -162,32 +167,32 @@ public class Conductor {
 		return ct;
 	}
 
-	private Map<Integer, Set<DataReference>> getInputDataReferencesFor(LogicalOperator o) {
-		Map<Integer, Set<DataReference>> input = new HashMap<>();
-		for(UpstreamConnection uc : o.upstreamConnections()) {
-			int streamId = uc.getStreamId();
-			DataReference dRef = createDataReferenceFrom(uc);
-			if(! input.containsKey(streamId)) {
-				input.put(streamId, new HashSet<>());
-			}
-			input.get(streamId).add(dRef);
-		}
-		return input;
-	}
+//	private Map<Integer, Set<DataReference>> getInputDataReferencesFor(LogicalOperator o) {
+//		Map<Integer, Set<DataReference>> input = new HashMap<>();
+//		for(UpstreamConnection uc : o.upstreamConnections()) {
+//			int streamId = uc.getStreamId();
+//			DataReference dRef = createDataReferenceFrom(uc);
+//			if(! input.containsKey(streamId)) {
+//				input.put(streamId, new HashSet<>());
+//			}
+//			input.get(streamId).add(dRef);
+//		}
+//		return input;
+//	}
 	
-	private DataReference createDataReferenceFrom(UpstreamConnection uc) {
-		DataReference dref = null;
-		EndPoint ep = mapping.get(uc.getUpstreamOperator().getOperatorId());
-		boolean managed = ! uc.getDataStoreType().isExternal();
-		if(managed) {
-			dref = DataReference.makeManagedDataReferenceWithOwner(uc.getUpstreamOperator().getOperatorId(), uc.getDataStore(), ep);
-		}
-		else {
-			// FIXME: maybe not ep, but take EP from config??
-			dref = DataReference.makeExternalDataReference(uc.getDataStore(), ep);
-		}
-		return dref;
-	}
+//	private DataReference createDataReferenceFrom(UpstreamConnection uc) {
+//		DataReference dref = null;
+//		EndPoint ep = mapping.get(uc.getUpstreamOperator().getOperatorId());
+//		boolean managed = ! uc.getDataStoreType().isExternal();
+//		if(managed) {
+//			dref = DataReference.makeManagedDataReferenceWithOwner(uc.getUpstreamOperator().getOperatorId(), uc.getDataStore(), ep);
+//		}
+//		else {
+//			// FIXME: maybe not ep, but take EP from config??
+//			dref = DataReference.makeExternalDataReference(uc.getDataStore(), ep);
+//		}
+//		return dref;
+//	}
 	
 	private int getOpIdLivingInThisEU(int id) {
 		for(Entry<Integer, EndPoint> entry : mapping.entrySet()) {

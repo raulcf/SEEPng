@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core.output;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,10 +15,13 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
+import uk.ac.imperial.lsds.seepworker.core.input.InputAdapterFactory;
 
 public class CoreOutputFactory {
 
@@ -65,6 +69,34 @@ public class CoreOutputFactory {
 		CoreOutput cOutput = new CoreOutput(outputAdapters);
 		LOG.info("Building coreOutput...OK");
 		return cOutput;
+	}
+	
+//	LOG.info("Building Core Input...");
+//	List<InputAdapter> inputAdapters = new LinkedList<>();
+//	for(Entry<Integer, Set<DataReference>> entry : input.entrySet()) {
+//		int streamId = entry.getKey();
+//		Set<DataReference> drefs = entry.getValue();
+//		List<InputAdapter> ias = InputAdapterFactory.buildInputAdapterForStreamId(wc, streamId, drefs, connTypeInformation.get(streamId));
+//		if(ias != null){
+//			inputAdapters.addAll(ias);
+//		}
+//	}
+//	CoreInput ci = new CoreInput(inputAdapters);
+//	LOG.info("Building Core Input...OK");
+//	return ci;
+	
+	public static CoreOutput buildCoreOutputFor(WorkerConfig wc, Map<Integer, Set<DataReference>> output) {
+		for(Entry<Integer, Set<DataReference>> entry : output.entrySet()) {
+			int streamId = entry.getKey();
+			if(! output.get(streamId).isEmpty()) {
+				// In this case register DataReferences so that they can be consumed by anyone
+			}
+			else {
+				// In this case create new DataReferences
+			}
+		}
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public static CoreOutput buildCoreOutputForStage(WorkerConfig wc, Map<Integer, Set<DataReference>> output) {

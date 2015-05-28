@@ -183,8 +183,10 @@ public class WorkerMasterCommManager {
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		// Get physical info from command
 		Map<Integer, EndPoint> mapping = mtc.getMapping();
-		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
-		c.setQuery(myOwnId, slq, mapping);
+		Map<Integer, Map<Integer, Set<DataReference>>> inputs = mtc.getInputs();
+		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
+ 		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
 		c.materializeAndConfigureTask();
 	}
 	

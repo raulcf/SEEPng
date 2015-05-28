@@ -53,8 +53,11 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 	
-	public static MasterWorkerCommand buildMaterializeTaskCommand(Map<Integer, EndPoint> opToEndpointMapping) {
-		MaterializeTaskCommand mtc = new MaterializeTaskCommand(opToEndpointMapping);
+	public static MasterWorkerCommand buildMaterializeTaskCommand(
+			Map<Integer, EndPoint> opToEndpointMapping, 
+			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
+			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
+		MaterializeTaskCommand mtc = new MaterializeTaskCommand(opToEndpointMapping, inputs, outputs);
 		MasterWorkerCommand c = new MasterWorkerCommand(mtc);
 		return c;
 	}
