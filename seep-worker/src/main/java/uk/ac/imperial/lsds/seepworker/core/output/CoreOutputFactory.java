@@ -92,7 +92,7 @@ public class CoreOutputFactory {
 				// In this case register DataReferences so that they can be consumed by anyone
 			}
 			else {
-				// In this case create new DataReferences
+				// In this case create new DataReferences    
 			}
 		}
 		// TODO Auto-generated method stub
