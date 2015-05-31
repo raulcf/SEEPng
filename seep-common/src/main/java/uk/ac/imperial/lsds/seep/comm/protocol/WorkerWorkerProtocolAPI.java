@@ -2,7 +2,8 @@ package uk.ac.imperial.lsds.seep.comm.protocol;
 
 public enum WorkerWorkerProtocolAPI {
 	ACK((short)0, new AckCommand()),
-	CRASH((short)1, new CrashCommand());
+	CRASH((short)1, new CrashCommand()),
+	REQUEST_DATAREF((short)2, new RequestDataReferenceCommand());
 	
 	private short type;
 	private CommandType ct;

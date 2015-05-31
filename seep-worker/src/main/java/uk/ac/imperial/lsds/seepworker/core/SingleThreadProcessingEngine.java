@@ -10,16 +10,15 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.data.DataItem;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor.ConductorCallback;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
-import uk.ac.imperial.lsds.seepworker.core.input.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 
 import com.codahale.metrics.Meter;
@@ -95,16 +94,15 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			Iterator<InputAdapter> it = inputAdapters.iterator();
 			short one = InputAdapterReturnType.ONE.ofType();
 			short many = InputAdapterReturnType.MANY.ofType();
-			List<OutputAdapter> outputAdapters = coreOutput.getOutputAdapters();
-			LOG.info("Configuring SINGLETHREAD processing engine with {} outputAdapters", outputAdapters.size());
+			LOG.info("Configuring SINGLETHREAD processing engine with {} outputBuffers", coreOutput.getBuffers().size());
 			
 			API api = null;
 			switch(collectorType){
 			case SIMPLE:
-				api = new Collector(id, outputAdapters);
+				api = new Collector(id, coreOutput);
 				break;
 			case COMPOSED_SEQUENTIAL_TASK:
-				api = new SchedulePipelineCollector(id, outputAdapters, task);
+				api = new SchedulePipelineCollector(id, coreOutput, task);
 				break;
 			}
 			
@@ -112,31 +110,17 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 				while(it.hasNext()) {
 					InputAdapter ia = it.next();
 					if(ia.returnType() == one) {
-						DataItem di = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(di != null) {
-							boolean consume = true;
-							while(consume) {
-								ITuple d = di.consume();
-								if(d != null) {
-									task.processData(d, api);
-									m.mark();
-								} else consume = false;
-							}
+						ITuple d = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
+						if(d != null) {
+							task.processData(d, api);
+							m.mark();
 						}
 					}
 					else if(ia.returnType() == many) {
-						DataItem ld = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(ld != null) {
-							boolean consume = true;
-							while(consume) {
-								ITuple d = ld.consume();
-								if(d != null){
-									task.processDataGroup(d, api);
-									m.mark();
-								}
-								else consume = false;
-							}
-							
+						List<ITuple> d = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
+						if(d != null) {
+							task.processDataGroup(d, api);
+							m.mark();
 						}
 					}
 					if(callback.isContinuousTask()) {

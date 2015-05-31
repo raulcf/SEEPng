@@ -16,6 +16,7 @@ import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkBarrier implements InputAdapter {
@@ -50,92 +51,116 @@ public class NetworkBarrier implements InputAdapter {
 		this.data = new ArrayList<>();
 	}
 
-	@Override
-	public List<Integer> getRepresentedOpId(){
-		return new ArrayList<Integer>(barrierMembers);
+	public NetworkBarrier(WorkerConfig wc, int streamId, List<InputBuffer> buffers, Schema expectedSchema) {
+		
 	}
-	
+
 	@Override
 	public int getStreamId() {
-		return streamId;
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	@Override
 	public short returnType() {
-		return RETURN_TYPE;
-	}
-	
-	@Override
-	public DataStoreType getDataOriginType() {
-		return TYPE;
-	}
-	
-	@Override
-	public void readFrom(ReadableByteChannel channel, int id) {
-		if(! membersArrivedInBarrier.contains(id)){
-			// read data from channel and push it to the barrierBatch
-			InputBuffer buffer = inputBuffers.get(id);
-			buffer.readToInternalBuffer(channel, this);
-			// if data was fully read, then add member to arrived set
-			if(buffer.hasCompletedReads()) {
-				membersArrivedInBarrier.add(id);
-				this.data.add(buffer.read());
-				
-				// Check whether all members already arrived
-				if(membersArrivedInBarrier.containsAll(barrierMembers)) {
-					// clean appropiately the structures and make data available for consumption
-					// TODO: can avoid this copy?
-					List<byte[]> copy = new ArrayList<>(data);
-					this.pushData(copy);
-					data.clear();
-					membersArrivedInBarrier.clear();
-				}
-			}
-		}
-	}
-	
-	@Override
-	public void pushData(List<byte[]> data) {
-		try {
-			queue.put(data);
-		} 
-		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	@Override
-	public ITuple pullDataItems(int timeout) {
-		List<byte[]> data = null;
-		try {
-			if(timeout > 0){
-				// Need to poll rather than take due to the implementation of some ProcessingEngines
-				data = queue.poll(timeout, TimeUnit.MILLISECONDS);
-			} else{
-				data = queue.take();
-			}
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		// In case poll was used, and it timeouts
-		if(data == null){
-			return null;
-		}
-		iTuple.setData(data);
-		iTuple.setStreamId(streamId);
-		return iTuple;
-	}
-	
-	@Override
-	public void pushData(byte[] data) {
-		// TODO non-defined
+	public DataStoreType getDataStoreType() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public ITuple pullDataItem(int timeout) {
-		// TODO non-defined
+		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public List<ITuple> pullDataItems(int timeout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+//	@Override
+//	public int getStreamId() {
+//		return streamId;
+//	}
+//
+//	@Override
+//	public short returnType() {
+//		return RETURN_TYPE;
+//	}
+//	
+//	@Override
+//	public DataStoreType getDataStoreType() {
+//		return TYPE;
+//	}
+//	
+//	@Override
+//	public void readFrom(ReadableByteChannel channel, int id) {
+//		if(! membersArrivedInBarrier.contains(id)){
+//			// read data from channel and push it to the barrierBatch
+//			InputBuffer buffer = inputBuffers.get(id);
+//			buffer.readToInternalBuffer(channel, this);
+//			// if data was fully read, then add member to arrived set
+//			if(buffer.hasCompletedReads()) {
+//				membersArrivedInBarrier.add(id);
+//				this.data.add(buffer.read());
+//				
+//				// Check whether all members already arrived
+//				if(membersArrivedInBarrier.containsAll(barrierMembers)) {
+//					// clean appropiately the structures and make data available for consumption
+//					// TODO: can avoid this copy?
+//					List<byte[]> copy = new ArrayList<>(data);
+//					this.pushData(copy);
+//					data.clear();
+//					membersArrivedInBarrier.clear();
+//				}
+//			}
+//		}
+//	}
+//	
+//	@Override
+//	public void pushData(List<byte[]> data) {
+//		try {
+//			queue.put(data);
+//		} 
+//		catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	@Override
+//	public ITuple pullDataItems(int timeout) {
+//		List<byte[]> data = null;
+//		try {
+//			if(timeout > 0){
+//				// Need to poll rather than take due to the implementation of some ProcessingEngines
+//				data = queue.poll(timeout, TimeUnit.MILLISECONDS);
+//			} else{
+//				data = queue.take();
+//			}
+//		}
+//		catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		// In case poll was used, and it timeouts
+//		if(data == null){
+//			return null;
+//		}
+//		iTuple.setData(data);
+//		iTuple.setStreamId(streamId);
+//		return iTuple;
+//	}
+//
+//	@Override
+//	public ITuple pullDataItem(int timeout) {
+//		// TODO non-defined
+//		return null;
+//	}
 }

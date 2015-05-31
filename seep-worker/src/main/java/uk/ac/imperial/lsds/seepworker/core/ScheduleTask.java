@@ -68,7 +68,7 @@ public class ScheduleTask implements SeepTask {
 		while(taskIterator.hasNext()) {
 			SeepTask next = taskIterator.next();
 			next.processData(data, api);
-			byte[] o = ((SchedulePipelineCollector)api).collect();
+			byte[] o = ((SchedulePipelineCollector2)api).collect();
 			
 			LogicalOperator nextOp = opIt.next();
 			Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
@@ -84,7 +84,7 @@ public class ScheduleTask implements SeepTask {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void processDataGroup(List<ITuple> dataBatch, API api) {
 		// TODO Auto-generated method stub
 		
 	}

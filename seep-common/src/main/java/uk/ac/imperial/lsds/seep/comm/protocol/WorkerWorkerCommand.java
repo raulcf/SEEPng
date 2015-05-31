@@ -1,11 +1,12 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-public class WorkerWorkerCommand {
+public class WorkerWorkerCommand implements SeepCommand {
 
 	private short type;
 	
 	private AckCommand ac;
 	private CrashCommand cc;
+	private RequestDataReferenceCommand rdrc;
 	
 	public WorkerWorkerCommand(){}
 	
@@ -17,6 +18,9 @@ public class WorkerWorkerCommand {
 		}
 		else if(type == WorkerWorkerProtocolAPI.CRASH.type()){
 			this.cc = (CrashCommand)ct;
+		}
+		else if(type == WorkerWorkerProtocolAPI.REQUEST_DATAREF.type()){
+			this.rdrc = (RequestDataReferenceCommand)ct;
 		}
 		else{
 			try {
@@ -38,6 +42,10 @@ public class WorkerWorkerCommand {
 	
 	public CrashCommand getCrashCommand(){
 		return cc;
+	}
+	
+	public RequestDataReferenceCommand getRequestDataReferenceCommand() {
+		return rdrc;
 	}
 }
 

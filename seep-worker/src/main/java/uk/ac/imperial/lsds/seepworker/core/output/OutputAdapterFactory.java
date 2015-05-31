@@ -6,8 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
@@ -17,6 +20,7 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
 
+@Deprecated
 public class OutputAdapterFactory {
 
 	public static OutputAdapter buildOutputAdapterOfTypeNetworkForOps(WorkerConfig wc, int streamId, 
@@ -31,7 +35,7 @@ public class OutputAdapterFactory {
 			Connection c = new Connection(mapping.get(opId));
 			// Get properties required by OutputBuffer
 			int batch_size = wc.getInt(WorkerConfig.BATCH_SIZE);
-			OutputBuffer ob = new OutputBuffer(opId, c, streamId, batch_size);
+			OutputBuffer ob = null;//new OutputBuffer(opId, c, streamId, batch_size);
 			outputBuffers.put(opId, ob);
 		}
 		// TODO: left for configuration whether this should be a simpleoutput or something else...
@@ -45,9 +49,18 @@ public class OutputAdapterFactory {
 		return oa;
 	}
 
-	public static OutputAdapter buildOutputAdapterForDataReference(WorkerConfig wc, int streamId, Set<DataReference> value) {
-		OutputAdapter oa = new DataReferenceOutputAdapter(wc, streamId, value);
-		return oa;
+	public static OutputAdapter buildOutputAdapterForStreamId(WorkerConfig wc, int streamId, Set<DataReference> value, List<OBuffer> buffers) {
+		DataStoreType type = value.iterator().next().getDataStore().type();
+		ServeMode mode = value.iterator().next().getServeMode();
+		
+		if(mode == ServeMode.STREAM) {
+			
+		}
+		else if(mode == ServeMode.STORE) {
+			
+		}
+		
+		return null;
 	}
 
 }

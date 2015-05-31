@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seep.api.operator.sources;
 
+import java.util.List;
 import java.util.Properties;
 
 import uk.ac.imperial.lsds.seep.api.API;
@@ -70,7 +71,7 @@ public class FileSource implements Connectable, DataStoreDescriptor {
 		@Override
 		public void processData(ITuple data, API api) {		}
 		@Override
-		public void processDataGroup(ITuple dataBatch, API api) {		}
+		public void processDataGroup(List<ITuple> dataBatch, API api) {		}
 		@Override
 		public void close() {		}
 	}

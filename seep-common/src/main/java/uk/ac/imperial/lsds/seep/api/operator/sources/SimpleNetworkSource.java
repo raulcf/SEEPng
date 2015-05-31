@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -32,7 +33,7 @@ public class SimpleNetworkSource implements SeepTask {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void processDataGroup(List<ITuple> dataBatch, API api) {
 		// TODO Auto-generated method stub
 		
 	}

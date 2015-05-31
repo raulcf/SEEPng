@@ -5,6 +5,8 @@ import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 
+import java.util.List;
+
 public class KafkaSink implements SeepTask, Sink {
 
 	@Override
@@ -20,7 +22,7 @@ public class KafkaSink implements SeepTask, Sink {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void processDataGroup(List<ITuple> dataBatch, API api) {
 		// TODO Auto-generated method stub
 		
 	}

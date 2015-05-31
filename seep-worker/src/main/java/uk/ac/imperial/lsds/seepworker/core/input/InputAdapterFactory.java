@@ -13,81 +13,80 @@ import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class InputAdapterFactory {
 
+	// FIXME: refactor -> all inputadapters that are per buffer do the same. code reuse
+	
 	final static private Logger LOG = LoggerFactory.getLogger(IOComm.class.getName());
 	
-	private static List<InputAdapter> buildInputAdapterOfTypeNetworkForOps(WorkerConfig wc, int streamId, Set<DataReference> drefs, ConnectionType connectionType){
+	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<InputBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
+		List<InputAdapter> ias = null;
+		DataStoreType type = drefs.iterator().next().getDataStore().type();
+		if(type.equals(DataStoreType.NETWORK)){
+			ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
+		}
+		else if(type.equals(DataStoreType.FILE)){
+			ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
+		}
+		else if(type.equals(DataStoreType.KAFKA)){
+			ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
+		}
+		return ias;
+	}
+
+	private static List<InputAdapter> buildInputAdapterOfTypeNetworkForOps(
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
-		short cType = connectionType.ofType();
+		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
-		
 		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
 			// one-queue-per-conn, one-single-queue, etc.
-			LOG.info("Creating inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
-			InputAdapter ia = null;
-			for(DataReference dref : drefs) {
-				int id = dref.getId();
-				ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
+			LOG.info("Creating NETWORK inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
+			for(InputBuffer buffer : buffers) {
+				InputAdapter ia = new NetworkDataStream(wc, streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}
 		}
 		else if(cType == ConnectionType.UPSTREAM_SYNC_BARRIER.ofType()) {
-			// one barrier for all connections within the same barrier
-			LOG.info("Creating NETWORK inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.UPSTREAM_SYNC_BARRIER.withName());
-			InputAdapter ia = new NetworkBarrier(wc, streamId, expectedSchema, drefs);
+			LOG.info("Creating NETWORK inputAdapter for upstream streamId: {} of type {}", streamId, "UPSTREAM_SYNC_BARRIER");
+			InputAdapter ia = new NetworkBarrier(wc, streamId, buffers, expectedSchema);
 			ias.add(ia);
 		}
 		return ias;
 	}
 	
-	private static List<InputAdapter> buildInputAdapterOfTypeFileForOps(WorkerConfig wc, int streamId, Set<DataReference> drefs, ConnectionType connectionType){
+	private static List<InputAdapter> buildInputAdapterOfTypeFileForOps(
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
-		short cType = connectionType.ofType();
+		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
-		
-		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()){
-			LOG.info("Creating FILE inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.ONE_AT_A_TIME.withName());
-			for(DataReference dref : drefs) {
-				int id = dref.getId();
-				InputAdapter ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
+		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
+			// one-queue-per-conn, one-single-queue, etc.
+			LOG.info("Creating FILE inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
+			for(InputBuffer buffer : buffers) {
+				InputAdapter ia = new FileDataStream(wc, streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}
 		}
 		return ias;
 	}
 	
-	private static List<InputAdapter> buildInputAdapterOfTypeKafkaForOps(WorkerConfig wc, int streamId, Set<DataReference> drefs, ConnectionType connectionType){
+	private static List<InputAdapter> buildInputAdapterOfTypeKafkaForOps(
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
-		short cType = connectionType.ofType();
+		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
-		
-		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()){
-			LOG.info("Creating KAFKA inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.ONE_AT_A_TIME.withName());
-			for(DataReference dref : drefs) {
-				int id = dref.getId();
-				InputAdapter ia = new NetworkDataStream(wc, id, streamId, expectedSchema);
+		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
+			// one-queue-per-conn, one-single-queue, etc.
+			LOG.info("Creating KAFKA inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
+			for(InputBuffer buffer : buffers) {
+				InputAdapter ia = new KafkaDataStream(streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}
 		}
 		return ias;
 	}
-
-	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, Set<DataReference> drefs, ConnectionType connectionType) {
-		DataStoreType type = drefs.iterator().next().getDataStore().type();
-		List<InputAdapter> ias = new ArrayList<>();
-		if(type.equals(DataStoreType.NETWORK)){
-			ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, connectionType);
-		}
-		else if(type.equals(DataStoreType.FILE)){
-			ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, connectionType);
-		}
-		else if(type.equals(DataStoreType.KAFKA)){
-			ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, connectionType);
-		}
-		return ias;
-	}
-	
 }

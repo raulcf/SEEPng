@@ -12,7 +12,7 @@ import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 
-
+@Deprecated
 public class SimpleNetworkOutput implements OutputAdapter {
 
 	private final boolean SINGLE_SEND_NOT_DEFINED;
@@ -67,7 +67,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 		}
 		boolean completed = outB.write(o);
 		if(completed){
-			eAPI.readyForWrite(outB.id());
+//			eAPI.readyForWrite(outB.id());
 		}
 	}
 
@@ -77,7 +77,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 		for(OutputBuffer ob : outputBuffers.values()){
 			boolean completed = ob.write(o);
 			if(completed){
-				ids.add(ob.id());
+//				ids.add(ob.id());
 			}
 		}
 		if(ids.size() > 0){
@@ -92,7 +92,7 @@ public class SimpleNetworkOutput implements OutputAdapter {
 		
 		boolean complete = ob.write(o);
 		if(complete){
-			eAPI.readyForWrite(ob.id());
+//			eAPI.readyForWrite(ob.id());
 		}
 	}
 

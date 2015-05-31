@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seepworker.core;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,12 +11,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
@@ -60,16 +62,33 @@ public class DataStoreSelectorFactory {
 		NetworkSelector ns = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for input");
-			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
+			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getIBufferProvider());
 			ns.configureAccept(myIp, dataPort);
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
-			if(ns == null) ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getInputAdapterProvider());
-			Set<OutputBuffer> obufs = coreOutput.getOutputBuffers();
-			ns.configureConnect(obufs);
+			if(ns == null){
+				Set<OBuffer> obufsToStream = filterOBufferToStream(coreOutput.getBuffers());
+				if(obufsToStream.size() > 0) {
+					ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getIBufferProvider());
+					for(OBuffer ob : obufsToStream) {
+						ob.setEventAPI(ns);
+					}
+				}
+			}
 		}
 		return ns;
+	}
+
+	private static Set<OBuffer> filterOBufferToStream(Map<Integer, OBuffer> buffers) {
+		// Select only those that are meant to be streamed
+		Set<OBuffer> filtered = new HashSet<>();
+		for(OBuffer oBuffer : buffers.values()) {
+			if(oBuffer.getDataReference().getServeMode().equals(ServeMode.STREAM)) {
+				filtered.add(oBuffer);
+			}
+		}
+		return filtered;
 	}
 
 	public static FileSelector maybeConfigureFileSelector(CoreInput coreInput, CoreOutput coreOutput, 
@@ -84,7 +103,7 @@ public class DataStoreSelectorFactory {
 					fileOrigins.put(opId, uc.getDataStore());
 				}
 			}
-			fs.configureAccept(fileOrigins, coreInput.getInputAdapterProvider());
+			fs.configureAccept(fileOrigins, coreInput.getIBufferProvider());
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
 			throw new NotImplementedException("not implemented yet...");
@@ -99,7 +118,7 @@ public class DataStoreSelectorFactory {
 			KafkaConfig kc = new KafkaConfig( o.upstreamConnections().get(0).getDataStore().getConfig() );
 			LOG.info("Configuring kafkaSelector for input");
 			ks = new KafkaSelector(kc.getString(KafkaConfig.BASE_TOPIC), kc.getString(KafkaConfig.ZOOKEEPER_CONNECT),
-					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getInputAdapterProvider());			
+					kc.getString(KafkaConfig.CONSUMER_GROUP_ID), coreInput.getIBufferProvider());
 		}
 		return ks;
 	}

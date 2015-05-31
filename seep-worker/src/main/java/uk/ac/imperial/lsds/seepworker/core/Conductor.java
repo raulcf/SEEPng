@@ -10,6 +10,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -18,9 +20,10 @@ import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
-import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -39,6 +42,8 @@ public class Conductor {
 	private InetAddress myIp;
 	private WorkerMasterAPIImplementation masterApi;
 	private Connection masterConn;
+	private Comm comm;
+	private Kryo k;
 	private int id;
 	private SeepLogicalQuery query;
 	private Map<Integer, EndPoint> mapping;
@@ -57,13 +62,15 @@ public class Conductor {
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, DataReferenceManager drm, Connection masterConn, WorkerConfig wc){
+	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, DataReferenceManager drm, Connection masterConn, WorkerConfig wc, Comm comm){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
 		this.wc = wc;
 		this.scheduleTasks = new HashMap<>();
 		this.drm = drm;
+		this.comm = comm;
+		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
 	}
 	
 	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
@@ -93,17 +100,11 @@ public class Conductor {
 		Map<Integer, Set<DataReference>> output = outputs.get(o.getOperatorId());
 		Map<Integer, ConnectionType> connTypeInformation = getInputConnectionType(o);
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
-		// This creates one outputAdapter per downstream stream Id
-		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, mapping);
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 		
+		// Specialized data selectors
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
 				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
-
-		// FIXME: this is ugly, why ns is special?
-		for(DataStoreSelector dss : dataStoreSelectors) {
-			if(dss instanceof EventAPI) coreOutput.setEventAPI((EventAPI)dss);
-		}
 
 		int id = o.getOperatorId();
 		
@@ -116,6 +117,8 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.initSelector();
 		}
+		// Make sure selectors are initialised, then request connections
+		coreInput.requestInputConnections(comm, k);
 	}
 
 	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
@@ -136,7 +139,10 @@ public class Conductor {
 		Stage s = sd.getStageWithId(stageId);
 		ScheduleTask task = this.scheduleTasks.get(s);
 		
-		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
+		// TODO: get this somehow
+		Map<Integer, ConnectionType> connTypeInformation = null;
+		
+		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
 		coreOutput = CoreOutputFactory.buildCoreOutputForStage(wc, output);
 
 		SeepState state = null;
@@ -191,7 +197,6 @@ public class Conductor {
 
 		public void notifyOk() {
 //			masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
-			
 		}
 		
 	}

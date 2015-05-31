@@ -7,6 +7,7 @@ import uk.ac.imperial.lsds.seep.api.CommAPI;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 
+@Deprecated
 public interface OutputAdapter extends CommAPI{
 	
 	public int getStreamId();

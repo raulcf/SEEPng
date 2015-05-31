@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
@@ -49,7 +51,7 @@ public class StatefulBaseTest implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -75,7 +77,7 @@ public class StatefulBaseTest implements QueryComposer {
 			// TODO Auto-generated method stub
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -94,7 +96,7 @@ public class StatefulBaseTest implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override

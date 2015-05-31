@@ -2,7 +2,9 @@ package uk.ac.imperial.lsds.seep.comm;
 
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.comm.protocol.CommandType;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 
 import com.esotericsoftware.kryo.Kryo;
 
@@ -41,11 +43,11 @@ public interface Comm {
 	public void send_object_async_parallel(Object data, Set<Connection> cs);
 	
 	// Primitives for master-worker communication
-	public boolean send_object_sync(MasterWorkerCommand co, Connection c, Kryo k);
-	public boolean send_object_async(MasterWorkerCommand co, Connection c, Kryo k, int numRetries, int reconnectBackOff);
-	public boolean send_object_sync(MasterWorkerCommand co, Set<Connection> cs, Kryo k);
-	public boolean send_object_async(MasterWorkerCommand co, Set<Connection> cs, Kryo k);
-	public boolean send_object_sync_parallel(MasterWorkerCommand data, Set<Connection> cs, Kryo k);
-	public void send_object_async_parallel(MasterWorkerCommand data, Set<Connection> cs, Kryo k);
+	public boolean send_object_sync(SeepCommand co, Connection c, Kryo k);
+	public boolean send_object_async(SeepCommand co, Connection c, Kryo k, int numRetries, int reconnectBackOff);
+	public boolean send_object_sync(SeepCommand co, Set<Connection> cs, Kryo k);
+	public boolean send_object_async(SeepCommand co, Set<Connection> cs, Kryo k);
+	public boolean send_object_sync_parallel(SeepCommand data, Set<Connection> cs, Kryo k);
+	public void send_object_async_parallel(SeepCommand data, Set<Connection> cs, Kryo k);
 	
 }

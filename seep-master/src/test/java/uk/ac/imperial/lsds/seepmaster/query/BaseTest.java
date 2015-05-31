@@ -12,6 +12,8 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 
+import java.util.List;
+
 public class BaseTest implements QueryComposer {
 
 	@Override
@@ -47,7 +49,7 @@ public class BaseTest implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -66,7 +68,7 @@ public class BaseTest implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -85,7 +87,7 @@ public class BaseTest implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override

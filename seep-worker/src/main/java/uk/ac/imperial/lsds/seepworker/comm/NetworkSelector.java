@@ -26,12 +26,14 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -58,18 +60,18 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	private Map<Integer, SelectionKey> writerKeys;
 	private Map<SelectionKey, Integer> readerKeys;
 	
-	// incoming id - local input adapter
-	private Map<Integer, InputAdapter> iapMap;
+	// incoming id -> local input buffer
+	Map<Integer, IBuffer> ibMap;
 	private int numUpstreamConnections;
 	
-	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, InputAdapter> iapMap) {
+	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, IBuffer> ibMap) {
 		this.myId = opId;
 		this.writersConfiguredLatch = new CountDownLatch(0); // Initially non-defined, nobody waits here
-		this.iapMap = iapMap;
-		int expectedUpstream = 0;
-		for(InputAdapter ia : iapMap.values()) {
-			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
-		}
+		this.ibMap = ibMap;
+		int expectedUpstream = ibMap.size();
+//		for(InputAdapter ia : iapMap.values()) {
+//			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
+//		}
 		this.numUpstreamConnections  = expectedUpstream;
 		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
 		this.numReaderWorkers = wc.getInt(WorkerConfig.NUM_NETWORK_READER_THREADS);
@@ -106,7 +108,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 	}
 	
-	public static NetworkSelector makeNetworkSelectorWithMap(int myId, Map<Integer, InputAdapter> iapMap){
+	public static NetworkSelector makeNetworkSelectorWithMap(int myId, Map<Integer, IBuffer> ibMap){
 		Properties p = new Properties();
 		p.setProperty(WorkerConfig.MASTER_IP, "127.0.0.1");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
@@ -114,7 +116,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		p.setProperty(WorkerConfig.NUM_NETWORK_WRITER_THREADS, "1");
 		p.setProperty(WorkerConfig.MAX_PENDING_NETWORK_CONNECTION_PER_THREAD, "1");
 		WorkerConfig wc = new WorkerConfig(p);
-		return new NetworkSelector(wc, myId, iapMap);
+		return new NetworkSelector(wc, myId, ibMap);
 	}
 	
 	public void configureAccept(InetAddress myIp, int dataPort){
@@ -140,13 +142,13 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.acceptorWorker.setName("Network-Acceptor");
 	}
 	
-	public void configureConnect(Set<OutputBuffer> obufs){
+	public void configureConnect(Set<OutgoingConnectionRequest> outgoingConnectionRequest){
 		int writerIdx = 0;
 		int totalWriters = writers.length;
-		for(OutputBuffer obuf : obufs) {
-			writers[(writerIdx++)%totalWriters].newConnection(obuf);
+		for(OutgoingConnectionRequest ocr : outgoingConnectionRequest) {
+			writers[(writerIdx++)%totalWriters].newConnection(ocr);
 		}
-		this.writersConfiguredLatch = new CountDownLatch(obufs.size()); // Initialize countDown with num of outputConns
+		this.writersConfiguredLatch = new CountDownLatch(outgoingConnectionRequest.size()); // Initialize countDown with num of outputConns
 	}
 	
 	@Override
@@ -310,10 +312,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 								handleConnectionIdentifier(key);
 							}
 							else{
-								InputAdapter ia = (InputAdapter)key.attachment();
+								IBuffer ib = (IBuffer)key.attachment();
 								SocketChannel channel = (SocketChannel) key.channel();
 								int id = readerKeys.get(key);
-								ia.readFrom(channel, id);
+								ib.readFrom(channel);
 							}
 						}
 						if(! key.isValid()){
@@ -348,9 +350,9 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			dst.flip();
 			int id = dst.getInt();
 			LOG.info("Received conn identifier: {}", id);
-			Map<Integer, InputAdapter> iapMap = (Map<Integer, InputAdapter>)key.attachment();
+			Map<Integer, IBuffer> ibMap = (Map<Integer, IBuffer>)key.attachment();
 			LOG.info("Configuring InputAdapter for received conn identifier: {}", id);
-			InputAdapter responsibleForThisChannel = iapMap.get(id);
+			IBuffer responsibleForThisChannel = ibMap.get(id);
 			if(responsibleForThisChannel == null){
 				// TODO: throw exception
 				LOG.error("Problem here, no existent inputadapter for id: {}", id);
@@ -377,7 +379,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 					// register new incoming connection in the thread-local selector
 					SelectionKey key = incomingCon.register(readSelector, SelectionKey.OP_READ);
 					// We attach the inputAdapterProvider Map, so that we can identify the channel once it starts
-					key.attach(iapMap);
+					key.attach(ibMap);
 					LOG.info("Configured new incoming connection at: {}", incomingCon.toString());
 				}
 				catch(SocketException se){
@@ -415,10 +417,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private int id;
 		private boolean working;
-		private Queue<OutputBuffer> pendingConnections;
+		private Queue<OutgoingConnectionRequest> pendingConnections;
 		
 		// buffer id - outputbuffer
-		private Map<Integer, OutputBuffer> outputBufferMap;
+		private Map<Integer, OBuffer> outputBufferMap;
 		private Map<Integer, Boolean> needsConfigureOutputConnection;
 		
 		private Selector writeSelector;
@@ -428,7 +430,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			this.working = true;
 			this.outputBufferMap = new HashMap<>();
 			this.needsConfigureOutputConnection = new HashMap<>();
-			this.pendingConnections = new ArrayDeque<OutputBuffer>();
+			this.pendingConnections = new ArrayDeque<OutgoingConnectionRequest>();
 			try {
 				this.writeSelector = Selector.open();
 			} 
@@ -445,8 +447,8 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			this.working = false;
 		}
 		
-		public void newConnection(OutputBuffer ob){
-			this.pendingConnections.add(ob);
+		public void newConnection(OutgoingConnectionRequest ocr){
+			this.pendingConnections.add(ocr);
 		}
 		
 		@Override
@@ -479,7 +481,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 						}
 						// writable
 						if(key.isWritable()){
-							OutputBuffer ob = (OutputBuffer)key.attachment();
+							OBuffer ob = (OBuffer)key.attachment();
 							SocketChannel channel = (SocketChannel)key.channel();
 							
 							if(needsConfigureOutputConnection.get(ob.id())){
@@ -492,7 +494,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 							}
 							else{
 								// write batch
-								boolean fullyWritten = ob.drain(channel);
+								boolean fullyWritten = ob.drainTo(channel);
 								if(fullyWritten) unsetWritable(key);
 							}
 						}
@@ -510,7 +512,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 		
 		private void pollBuffers(){
-			for(OutputBuffer ob : outputBufferMap.values()){
+			for(OBuffer ob : outputBufferMap.values()){
 				if(ob.ready()){
 					SelectionKey key = writerKeys.get(ob.id());
 					int interestOps = key.interestOps() | SelectionKey.OP_WRITE;
@@ -542,9 +544,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private void handleNewConnections(){
 			try {
-				OutputBuffer ob = null;
-				while((ob = this.pendingConnections.poll()) != null){
-					Connection c = ob.getConnection();
+				OutgoingConnectionRequest ocr = null;
+				while((ocr = this.pendingConnections.poll()) != null){
+					OBuffer ob = ocr.oBuffer;
+					Connection c = ocr.connection;
 					SocketChannel channel = SocketChannel.open();
 					InetSocketAddress address = c.getInetSocketAddressForData();
 			        Socket socket = channel.socket();

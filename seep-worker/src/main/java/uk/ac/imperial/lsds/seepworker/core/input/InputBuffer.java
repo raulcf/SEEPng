@@ -6,35 +6,37 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
-public class InputBuffer {
+
+public class InputBuffer implements IBuffer {
 	
 	private ByteBuffer header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	private ByteBuffer payload = null;
 	private int nTuples = 0;
 	
-	// Used only for barrier, smells like refactoring...
-	private ByteBuffer buffer;
-	private Deque<byte[]> completedReads;
+	private BlockingQueue<byte[]> queue;
+	private int queueSize;
 	
-	public InputBuffer(int size){
-		buffer = ByteBuffer.allocate(size);
-		completedReads = new ArrayDeque<>();
+	private InputBuffer(WorkerConfig wc, DataReference dr) {
+		this.queueSize = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
+		this.queue = new ArrayBlockingQueue<>(queueSize);
 	}
 	
-	public boolean hasCompletedReads(){
-		return completedReads.size() > 0;
+	public static InputBuffer makeInputBufferFor(WorkerConfig wc, DataReference dr) {
+		return new InputBuffer(wc, dr);
 	}
 	
-	public byte[] read(){
-		return completedReads.poll();
-	}
-	
-	public void readFrom(ReadableByteChannel channel, InputAdapter ia) {
-		
+	@Override
+	public void readFrom(ReadableByteChannel channel) {
 		if(header.remaining() > 0){
 			this.read(channel, header);
 		}
@@ -50,7 +52,7 @@ public class InputBuffer {
 		if(payload != null){
 			this.read(channel, payload);
 			if(!payload.hasRemaining()){
-				this.forwardTuples(payload, nTuples, ia);
+				this.forwardTuples(payload, nTuples);
 				payload = null;
 				header.clear();
 				nTuples = 0;
@@ -58,18 +60,6 @@ public class InputBuffer {
 		}
 	}
 	
-	private void forwardTuples(ByteBuffer buf, int numTuples, InputAdapter ia) {
-		int tupleSize = 0;
-		buf.flip(); // Prepare buffer to read
-		for(int i = 0; i < numTuples; i++){			
-			tupleSize = buf.getInt();
-			byte[] completedRead = new byte[tupleSize];
-			buf.get(completedRead, 0, tupleSize);
-			ia.pushData(completedRead);
-		}
-		buf.clear();
-	}
-
 	private int read(ReadableByteChannel src, ByteBuffer dst){
 		try {
 			return src.read(dst);
@@ -80,9 +70,83 @@ public class InputBuffer {
 		return -1;
 	}
 	
+	private void forwardTuples(ByteBuffer buf, int numTuples) {
+		int tupleSize = 0;
+		buf.flip(); // Prepare buffer to read
+		for(int i = 0; i < numTuples; i++){			
+			tupleSize = buf.getInt();
+			byte[] completedRead = new byte[tupleSize];
+			buf.get(completedRead, 0, tupleSize);
+			this.pushData(completedRead);
+		}
+		buf.clear();
+	}
+	
+	@Override
+	public void pushData(byte[] data) {
+		try {
+			queue.put(data);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public byte[] read(int timeout) {
+		try {
+			return queue.poll(timeout, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+//	@Deprecated
+//	public void readFrom(ReadableByteChannel channel, InputAdapter ia) {
+//		
+//		if(header.remaining() > 0){
+//			this.read(channel, header);
+//		}
+//		
+//		if(payload == null && !header.hasRemaining()){
+//			header.flip();
+//			byte control = header.get();
+//			nTuples = header.getInt();
+//			int payloadSize = header.getInt(); // payload size
+//			payload = ByteBuffer.allocate(payloadSize);
+//		}
+//		
+//		if(payload != null){
+//			this.read(channel, payload);
+//			if(!payload.hasRemaining()){
+//				this.forwardTuples(payload, nTuples, ia);
+//				payload = null;
+//				header.clear();
+//				nTuples = 0;
+//			}
+//		}
+//	}
+	
 	/** 
-	 * TODO: refactor according to the new model (above)
+	 * TODO: refactor according to the new model (above) : NetworkBarrier
 	 */
+	
+	public InputBuffer(int size){
+		buffer = ByteBuffer.allocate(size);
+		completedReads = new ArrayDeque<>();
+	}
+	
+	// Used only for barrier, smells like refactoring...
+	private ByteBuffer buffer;
+	private Deque<byte[]> completedReads;
+	
+	public boolean hasCompletedReads(){
+		return completedReads.size() > 0;
+	}
+	
+	public byte[] read(){
+		return completedReads.poll();
+	}
 	
 	public boolean readToInternalBuffer(ReadableByteChannel channel, InputAdapter ia){
 		boolean dataRemainingInBuffer = true;
@@ -152,53 +216,5 @@ public class InputBuffer {
 			}
 			return true;
 		}
-	}
-	
-	@Deprecated
-	public boolean _readFrom(ReadableByteChannel channel, InputAdapter ia){
-		boolean dataRemainingInBuffer = true;
-		int readBytes = 0;
-		try {
-			readBytes = channel.read(buffer);
-			if(readBytes <= 0){
-				return false;
-			}
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		int initialLimit = buffer.position();
-				
-		int fromPosition = 0;
-		while(dataRemainingInBuffer){
-			if(canReadFullBatch(fromPosition, initialLimit)){
-				buffer.limit(initialLimit);
-				buffer.position(fromPosition);
-				
-				byte control = buffer.get();
-				int numTuples = buffer.getInt();
-				int batchSize = buffer.getInt();
-				for(int i = 0; i < numTuples; i++){
-					int tupleSize = buffer.getInt();
-					byte[] completedRead = new byte[tupleSize];
-					buffer.get(completedRead, 0, tupleSize);
-					ia.pushData(completedRead);
-				}
-				fromPosition = buffer.position(); // Update position for next iteration
-			}
-			else{
-				if(buffer.hasRemaining()){
-					buffer.compact(); // make space to complete chunked read
-					return false;
-				}
-				else{
-					dataRemainingInBuffer = false;
-					buffer.clear();
-					return true; // Fully read buffer
-				}
-			}
-		}
-		return false;
 	}
 }

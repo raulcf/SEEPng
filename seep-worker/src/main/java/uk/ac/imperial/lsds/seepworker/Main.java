@@ -72,7 +72,7 @@ public class Main {
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(wc);
 		
 		// Create conductor
-		Conductor c = new Conductor(Utils.getLocalIp(), api, drm, masterConnection, wc);
+		Conductor c = new Conductor(Utils.getLocalIp(), api, drm, masterConnection, wc, comm);
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());

@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import java.util.List;
 import java.util.Properties;
 
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
@@ -43,7 +44,7 @@ public class FileBase implements QueryComposer {
 		@Override
 		public void processData(ITuple data, API api) {		}
 		@Override
-		public void processDataGroup(ITuple dataBatch, API api) {		}
+		public void processDataGroup(List<ITuple> dataBatch, API api) {		}
 		@Override
 		public void close() {		}
 	}
@@ -54,7 +55,7 @@ public class FileBase implements QueryComposer {
 		@Override
 		public void processData(ITuple data, API api) {		}
 		@Override
-		public void processDataGroup(ITuple dataBatch, API api) {		}
+		public void processDataGroup(List<ITuple> dataBatch, API api) {		}
 		@Override
 		public void close() {		}
 	}
@@ -65,7 +66,7 @@ public class FileBase implements QueryComposer {
 		@Override
 		public void processData(ITuple data, API api) {		}
 		@Override
-		public void processDataGroup(ITuple dataBatch, API api) {		}
+		public void processDataGroup(List<ITuple> dataBatch, API api) {		}
 		@Override
 		public void close() {		}
 	}

@@ -43,8 +43,8 @@ public class DataReferenceManager {
 		}
 	}
 	
-	public boolean doesManageDataReference(int dataRefId) {
-		return catalogue.containsKey(dataRefId);
+	public DataReference doesManageDataReference(int dataRefId) {
+		return catalogue.get(dataRefId);
 	}
 	
 	public void stopManagingDataReference(DataReference dataRef) {

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -37,7 +38,7 @@ public class FileSelector implements DataStoreSelector {
 	private Writer writer;
 	private Thread writerWorker;
 	
-	private Map<Integer, InputAdapter> dataAdapters;
+	private Map<Integer, IBuffer> dataAdapters;
 	
 	public FileSelector(WorkerConfig wc) {
 		
@@ -81,7 +82,7 @@ public class FileSelector implements DataStoreSelector {
 		return true;
 	}
 	
-	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, InputAdapter> dataAdapters){
+	public void configureAccept(Map<Integer, DataStore> fileOrigins, Map<Integer, IBuffer> dataAdapters){
 		this.dataAdapters = dataAdapters;
 		this.numUpstreamResources = fileOrigins.size();
 		this.reader = new Reader();
@@ -113,7 +114,7 @@ public class FileSelector implements DataStoreSelector {
 		this.reader.availableChannels(channels);
 	}
 	
-	public void addNewAccept(Path resource, int id, Map<Integer, InputAdapter> dataAdapters){
+	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters){
 		this.dataAdapters = dataAdapters;
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
 		SeekableByteChannel sbc = null;
@@ -166,9 +167,9 @@ public class FileSelector implements DataStoreSelector {
 				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()){
 					int id = e.getValue();
 					ReadableByteChannel rbc = e.getKey();
-					InputAdapter ia = dataAdapters.get(id);
+					IBuffer ib = dataAdapters.get(id);
 					if(rbc.isOpen()){
-						ia.readFrom(rbc, id);
+						ib.readFrom(rbc);
 					}
 					else{
 						working = false;

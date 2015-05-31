@@ -11,6 +11,8 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
 public class ProtocolCommandFactory {
 	
+	/** MasterWorker commands **/
+	
 	public static MasterWorkerCommand buildBootstrapCommand(String ip, int port, int dataPort){
 		BootstrapCommand bc = new BootstrapCommand(ip, port, dataPort);
 		MasterWorkerCommand c = new MasterWorkerCommand(bc);
@@ -65,6 +67,16 @@ public class ProtocolCommandFactory {
 	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
+		return c;
+	}
+	
+	/** WorkerWorker commands 
+	 * @param receivingDataPort 
+	 * @param dataReferenceId **/
+	
+	public static WorkerWorkerCommand buildRequestDataReference(int dataReferenceId, int receivingDataPort) {
+		RequestDataReferenceCommand rdrc = new RequestDataReferenceCommand(dataReferenceId, receivingDataPort);
+		WorkerWorkerCommand c = new WorkerWorkerCommand(rdrc);
 		return c;
 	}
 	

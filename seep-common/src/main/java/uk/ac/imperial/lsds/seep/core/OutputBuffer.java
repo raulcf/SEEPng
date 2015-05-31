@@ -3,80 +3,54 @@ package uk.ac.imperial.lsds.seep.core;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 
-public class OutputBuffer {
+public class OutputBuffer implements OBuffer {
 	
 	private final int BATCH_SIZE;
+	private DataReference dr;
 	
-	private int opId;
-	private Connection c;
-	private int streamId;
-	
+	private EventAPI eAPI;
 	private ByteBuffer buf;
 	private AtomicBoolean completed = new AtomicBoolean(false);
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
 		
-	public OutputBuffer(int opId, Connection c, int streamId, int batchSize){
-		this.opId = opId;
-		this.c = c;
-		this.streamId = streamId;
+	public OutputBuffer(DataReference dr, int batchSize) {
+		this.dr = dr;
 		this.BATCH_SIZE = batchSize;
 		int headroomSize = this.BATCH_SIZE * 2;
 		buf = ByteBuffer.allocate(headroomSize);
 		buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	}
 	
-	public int getStreamId(){
-		return streamId;
+	@Override
+	public DataReference getDataReference() {
+		return dr;
 	}
 	
-	public int id(){
-		return opId;
+	@Override
+	public int id() {
+		return dr.getId();
 	}
 	
-	public Connection getConnection(){
-		return c;
+	@Override
+	public void setEventAPI(EventAPI eAPI) {
+		this.eAPI = eAPI;
 	}
 	
-	public boolean ready(){
-		return completed.get();
-	}
-
-	public boolean write(byte[] data){
-		
-		if(completed.get()){
-			waitHere(); // block
-		}
-		int tupleSize = data.length;
-		buf.putInt(tupleSize);
-		buf.put(data);
-		tuplesInBatch++;
-		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
-		
-		if(bufferIsFull()){
-			int currentPosition = buf.position();
-			int currentLimit = buf.limit();
-			buf.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);
-			buf.putInt(tuplesInBatch);
-			buf.putInt(currentBatchSize);
-			buf.position(currentPosition);
-			buf.limit(currentLimit);
-			buf.flip(); // leave the buffer ready to be read
-			boolean success = completed.compareAndSet(false, true);
-			if(!success){
-				System.out.println("PROB when writing");
-				System.exit(0);
-			}
-		}
-		return completed.get();
+	@Override
+	public EventAPI getEventAPI() {
+		return eAPI;
 	}
 	
-	public boolean drain(SocketChannel channel){
+	@Override
+	public boolean drainTo(WritableByteChannel channel) {
 		boolean fullyWritten = false;
 		if(completed.get()){
 			int totalBytesToWrite = buf.remaining();
@@ -106,6 +80,41 @@ public class OutputBuffer {
 			}
 		}
 		return fullyWritten;
+		
+	}
+
+	@Override
+	public boolean write(byte[] data) {
+		if(completed.get()){
+			waitHere(); // block
+		}
+		int tupleSize = data.length;
+		buf.putInt(tupleSize);
+		buf.put(data);
+		tuplesInBatch++;
+		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		if(bufferIsFull()){
+			int currentPosition = buf.position();
+			int currentLimit = buf.limit();
+			buf.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);
+			buf.putInt(tuplesInBatch);
+			buf.putInt(currentBatchSize);
+			buf.position(currentPosition);
+			buf.limit(currentLimit);
+			buf.flip(); // leave the buffer ready to be read
+			boolean success = completed.compareAndSet(false, true);
+			if(!success){
+				System.out.println("PROB when writing");
+				System.exit(0);
+			}
+		}
+		return completed.get();
+	}
+	
+	@Override
+	public boolean ready(){
+		return completed.get();
 	}
 	
 	private boolean bufferIsFull(){
@@ -130,5 +139,4 @@ public class OutputBuffer {
 			e.printStackTrace();
 		}
 	}
-
 }

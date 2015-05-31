@@ -10,15 +10,8 @@ import java.util.Map.Entry;
 
 import uk.ac.imperial.lsds.seep.util.Utils;
 
-/**
- * Tuple is a class that contains data in a byte[] form and an accompanying schema. Data will be deserialized lazily
- * which will reduce overhead in many cases. All overhead is then pushed to the application, not part of the system.
- * @author ra
- */
 
-public class ITuple implements DataItem{
-
-	private boolean consumed = false;
+public class ITuple {
 	
 	private final Schema schema;
 	private int streamId;
@@ -26,27 +19,12 @@ public class ITuple implements DataItem{
 	private ByteBuffer wrapper;
 	private byte[] data;
 	
-	private List<ITuple> dataCol;
-	private Iterator<ITuple> it;
-	
 	public ITuple(Schema schema){
 		this.schema = schema;
 		mapFieldToOffset = new HashMap<>();
 		if(! schema.isVariableSize()){
 			// This only happens once
 			this.populateOffsets();
-		}
-	}
-
-	@Override
-	public ITuple consume() {
-		if(!consumed){
-			consumed = true;
-			return this;
-		}
-		else{
-			consumed = true;
-			return null;
 		}
 	}
 	
@@ -59,36 +37,12 @@ public class ITuple implements DataItem{
 	}
 	
 	public void setData(byte[] data){
-		consumed = false;
 		this.data = data;
 		// greedily populate offsets for lazy deserialisation
 		if(schema.isVariableSize()){
 			this.populateOffsets();
 		}
 		wrapper = ByteBuffer.wrap(data);
-	}
-	
-	public void setData(List<byte[]> dataCol){
-		consumed = false;
-		this.dataCol = new ArrayList<>();
-		for(byte[] el : dataCol){
-			ITuple i = new ITuple(schema);
-			i.setData(el);
-			this.dataCol.add(i);
-		}
-		it = this.dataCol.iterator();
-	}
-	
-	public boolean hasNext(){
-		return it.hasNext();
-	}
-	
-	public ITuple next(){
-		return it.next();
-	}
-	
-	public void remove(){
-		it.remove();
 	}
 	
 	public byte[] getData(){

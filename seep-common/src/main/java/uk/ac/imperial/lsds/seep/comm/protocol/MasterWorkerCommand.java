@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-public class MasterWorkerCommand {
+public class MasterWorkerCommand implements SeepCommand {
 
 	private short type;
 	

@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seepcontrib.kafka.comm;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import kafka.consumer.ConsumerConfig;
@@ -14,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
-import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 
 public class KafkaSelector implements DataStoreSelector {
@@ -27,9 +28,9 @@ public class KafkaSelector implements DataStoreSelector {
 	private int numReaderWorkers;
 	private Thread[] readerWorkers;
 	
-	private Map<Integer, InputAdapter> dataAdapters;
+	private Map<Integer, IBuffer> dataAdapters;
 	
-	public KafkaSelector(String baseTopic, String zookeeperServer, String groupId, Map<Integer, InputAdapter> dataAdapters) {
+	public KafkaSelector(String baseTopic, String zookeeperServer, String groupId, Map<Integer, IBuffer> dataAdapters) {
 		Properties consumerProps = new Properties();
 		consumerProps.put("zookeeper.connect", zookeeperServer);
 		consumerProps.put("group.id", groupId);
@@ -43,16 +44,16 @@ public class KafkaSelector implements DataStoreSelector {
 		readerWorkers = new Thread[numReaderWorkers];
 		
 		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-     	for (InputAdapter input : dataAdapters.values()) {
+     	for (Entry<Integer, IBuffer> entry : dataAdapters.entrySet()) {
      		// Use one consumer thread per stream
-     		topicCountMap.put(baseTopic + String.valueOf(input.getStreamId()), new Integer(1));
+     		topicCountMap.put(baseTopic + String.valueOf(entry.getKey()), new Integer(1));
      	}
         Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
         
         // Create pool of reader thread to serve each topic
         int threadNumber = 0;
-        for (Map.Entry<Integer, InputAdapter> entry : dataAdapters.entrySet()) {
-        	String topic = baseTopic + String.valueOf(entry.getValue().getStreamId());
+        for (Map.Entry<Integer, IBuffer> entry : dataAdapters.entrySet()) {
+        	String topic = baseTopic + String.valueOf(entry.getKey());
         	List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
  
         	readers[threadNumber] = new Reader(streams.get(0), entry.getValue());
@@ -88,11 +89,11 @@ public class KafkaSelector implements DataStoreSelector {
 	class Reader implements Runnable {
 		
 		private final KafkaStream<byte[], byte[]> stream;
-		private final InputAdapter ia;
+		private final IBuffer ib;
 		
-		public Reader(KafkaStream<byte[], byte[]> stream, InputAdapter ia) {
+		public Reader(KafkaStream<byte[], byte[]> stream, IBuffer ib) {
 			this.stream = stream;
-			this.ia = ia;
+			this.ib = ib;
 		}
 		
 		@Override
@@ -101,7 +102,7 @@ public class KafkaSelector implements DataStoreSelector {
 	        while (it.hasNext()) {
 	        	byte[] data = it.next().message();
 
-	        	ia.pushData(data);
+	        	ib.pushData(data);
 	        }
 		}
 		

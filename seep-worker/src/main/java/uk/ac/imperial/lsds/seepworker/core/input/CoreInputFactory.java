@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core.input;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -18,22 +21,24 @@ public class CoreInputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreInputFactory.class);
 
-	public static CoreInput buildCoreInputForStage(WorkerConfig wc, Map<Integer, Set<DataReference>> input) {
-		return new CoreInput(wc, input);
-	}
-
 	public static CoreInput buildCoreInputFor(WorkerConfig wc, Map<Integer, Set<DataReference>> input, Map<Integer, ConnectionType> connTypeInformation) {
 		LOG.info("Building Core Input...");
 		List<InputAdapter> inputAdapters = new LinkedList<>();
+		Map<Integer, IBuffer> iBuffers = new HashMap<>();
 		for(Entry<Integer, Set<DataReference>> entry : input.entrySet()) {
 			int streamId = entry.getKey();
 			Set<DataReference> drefs = entry.getValue();
-			List<InputAdapter> ias = InputAdapterFactory.buildInputAdapterForStreamId(wc, streamId, drefs, connTypeInformation.get(streamId));
-			if(ias != null){
-				inputAdapters.addAll(ias);
+			List<InputBuffer> buffers = new ArrayList<>();
+			for(DataReference dr : drefs) {
+				InputBuffer ib = InputBuffer.makeInputBufferFor(wc, dr);
+				iBuffers.put(dr.getId(), ib); // dataref.id -> inputbuffer
+				buffers.add(ib);
 			}
+			ConnectionType ct = connTypeInformation.get(streamId);
+			List<InputAdapter> ias = InputAdapterFactory.buildInputAdapterForStreamId(wc, streamId, buffers, drefs, ct);
+			inputAdapters.addAll(ias);
 		}
-		CoreInput ci = new CoreInput(inputAdapters);
+		CoreInput ci = new CoreInput(wc, input, iBuffers, inputAdapters);
 		LOG.info("Building Core Input...OK");
 		return ci;
 	}

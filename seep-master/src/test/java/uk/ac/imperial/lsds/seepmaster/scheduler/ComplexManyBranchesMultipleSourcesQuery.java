@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
@@ -89,7 +91,7 @@ public class ComplexManyBranchesMultipleSourcesQuery implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -108,7 +110,7 @@ public class ComplexManyBranchesMultipleSourcesQuery implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override
@@ -127,7 +129,7 @@ public class ComplexManyBranchesMultipleSourcesQuery implements QueryComposer {
 			// TODO Auto-generated method stub	
 		}
 		@Override
-		public void processDataGroup(ITuple dataList, API api) {
+		public void processDataGroup(List<ITuple> dataList, API api) {
 			// TODO Auto-generated method stub	
 		}
 		@Override

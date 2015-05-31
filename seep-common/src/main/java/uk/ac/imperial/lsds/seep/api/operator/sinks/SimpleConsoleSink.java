@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api.operator.sinks;
 
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
@@ -22,7 +24,7 @@ public class SimpleConsoleSink implements SeepTask, Sink {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void processDataGroup(List<ITuple> dataBatch, API api) {
 		// TODO Auto-generated method stub
 		
 	}

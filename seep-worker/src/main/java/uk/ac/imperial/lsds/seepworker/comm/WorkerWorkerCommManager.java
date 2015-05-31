@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.comm;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -59,11 +60,13 @@ public class WorkerWorkerCommManager {
 		public void run() {
 			while(working){
 				Input i = null;
+				PrintWriter out = null;
 				Socket incomingSocket = null;
 				try{
 					// Blocking call
 					incomingSocket = serverSocket.accept();
 					InputStream is = incomingSocket.getInputStream();
+					out = new PrintWriter(incomingSocket.getOutputStream(), true);
 					i = new Input(is);
 					WorkerWorkerCommand command = k.readObject(i, WorkerWorkerCommand.class);
 					short type = command.type();
@@ -71,10 +74,17 @@ public class WorkerWorkerCommManager {
 					if(type == WorkerWorkerProtocolAPI.ACK.type()){
 						LOG.info("RX-> ACK command");
 						
+						out.println("ack");
 					}
 					else if(type == WorkerWorkerProtocolAPI.CRASH.type()){
 						LOG.info("RX-> Crash command");
 						
+						out.println("ack");
+					}
+					else if(type == WorkerWorkerProtocolAPI.REQUEST_DATAREF.type()) {
+						LOG.info("RX -> RequestDataReferenceCommand");
+						out.println("ack");
+						api.handleRequestDataReferenceCommand(command.getRequestDataReferenceCommand());
 					}
 				}
 				catch(IOException io){
