@@ -38,13 +38,14 @@ import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerCommManager;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
+import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
 
 public class Main {
 	
 	final private static Logger LOG = LoggerFactory.getLogger(Main.class);
 	
-	private void executeWorker(WorkerConfig wc){
+	private void executeWorker(WorkerConfig wc) {
 		int masterPort = wc.getInt(WorkerConfig.MASTER_PORT);
 		InetAddress masterIp = null;
 		try {
@@ -67,16 +68,19 @@ public class Main {
 		// Create master-worker API handler (to send commands to master)
 		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
 		
+		// Create DataReferenceManager
+		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(wc);
+		
 		// Create conductor
-		Conductor c = new Conductor(Utils.getLocalIp(), api, masterConnection, wc);
+		Conductor c = new Conductor(Utils.getLocalIp(), api, drm, masterConnection, wc);
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());
-		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myPort, wc, rcl, c);
+		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myPort, wc, rcl, c, drm);
 		wmcm.start();
 		
 		// Start worker-worker communication manager
-		WorkerWorkerAPIImplementation apiWorker = new WorkerWorkerAPIImplementation(comm, c, wc);
+		WorkerWorkerAPIImplementation apiWorker = new WorkerWorkerAPIImplementation(comm, c, drm, wc);
 		int wwPort = 0; // TODO: get this somehow...
 		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(wwPort, apiWorker);
 		wwcm.start();

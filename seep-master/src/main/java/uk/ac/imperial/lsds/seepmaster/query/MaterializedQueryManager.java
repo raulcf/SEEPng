@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
@@ -203,7 +204,7 @@ public class MaterializedQueryManager implements QueryManager {
 			// One dataReference per downstream, group by streamId
 			for(DownstreamConnection dc : lo.downstreamConnections()) {
 				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
-				DataReference dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep);
+				DataReference dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep, ServeMode.STREAM);
 				int streamId = dc.getStreamId();
 				if(! output.containsKey(streamId)) {
 					output.put(streamId, new HashSet<>());

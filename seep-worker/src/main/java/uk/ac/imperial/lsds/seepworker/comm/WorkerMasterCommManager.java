@@ -33,6 +33,7 @@ import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
+import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -48,6 +49,7 @@ public class WorkerMasterCommManager {
 	private RuntimeClassLoader rcl;
 	
 	private Conductor c;
+	private DataReferenceManager drm;
 	
 	private String myIp;
 	private int myPort;
@@ -57,10 +59,11 @@ public class WorkerMasterCommManager {
 	private String[] queryArgs;
 	private String methodName;
 	
-	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
+	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c, DataReferenceManager drm){
 		this.c = c;
 		this.myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		this.rcl = rcl;
+		this.drm = drm;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol(rcl);
 		try {
 			serverSocket = new ServerSocket(port);

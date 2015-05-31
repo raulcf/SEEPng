@@ -51,17 +51,19 @@ public class Conductor {
 	private CoreInput coreInput;
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
+	private DataReferenceManager drm;
 	
 	// Keep stage - scheduleTask
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc){
+	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, DataReferenceManager drm, Connection masterConn, WorkerConfig wc){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
 		this.wc = wc;
 		this.scheduleTasks = new HashMap<>();
+		this.drm = drm;
 	}
 	
 	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
@@ -93,7 +95,7 @@ public class Conductor {
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
 		// This creates one outputAdapter per downstream stream Id
 		coreOutput = CoreOutputFactory.buildCoreOutputForOperator(wc, o, mapping);
-		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, output);
+		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 		
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
 				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));

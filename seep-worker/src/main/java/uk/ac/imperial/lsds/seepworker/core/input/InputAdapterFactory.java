@@ -24,7 +24,7 @@ public class InputAdapterFactory {
 		short cType = connectionType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
 		
-		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()){
+		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
 			// one-queue-per-conn, one-single-queue, etc.
 			LOG.info("Creating inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
 			InputAdapter ia = null;
@@ -34,7 +34,7 @@ public class InputAdapterFactory {
 				ias.add(ia);
 			}
 		}
-		else if(cType == ConnectionType.UPSTREAM_SYNC_BARRIER.ofType()){
+		else if(cType == ConnectionType.UPSTREAM_SYNC_BARRIER.ofType()) {
 			// one barrier for all connections within the same barrier
 			LOG.info("Creating NETWORK inputAdapter for upstream streamId: {} of type {}", streamId, ConnectionType.UPSTREAM_SYNC_BARRIER.withName());
 			InputAdapter ia = new NetworkBarrier(wc, streamId, expectedSchema, drefs);

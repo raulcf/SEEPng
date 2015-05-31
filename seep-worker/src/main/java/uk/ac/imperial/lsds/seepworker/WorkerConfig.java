@@ -26,7 +26,7 @@ public class WorkerConfig extends Config {
     
     public static final String DATA_PORT = "data.port";
     private static final String DATA_PORT_DOC = "The port used to receive data through the network";
-    
+
     public static final String MASTER_IP = "master.ip";
     private static final String MASTER_IP_DOC = "The Ip where the master is listening";
     
