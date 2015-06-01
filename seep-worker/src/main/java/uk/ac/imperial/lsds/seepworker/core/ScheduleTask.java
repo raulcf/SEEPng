@@ -68,7 +68,7 @@ public class ScheduleTask implements SeepTask {
 		while(taskIterator.hasNext()) {
 			SeepTask next = taskIterator.next();
 			next.processData(data, api);
-			byte[] o = ((SchedulePipelineCollector2)api).collect();
+			byte[] o = ((SchedulePipelineCollector)api).collect();
 			
 			LogicalOperator nextOp = opIt.next();
 			Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1

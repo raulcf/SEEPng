@@ -2,13 +2,11 @@ package uk.ac.imperial.lsds.seep.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
-import uk.ac.imperial.lsds.seep.comm.Connection;
 
 public class OutputBuffer implements OBuffer {
 	

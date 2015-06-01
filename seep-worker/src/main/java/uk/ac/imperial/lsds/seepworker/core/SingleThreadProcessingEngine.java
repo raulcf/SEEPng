@@ -14,7 +14,6 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
-import uk.ac.imperial.lsds.seep.core.OutputAdapter;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor.ConductorCallback;

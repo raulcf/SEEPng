@@ -76,4 +76,9 @@ public class SchedulePipelineCollector implements API {
 
 	}
 
+	public byte[] collect() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
