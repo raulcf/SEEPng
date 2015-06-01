@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+import java.net.InetAddress;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,10 +73,11 @@ public class ProtocolCommandFactory {
 	
 	/** WorkerWorker commands 
 	 * @param receivingDataPort 
-	 * @param dataReferenceId **/
+	 * @param dataReferenceId 
+	 * @param myIp **/
 	
-	public static WorkerWorkerCommand buildRequestDataReference(int dataReferenceId, int receivingDataPort) {
-		RequestDataReferenceCommand rdrc = new RequestDataReferenceCommand(dataReferenceId, receivingDataPort);
+	public static WorkerWorkerCommand buildRequestDataReference(int dataReferenceId, InetAddress myIp, int receivingDataPort) {
+		RequestDataReferenceCommand rdrc = new RequestDataReferenceCommand(dataReferenceId, myIp.getHostAddress(), receivingDataPort);
 		WorkerWorkerCommand c = new WorkerWorkerCommand(rdrc);
 		return c;
 	}

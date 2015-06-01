@@ -14,6 +14,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
@@ -62,6 +63,11 @@ public class KafkaSelector implements DataStoreSelector {
     		readerWorkers[threadNumber] = reader;
     		threadNumber = threadNumber + 1;
         }
+	}
+	
+	@Override
+	public DataStoreType type() {
+		return DataStoreType.KAFKA;
 	}
 	
 	@Override

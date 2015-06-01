@@ -49,7 +49,6 @@ public class WorkerMasterCommManager {
 	private RuntimeClassLoader rcl;
 	
 	private Conductor c;
-	private DataReferenceManager drm;
 	
 	private String myIp;
 	private int myPort;
@@ -59,11 +58,10 @@ public class WorkerMasterCommManager {
 	private String[] queryArgs;
 	private String methodName;
 	
-	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c, DataReferenceManager drm){
+	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
 		this.c = c;
 		this.myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		this.rcl = rcl;
-		this.drm = drm;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol(rcl);
 		try {
 			serverSocket = new ServerSocket(port);

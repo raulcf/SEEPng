@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
-import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;

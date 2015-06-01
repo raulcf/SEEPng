@@ -1,15 +1,26 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
+import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
+import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 
 public class DataReferenceManager {
 
@@ -19,6 +30,7 @@ public class DataReferenceManager {
 	private Map<Integer, DataReference> catalogue;
 	private Map<DataReference, DataSet> managedDataSets;
 	private Executor pool;
+	private List<DataStoreSelector> dataStoreSelectors;
 	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
@@ -67,8 +79,35 @@ public class DataReferenceManager {
 		
 	}
 	
-	public void serveDataSet(EndPoint ep) {
+	// FIXME: temporal method
+	public void serveDataSet(CoreOutput coreOutput, DataReference dr, EndPoint ep) {
+		Connection c = new Connection(ep);
+		OBuffer buffer = coreOutput.getBuffers().get(dr.getId());
+		OutgoingConnectionRequest ocr = new OutgoingConnectionRequest(c, buffer);
+		DataStoreType type = dr.getDataStore().type();
+		DataStoreSelector dss = getSelectorOfType(dr.getDataStore().type());
+		switch(type) {
+		case NETWORK:
+			Set<OutgoingConnectionRequest> conns = new HashSet<>();
+			conns.add(ocr);
+			((NetworkSelector)dss).configureConnect(conns);
+			break;
+		default:
+			
+			break;
+		}
 		
+	}
+
+	public void setDataStoreSelectors(List<DataStoreSelector> dataStoreSelectors) {
+		this.dataStoreSelectors = dataStoreSelectors;
+	}
+	
+	private DataStoreSelector getSelectorOfType(DataStoreType type) {
+		for(DataStoreSelector dss : dataStoreSelectors) {
+			if(dss.type() == type) return dss;
+		}
+		return null;
 	}
 	
 }

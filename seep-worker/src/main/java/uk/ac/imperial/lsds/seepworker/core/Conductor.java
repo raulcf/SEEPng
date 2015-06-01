@@ -62,13 +62,13 @@ public class Conductor {
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, DataReferenceManager drm, Connection masterConn, WorkerConfig wc, Comm comm){
+	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
 		this.wc = wc;
 		this.scheduleTasks = new HashMap<>();
-		this.drm = drm;
+		this.drm = DataReferenceManager.makeDataReferenceManager(wc);
 		this.comm = comm;
 		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
 	}
@@ -105,6 +105,9 @@ public class Conductor {
 		// Specialized data selectors
 		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
 				coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
+		
+		// Share selectors with DRM so that it can serve data directly
+		drm.setDataStoreSelectors(dataStoreSelectors);
 
 		int id = o.getOperatorId();
 		
@@ -118,7 +121,7 @@ public class Conductor {
 			dss.initSelector();
 		}
 		// Make sure selectors are initialised, then request connections
-		coreInput.requestInputConnections(comm, k);
+		coreInput.requestInputConnections(comm, k, myIp);
 	}
 
 	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
@@ -199,6 +202,18 @@ public class Conductor {
 //			masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
 		}
 		
+	}
+
+	//FIXME: refactor, check where to place this method, along with the entire communication with datarefmanager
+	// FIXME: do we need a separate entity for this?
+	public void serveData(int dataRefId, EndPoint ep) {
+		// Make sure DRM manages this DataReferenceId
+		DataReference dr = drm.doesManageDataReference(dataRefId);
+		if (dr == null) {
+			// FIXME: error
+			System.exit(-1);
+		}
+		drm.serveDataSet(coreOutput, dr, ep);
 	}
 		
 }

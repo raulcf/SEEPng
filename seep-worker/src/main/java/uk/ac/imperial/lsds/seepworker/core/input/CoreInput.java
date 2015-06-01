@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core.input;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,12 +57,12 @@ public class CoreInput {
 		return iBuffers;
 	}
 
-	public void requestInputConnections(Comm comm, Kryo k) {
+	public void requestInputConnections(Comm comm, Kryo k, InetAddress myIp) {
 		for(Set<DataReference> i : input.values()) {
 			for(DataReference dr : i) {
 				if(dr.isManaged()) {
 					// Create dataRef request and send to the worker
-					WorkerWorkerCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), wc.getInt(WorkerConfig.DATA_PORT));
+					WorkerWorkerCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
 					Connection targetConn = new Connection(dr.getEndPoint());
 					comm.send_object_sync(requestStreamDataReference, targetConn, k);
 				}

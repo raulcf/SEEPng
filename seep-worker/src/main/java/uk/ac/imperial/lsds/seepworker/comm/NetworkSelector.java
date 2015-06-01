@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
@@ -34,7 +35,6 @@ import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkSelector implements EventAPI, DataStoreSelector {
@@ -149,6 +149,11 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			writers[(writerIdx++)%totalWriters].newConnection(ocr);
 		}
 		this.writersConfiguredLatch = new CountDownLatch(outgoingConnectionRequest.size()); // Initialize countDown with num of outputConns
+	}
+	
+	@Override
+	public DataStoreType type() {
+		return DataStoreType.NETWORK;
 	}
 	
 	@Override
