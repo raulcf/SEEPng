@@ -23,7 +23,10 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.InvalidQueryDefinitionException;
 import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.StaticSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
+import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
@@ -120,15 +123,36 @@ public class SeepLogicalQuery {
 		if(lo == null){
 			throw new InvalidQueryDefinitionException("Impossible to set num instances for NON-EXISTENT op: "+opId);
 		}
+		if(lo instanceof StaticSource || lo instanceof StaticSink) {
+			throw new InvalidQueryDefinitionException("Impossible to scale out a predefined Source or Sink");
+		}
 		// Create scale out and update numInstances per op
 		for(int instance = 0; instance < (numInstances-1); instance++) { // with 1 instance, we don't need to do anything
 			int instanceOpId = getNewOpIdForInstance(opId, instance);
 			LogicalOperator newInstance = null;
+			SeepTask st = lo.getSeepTask();
+			SeepState s = lo.getState();
 			if(lo.isStateful()){
-				newInstance = this.newStatefulOperator(lo.getSeepTask(), lo.getState(), instanceOpId);
+				if(st instanceof Source){
+					newInstance = this.newStatefulSource(st, s, instanceOpId);
+				}
+				else if(st instanceof Sink) {
+					newInstance = this.newStatefulSink(st, s, instanceOpId);
+				}
+				else {
+					newInstance = this.newStatefulOperator(st, s, instanceOpId);
+				}
 			}
-			else{
-				newInstance = this.newStatelessOperator(lo.getSeepTask(), instanceOpId);
+			else {
+				if(st instanceof Source){
+					newInstance = this.newStatelessSource(st, instanceOpId);
+				}
+				else if(st instanceof Sink) {
+					newInstance = this.newStatelessSink(st, instanceOpId);
+				}
+				else {
+					newInstance = this.newStatelessOperator(st, instanceOpId);
+				}
 			}
 			connectInstance(lo, newInstance);
 		}
@@ -146,7 +170,7 @@ public class SeepLogicalQuery {
 		
 	// TODO: there are better ways to do this...
 	private int getNewOpIdForInstance(int opId, int it){
-		return opId * 1000 + it;
+		return opId * 1000 + (it+100);
 	}
 	
 	public int getInitialPhysicalInstancesForLogicalOperator(int opId){
@@ -160,13 +184,13 @@ public class SeepLogicalQuery {
 		return initialPhysicalInstancesPerOperator.containsKey(opId);
 	}
 	
-	public LogicalOperator newStatefulSource(Source seepTask, SeepState state, int opId){
+	public LogicalOperator newStatefulSource(SeepTask seepTask, SeepState state, int opId){
 		LogicalOperator lo = newStatefulOperator(seepTask, state, opId);
 		this.sources.add(lo);
 		return lo;
 	}
 	
-	public LogicalOperator newStatelessSource(Source seepTask, int opId){
+	public LogicalOperator newStatelessSource(SeepTask seepTask, int opId){
 		LogicalOperator lo = newStatelessOperator(seepTask, opId);
 		this.sources.add(lo);
 		return lo;

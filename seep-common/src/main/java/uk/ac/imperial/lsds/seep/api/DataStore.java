@@ -10,6 +10,11 @@ public class DataStore implements DataStoreDescriptor {
 	private DataStoreType type;
 	private Properties config;
 		
+	public DataStore(Schema schema, DataStoreType type) {
+		this.dataSchema = schema;
+		this.type = type;
+	}
+	
 	public DataStore(Schema schema, DataStoreType type, Properties config){
 		this.dataSchema = schema;
 		this.type = type;

@@ -6,6 +6,7 @@ import java.util.List;
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
+import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -99,6 +100,10 @@ public class SeepLogicalOperator implements LogicalOperator {
 		((SeepLogicalOperator)downstreamOperator).addUpstream(this, streamId, dataStore, connectionType);
 	}
 	
+	public void reverseConnection(StaticSource ss, int streamId, DataStore dataStore, ConnectionType connectionType) {
+		this.addUpstream(null, streamId, dataStore, connectionType);
+	}
+	
 	/* Methods to manage logicalOperator connections */
 	
 	private void addDownstream(Operator lo, int streamId, DataStore dataStore, ConnectionType connectionType) {
@@ -136,9 +141,16 @@ public class SeepLogicalOperator implements LogicalOperator {
 		sb.append(Utils.NL);
 		for(int i = 0; i<this.upstream.size(); i++){
 			UpstreamConnection up = upstream.get(i);
-			sb.append("  Up-conn-"+i+"-> StreamId: "+up.getStreamId()+" to opId: "
+			if(up.getUpstreamOperator() != null) {
+				sb.append("  Up-conn-"+i+"-> StreamId: "+up.getStreamId()+" to opId: "
 					+ ""+up.getUpstreamOperator().getOperatorId()+""
 							+ " with connType: "+up.getConnectionType()+" and dataOrigin: "+up.getDataStoreType());
+			}
+			else {
+				sb.append("  Up-conn-"+i+"-> StreamId: "+up.getStreamId()+" to opId: "
+						+ ""+up.getDataStoreType().toString()+""
+								+ " with connType: "+up.getConnectionType()+" and dataOrigin: "+up.getDataStoreType());
+			}
 			sb.append(Utils.NL);
 		}
 		return sb.toString();

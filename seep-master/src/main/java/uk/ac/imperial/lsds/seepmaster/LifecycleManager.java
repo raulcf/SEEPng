@@ -11,6 +11,7 @@ public class LifecycleManager {
 	final private Logger LOG = LoggerFactory.getLogger(MaterializedQueryManager.class);
 	
 	public enum AppStatus {
+		// id, [id] -> status, [valid status transitions]
 		MASTER_READY(0, new int[]{1, 0}),
 		QUERY_SUBMITTED(1, new int[]{2, 1, 0}),
 		QUERY_DEPLOYED(2, new int[]{4, 1}),

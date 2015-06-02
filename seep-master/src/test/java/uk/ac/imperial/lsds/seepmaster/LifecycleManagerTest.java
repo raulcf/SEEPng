@@ -84,7 +84,7 @@ public class LifecycleManagerTest {
 		allowed = lifeManager.canTransitTo(AppStatus.QUERY_FAILED);
 		assertTrue(allowed == false);
 		allowed = lifeManager.canTransitTo(AppStatus.QUERY_RUNNING); // must stop before running again
-		assertTrue(allowed == true);
+		assertTrue(allowed == false);
 		allowed = lifeManager.canTransitTo(AppStatus.QUERY_STOPPED);
 		assertTrue(allowed == false);
 		

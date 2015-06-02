@@ -1,79 +1,39 @@
 package uk.ac.imperial.lsds.seep.api.operator.sources;
 
-import java.util.List;
 import java.util.Properties;
 
-import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.DataStoreDescriptor;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.QueryBuilder;
-import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
-import uk.ac.imperial.lsds.seep.api.operator.Connectable;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.Operator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 
+public class FileSource implements StaticConnectable, StaticSource {
 
-public class FileSource implements Connectable, DataStoreDescriptor {
-
-	private static LogicalOperator lo;
-	private Properties config;
+	private int id;
+	private Properties properties;
 	
-	private FileSource(int opId, Properties config){
-		this.config = config;
-		QueryBuilder qb = new QueryBuilder();
-		lo = qb.newStatelessSource(new FileSourceImpl(), opId);
+	private FileSource(int id, Properties p) {
+		this.id = id;
+		this.properties = p;
 	}
 	
-	public static FileSource newSource(int opId, Properties config){
-		return new FileSource(opId, config);
-	}
-	
-	/** Implement DataOriginDescriptor **/
-	
-	@Override
-	public DataStoreType type() {
-		return DataStoreType.FILE;
-	}
-	
-	@Override
-	public Properties getConfig() {
-		// TODO Auto-generated method stub
-		return null;
+	public static FileSource newSource(int id, Properties p) {
+		return new FileSource(id, p);
 	}
 
 	@Override
-	public Schema getSchema() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	/** Implement Connetable **/
-	
-	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore) {
-		// TODO: check dataStore is of the right type = FILE
-		lo.connectTo(downstreamOperator, streamId, dataStore);
+	public void connectTo(LogicalOperator operator, Schema schema, int streamId, ConnectionType connType) {
+		// I'm a virtual op, so no need to say what is my downstream. Only need to indicate I'm its upstream
+		DataStore ds = new DataStore(schema, DataStoreType.FILE, properties);
+		((SeepLogicalOperator)operator).reverseConnection(this, streamId, ds, connType);
 	}
 
 	@Override
-	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore, ConnectionType connectionType) {
-		// TODO: check dataStore is of the right type = FILE
-		lo.connectTo(downstreamOperator, streamId, dataStore, connectionType);
-	}
-	
-	private static class FileSourceImpl implements SeepTask, Source{
-		@Override
-		public void setUp() {		}
-		@Override
-		public void processData(ITuple data, API api) {		}
-		@Override
-		public void processDataGroup(List<ITuple> dataBatch, API api) {		}
-		@Override
-		public void close() {		}
+	public void connectTo(LogicalOperator operator, Schema schema, int streamId) {
+		ConnectionType type = ConnectionType.ONE_AT_A_TIME;
+		this.connectTo(operator, schema, streamId, type);
 	}
 
 }

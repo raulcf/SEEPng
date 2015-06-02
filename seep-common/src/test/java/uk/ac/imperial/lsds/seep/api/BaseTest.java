@@ -13,26 +13,26 @@ public class BaseTest implements QueryComposer {
 	@Override
 	public SeepLogicalQuery compose() {
 		// Declare Source
-		LogicalOperator src = queryAPI.newStatelessSource(new Source(), -1);
+		LogicalOperator src = queryAPI.newStatelessSource(new CustomSource(), 0);
 		// Declare processor
 		LogicalOperator p = queryAPI.newStatelessOperator(new Processor(), 1);
 		// Declare sink
-		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), -2);
+		LogicalOperator snk = queryAPI.newStatelessSink(new CustomSink(), 2);
 		
 		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		Schema pSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").newField(Type.BYTES, "payload").build();
 		
 		/** Connect operators **/
-		src.connectTo(p, 0, new DataStore(srcSchema, DataStoreType.NETWORK, null));
-		p.connectTo(snk, 0, new DataStore(pSchema, DataStoreType.NETWORK, null));
+		src.connectTo(p, 0, new DataStore(srcSchema, DataStoreType.NETWORK));
+		p.connectTo(snk, 0, new DataStore(pSchema, DataStoreType.NETWORK));
 		
-		queryAPI.setInitialPhysicalInstancesForLogicalOperator(1, 2);
+//		queryAPI.setInitialPhysicalInstancesForLogicalOperator(1, 2);
 		
 		return QueryBuilder.build();
 	}
 
 	
-	class Source implements uk.ac.imperial.lsds.seep.api.operator.sources.Source {
+	class CustomSource implements uk.ac.imperial.lsds.seep.api.operator.sources.Source {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
@@ -70,7 +70,7 @@ public class BaseTest implements QueryComposer {
 		}
 	}
 	
-	class Sink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
+	class CustomSink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	

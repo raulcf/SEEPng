@@ -14,7 +14,6 @@ import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
@@ -28,18 +27,27 @@ public class QueryBuilder implements QueryAPI {
 	public SchemaBuilder schemaBuilder = SchemaBuilder.getInstance();
 	
 	public static SeepLogicalQuery build(){
-		// Check nonOperator sources and adjust sources accordingly
-		for(Operator o : qp.getAllOperators()) {
-			for(UpstreamConnection uc : o.upstreamConnections()) {
-				LogicalOperator lo = (LogicalOperator) uc.getUpstreamOperator();
-				if(lo.getSeepTask() instanceof Source) {
-					// This operator becomes a source
-					qp.addSource((LogicalOperator)o);
+//		// Check nonOperator sources and adjust sources accordingly
+//		for(Operator o : qp.getAllOperators()) {
+//			for(UpstreamConnection uc : o.upstreamConnections()) {
+//				LogicalOperator lo = (LogicalOperator) uc.getUpstreamOperator();
+//				if(lo.getSeepTask() instanceof Source) {
+//					// This operator becomes a source
+//					qp.addSource((LogicalOperator)o);
+//				}
+//			}
+//		}
+//		// Remove the template source
+//		qp.cleanMarkerOperators();
+		
+		// Check whether there are StaticSources, in which case, downstream to those become Sources
+		for(LogicalOperator lo : qp.getAllOperators()) {
+			for(UpstreamConnection uc : lo.upstreamConnections()) {
+				if(uc.getUpstreamOperator() == null) {
+					qp.addSource(lo); // the op with staticSource as upstream becomes Source
 				}
 			}
 		}
-		// Remove the template source
-		qp.cleanMarkerOperators();
 		
 		// Perform sanity checks
 		if(qp.getSources().size() == 0){
