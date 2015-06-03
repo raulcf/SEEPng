@@ -37,11 +37,11 @@ public class InputBuffer implements IBuffer {
 	
 	@Override
 	public void readFrom(ReadableByteChannel channel) {
-		if(header.remaining() > 0){
+		if(header.remaining() > 0) {
 			this.read(channel, header);
 		}
 		
-		if(payload == null && !header.hasRemaining()){
+		if(payload == null && !header.hasRemaining()) {
 			header.flip();
 			byte control = header.get();
 			nTuples = header.getInt();
@@ -49,9 +49,9 @@ public class InputBuffer implements IBuffer {
 			payload = ByteBuffer.allocate(payloadSize);
 		}
 		
-		if(payload != null){
+		if(payload != null) {
 			this.read(channel, payload);
-			if(!payload.hasRemaining()){
+			if(!payload.hasRemaining()) {
 				this.forwardTuples(payload, nTuples);
 				payload = null;
 				header.clear();
@@ -144,7 +144,7 @@ public class InputBuffer implements IBuffer {
 		return completedReads.size() > 0;
 	}
 	
-	public byte[] read(){
+	public byte[] __read(){
 		return completedReads.poll();
 	}
 	

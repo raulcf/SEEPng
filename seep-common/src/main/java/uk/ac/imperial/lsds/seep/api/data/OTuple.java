@@ -95,4 +95,18 @@ public class OTuple {
 		return size;
 	}
 	
+	public static byte[] getWireBytes(Schema schema, String[] fields, Object[] vs) {
+		byte[] data = OTuple.create(schema, fields, vs);
+		int tuplesInBatch = 1;
+		int tupleSize = data.length;
+		int currentBatchSize = tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		ByteBuffer buf = ByteBuffer.allocate(tupleSize + TupleInfo.PER_BATCH_OVERHEAD_SIZE + TupleInfo.TUPLE_SIZE_OVERHEAD);
+		buf.put((byte) 0); 	// control
+		buf.putInt(tuplesInBatch);
+		buf.putInt(currentBatchSize);
+		buf.putInt(tupleSize);
+		buf.put(data);
+		return buf.array();
+	}
+	
 }

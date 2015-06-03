@@ -20,6 +20,7 @@ import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
+import uk.ac.imperial.lsds.seepworker.core.input.InputBuffer;
 import uk.ac.imperial.lsds.seepworker.core.input.NetworkDataStream;
 
 
@@ -38,8 +39,10 @@ public class BasicWorkerWorkerCommunicationTest {
 		p.setProperty("master.ip", "127.0.0.1");
 		p.setProperty("batch.size", "10");
 		p.setProperty("properties.file", "");
-		WorkerConfig fake = new WorkerConfig(p);
-		NetworkDataStream nds = new NetworkDataStream(new WorkerConfig(p), opId, clientId, s);
+		WorkerConfig config = new WorkerConfig(p);
+//		NetworkDataStream nds = new NetworkDataStream(, opId, clientId, s);
+		InputBuffer buffer;
+		NetworkDataStream nds = new NetworkDataStream(config, streamId, buffer, s);
 		iapMap.put(opId, nds);
 		// TODO: build this
 		NetworkSelector ds = NetworkSelector.makeNetworkSelectorWithMap(opId, iapMap);

@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
+import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 

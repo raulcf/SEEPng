@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seep.core;
+package uk.ac.imperial.lsds.seepworker.core.output;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 
 public class OutputBuffer implements OBuffer {
 	

@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ch.qos.logback.classic.pattern.Util;
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.core.OutputBuffer;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.NotEnoughRoutingInformation;
