@@ -90,7 +90,7 @@ public class DataReferenceManager {
 		case NETWORK:
 			Set<OutgoingConnectionRequest> conns = new HashSet<>();
 			conns.add(ocr);
-			((NetworkSelector)dss).configureConnect(conns);
+			((NetworkSelector)dss).configureOutgoingConnection(conns);
 			break;
 		default:
 			

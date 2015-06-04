@@ -13,6 +13,6 @@ public interface OBuffer {
 	public DataReference getDataReference();
 	public boolean drainTo(WritableByteChannel channel);
 	public boolean write(byte[] data);
-	public boolean ready();
+	public boolean readyToWrite();
 	
 }

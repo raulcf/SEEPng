@@ -33,7 +33,6 @@ import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
-import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -61,7 +60,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	private Map<SelectionKey, Integer> readerKeys;
 	
 	// incoming id -> local input buffer
-	Map<Integer, IBuffer> ibMap;
+	private Map<Integer, IBuffer> ibMap;
 	private int numUpstreamConnections;
 	
 	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, IBuffer> ibMap) {
@@ -119,7 +118,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		return new NetworkSelector(wc, myId, ibMap);
 	}
 	
-	public void configureAccept(InetAddress myIp, int dataPort){
+	public void configureServerToListen(InetAddress myIp, int dataPort) {
 		ServerSocketChannel channel = null;
 		try {
 			channel = ServerSocketChannel.open();
@@ -142,13 +141,19 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.acceptorWorker.setName("Network-Acceptor");
 	}
 	
-	public void configureConnect(Set<OutgoingConnectionRequest> outgoingConnectionRequest){
+	public void configureOutgoingConnection(Set<OutgoingConnectionRequest> outgoingConnectionRequest) {
 		int writerIdx = 0;
 		int totalWriters = writers.length;
 		for(OutgoingConnectionRequest ocr : outgoingConnectionRequest) {
 			writers[(writerIdx++)%totalWriters].newConnection(ocr);
 		}
 		this.writersConfiguredLatch = new CountDownLatch(outgoingConnectionRequest.size()); // Initialize countDown with num of outputConns
+	}
+	
+	public void configureExpectedIncomingConnection(Map<Integer, IBuffer> ibMap) {
+		this.ibMap = ibMap;
+		int expectedUpstream = ibMap.size();
+		this.numUpstreamConnections  = expectedUpstream;
 	}
 	
 	@Override
@@ -224,7 +229,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			int readerIdx = 0;
 			int totalReaders = readers.length;
 			
-			while(acceptorWorking){
+			while(acceptorWorking) {
 				try{
 					int readyChannels = acceptorSelector.select();
 					while(readyChannels == 0){
@@ -298,7 +303,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		@Override
 		public void run() {
 			LOG.info("Started Reader worker: {}", Thread.currentThread().getName());
-			while(working){
+			while(working) {
 				// First handle potential new connections that have been queued up
 				this.handleNewConnections();
 				try {
@@ -308,39 +313,39 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 					}
 					Set<SelectionKey> selectedKeys = readSelector.selectedKeys();
 					Iterator<SelectionKey> keyIt = selectedKeys.iterator();
-					while(keyIt.hasNext()){
+					while(keyIt.hasNext()) {
 						SelectionKey key = keyIt.next();
 						keyIt.remove();
 						// read
 						if(key.isReadable()){
-							if(needsToConfigureConnection(key)){
+							if(needsToConfigureConnection(key)) {
 								handleConnectionIdentifier(key);
 							}
-							else{
+							else {
 								IBuffer ib = (IBuffer)key.attachment();
 								SocketChannel channel = (SocketChannel) key.channel();
 								int id = readerKeys.get(key);
 								ib.readFrom(channel);
 							}
 						}
-						if(! key.isValid()){
+						if(! key.isValid()) {
 							String conn = ((SocketChannel)key.channel()).socket().getRemoteSocketAddress().toString();
 							LOG.warn("Invalid incoming data connection to: {}", conn);
 						}
 					}
 				}
-				catch(IOException ioe){
+				catch(IOException ioe) {
 					ioe.printStackTrace();
 				}
 			}
 			this.closeReader();
 		}
 		
-		private boolean needsToConfigureConnection(SelectionKey key){
-			return !(key.attachment() instanceof InputAdapter);
+		private boolean needsToConfigureConnection(SelectionKey key) {
+			return !(key.attachment() instanceof IBuffer);
 		}
 		
-		private boolean handleConnectionIdentifier(SelectionKey key){
+		private boolean handleConnectionIdentifier(SelectionKey key) {
 			boolean moreConnectionsPending = true;
 			ByteBuffer dst = ByteBuffer.allocate(100);
 			try {
@@ -356,28 +361,28 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			int id = dst.getInt();
 			LOG.info("Received conn identifier: {}", id);
 			Map<Integer, IBuffer> ibMap = (Map<Integer, IBuffer>)key.attachment();
-			LOG.info("Configuring InputAdapter for received conn identifier: {}", id);
+			LOG.info("Configuring IBuffer for received conn identifier: {}", id);
 			IBuffer responsibleForThisChannel = ibMap.get(id);
 			if(responsibleForThisChannel == null){
 				// TODO: throw exception
-				LOG.error("Problem here, no existent inputadapter for id: {}", id);
+				LOG.error("Problem here, no existent IBuffer for id: {}", id);
 				System.exit(0);
 			}
 			// TODO: could we keep numUpstreamConnections internal to inputAdapter? probably not...
 			numUpstreamConnections--;
-			if(numUpstreamConnections == 0){
+			if(numUpstreamConnections == 0) {
 				moreConnectionsPending =  false;
 			}
-			// Once we've identified the inputAdapter responsible for this channel we attach the new object
+			// Once we've identified the IBuffer responsible for this channel we attach the new object
 			key.attach(null);
 			key.attach(responsibleForThisChannel);
 			readerKeys.put(key, id);
 			return moreConnectionsPending;
 		}
 		
-		private void handleNewConnections(){
+		private void handleNewConnections() {
 			SocketChannel incomingCon = null;
-			while((incomingCon = this.pendingConnections.poll()) != null){
+			while((incomingCon = this.pendingConnections.poll()) != null) {
 				try{
 					incomingCon.configureBlocking(false);
 					incomingCon.socket().setTcpNoDelay(true);
@@ -387,25 +392,25 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 					key.attach(ibMap);
 					LOG.info("Configured new incoming connection at: {}", incomingCon.toString());
 				}
-				catch(SocketException se){
+				catch(SocketException se) {
 					se.printStackTrace();
 				}
-				catch(IOException ioe){
+				catch(IOException ioe) {
 					ioe.printStackTrace();
 				}
 			}
 		}
 		
-		private void closeReader(){
+		private void closeReader() {
 			// FIXME: test this
 			try {
 				// close channel and cancel registration
-				for(SelectionKey sk : readSelector.keys()){
+				for(SelectionKey sk : readSelector.keys()) {
 					sk.channel().close();
 					sk.cancel();
 				}
 				// close pendingConnections
-				for(SocketChannel sc : pendingConnections){
+				for(SocketChannel sc : pendingConnections) {
 					sc.close();
 				}
 				// close selector
@@ -430,7 +435,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private Selector writeSelector;
 		
-		Writer(int id){
+		Writer(int id) {
 			this.id = id;
 			this.working = true;
 			this.outputBufferMap = new HashMap<>();
@@ -452,7 +457,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			this.working = false;
 		}
 		
-		public void newConnection(OutgoingConnectionRequest ocr){
+		public void newConnection(OutgoingConnectionRequest ocr) {
 			this.pendingConnections.add(ocr);
 		}
 		
@@ -474,9 +479,9 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 						SelectionKey key = keyIt.next();
 						keyIt.remove();
 						// connectable
-						if(key.isConnectable()){
+						if(key.isConnectable()) {
 							SocketChannel sc = (SocketChannel) key.channel();
-							if(sc.isConnectionPending()){
+							if(sc.isConnectionPending()) {
 								LOG.info("Attempting to finish conn to: "+sc.toString());
 								sc.finishConnect();
 							}
@@ -485,19 +490,19 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 							LOG.info("Finished establishing output connection to: {}", sc.toString());
 						}
 						// writable
-						if(key.isWritable()){
+						if(key.isWritable()) {
 							OBuffer ob = (OBuffer)key.attachment();
 							SocketChannel channel = (SocketChannel)key.channel();
 							
-							if(needsConfigureOutputConnection.get(ob.id())){
-								handleSendIdentifier(myId, channel);
+							if(needsConfigureOutputConnection.get(ob.id())) {
+								handleSendIdentifier(ob.id(), channel);
 								unsetWritable(key);
 								needsConfigureOutputConnection.put(ob.id(), false);
 								// Notify of a new configured connection
 								writersConfiguredLatch.countDown();
 								LOG.trace("CountDown to configure all output conns: {}", writersConfiguredLatch.getCount());
 							}
-							else{
+							else {
 								// write batch
 								boolean fullyWritten = ob.drainTo(channel);
 								if(fullyWritten) unsetWritable(key);
@@ -518,7 +523,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private void pollBuffers(){
 			for(OBuffer ob : outputBufferMap.values()){
-				if(ob.ready()){
+				if(ob.readyToWrite()){
 					SelectionKey key = writerKeys.get(ob.id());
 					int interestOps = key.interestOps() | SelectionKey.OP_WRITE;
 					key.interestOps(interestOps);
@@ -526,9 +531,9 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			}
 		}
 		
-		private void handleSendIdentifier(int opId, SocketChannel channel){
+		private void handleSendIdentifier(int oBufferId, SocketChannel channel){
 			ByteBuffer bb = ByteBuffer.allocate(Integer.SIZE);
-			Type.INT.write(bb, opId);
+			Type.INT.write(bb, oBufferId);
 			bb.flip();
 			try {
 				int writtenBytes = channel.write(bb);
@@ -539,7 +544,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-			LOG.info("Sent connection identifier: {}", opId);
+			LOG.info("Sent connection identifier: {}", oBufferId);
 		}
 		
 		private void unsetWritable(SelectionKey key){

@@ -113,7 +113,7 @@ public class OutputBuffer implements OBuffer {
 	}
 	
 	@Override
-	public boolean ready(){
+	public boolean readyToWrite(){
 		return completed.get();
 	}
 	

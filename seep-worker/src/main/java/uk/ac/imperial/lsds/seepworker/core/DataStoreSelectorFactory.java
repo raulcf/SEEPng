@@ -63,7 +63,7 @@ public class DataStoreSelectorFactory {
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for input");
 			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getIBufferProvider());
-			ns.configureAccept(myIp, dataPort);
+			ns.configureServerToListen(myIp, dataPort);
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
