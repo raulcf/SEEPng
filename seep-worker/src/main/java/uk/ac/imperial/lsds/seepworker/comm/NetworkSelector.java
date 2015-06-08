@@ -118,6 +118,11 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		return new NetworkSelector(wc, myId, ibMap);
 	}
 	
+	/**
+	 * Configures a server in myIp and dataPort. There is one per worker node.
+	 * @param myIp
+	 * @param dataPort
+	 */
 	public void configureServerToListen(InetAddress myIp, int dataPort) {
 		ServerSocketChannel channel = null;
 		try {
@@ -141,6 +146,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.acceptorWorker.setName("Network-Acceptor");
 	}
 	
+	/**
+	 * Used to notify of new outgoing connection requests. Assigns requests to writer threads that configure them.
+	 * @param outgoingConnectionRequest
+	 */
 	public void configureOutgoingConnection(Set<OutgoingConnectionRequest> outgoingConnectionRequest) {
 		int writerIdx = 0;
 		int totalWriters = writers.length;
@@ -150,6 +159,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.writersConfiguredLatch = new CountDownLatch(outgoingConnectionRequest.size()); // Initialize countDown with num of outputConns
 	}
 	
+	/**
+	 * Used to configure incoming connections. Assigns requests to reader threads that configure them.
+	 * @param ibMap
+	 */
 	public void configureExpectedIncomingConnection(Map<Integer, IBuffer> ibMap) {
 		this.ibMap = ibMap;
 		int expectedUpstream = ibMap.size();
@@ -221,6 +234,11 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 	}
 	
+	/** 
+	 * This class is the server thread that accepts new connections and assigns them to reader threads.
+	 * @author ra
+	 *
+	 */
 	class AcceptorWorker implements Runnable {
 
 		@Override
@@ -263,6 +281,11 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 	}
 	
+	/** 
+	 * This class reads from a collection of incoming connections and writes to IBuffer that are the entrance to the system.
+	 * @author ra
+	 *
+	 */
 	class Reader implements Runnable {
 
 		private int id;
@@ -423,6 +446,11 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 	}
 	
+	/** 
+	 * This class manages a collection of OBuffer that it drains to write to channels that are output connections.
+	 * @author ra
+	 *
+	 */
 	class Writer implements Runnable {
 		
 		private int id;
