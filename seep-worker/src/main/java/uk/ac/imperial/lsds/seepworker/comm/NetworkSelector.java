@@ -63,16 +63,17 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	private Map<Integer, IBuffer> ibMap;
 	private int numUpstreamConnections;
 	
-	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, IBuffer> ibMap) {
+	public NetworkSelector(WorkerConfig wc, int opId) {
+//	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, IBuffer> ibMap) {
 		this.myId = opId;
 		this.writersConfiguredLatch = new CountDownLatch(0); // Initially non-defined, nobody waits here
-		this.ibMap = ibMap;
-		int expectedUpstream = ibMap.size();
+//		this.ibMap = ibMap;
+//		int expectedUpstream = ibMap.size();
 //		for(InputAdapter ia : iapMap.values()) {
 //			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
 //		}
-		this.numUpstreamConnections  = expectedUpstream;
-		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
+//		this.numUpstreamConnections  = expectedUpstream;
+//		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
 		this.numReaderWorkers = wc.getInt(WorkerConfig.NUM_NETWORK_READER_THREADS);
 		this.numWriterWorkers = wc.getInt(WorkerConfig.NUM_NETWORK_WRITER_THREADS);
 		this.totalNumberPendingConnectionsPerThread = wc.getInt(WorkerConfig.MAX_PENDING_NETWORK_CONNECTION_PER_THREAD);
@@ -107,7 +108,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 	}
 	
-	public static NetworkSelector makeNetworkSelectorWithMap(int myId, Map<Integer, IBuffer> ibMap){
+	public static NetworkSelector makeNetworkSelectorWithMap(int myId){
 		Properties p = new Properties();
 		p.setProperty(WorkerConfig.MASTER_IP, "127.0.0.1");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
@@ -115,7 +116,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		p.setProperty(WorkerConfig.NUM_NETWORK_WRITER_THREADS, "1");
 		p.setProperty(WorkerConfig.MAX_PENDING_NETWORK_CONNECTION_PER_THREAD, "1");
 		WorkerConfig wc = new WorkerConfig(p);
-		return new NetworkSelector(wc, myId, ibMap);
+		return new NetworkSelector(wc, myId);
 	}
 	
 	/**
@@ -167,6 +168,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		this.ibMap = ibMap;
 		int expectedUpstream = ibMap.size();
 		this.numUpstreamConnections  = expectedUpstream;
+		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
 	}
 	
 	@Override

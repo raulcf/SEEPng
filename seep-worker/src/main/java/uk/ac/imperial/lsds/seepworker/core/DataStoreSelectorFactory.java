@@ -16,6 +16,8 @@ import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
@@ -62,19 +64,27 @@ public class DataStoreSelectorFactory {
 		NetworkSelector ns = null;
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for input");
-			ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getIBufferProvider());
+			ns = new NetworkSelector(wc, o.getOperatorId());
 			ns.configureServerToListen(myIp, dataPort);
+			ns.configureExpectedIncomingConnection(coreInput.getIBufferProvider());
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
+			Set<OBuffer> obufsToStream = filterOBufferToStream(coreOutput.getBuffers());
+			// If ns is null create it first
 			if(ns == null){
-				Set<OBuffer> obufsToStream = filterOBufferToStream(coreOutput.getBuffers());
-				if(obufsToStream.size() > 0) {
-					ns = new NetworkSelector(wc, o.getOperatorId(), coreInput.getIBufferProvider());
-					for(OBuffer ob : obufsToStream) {
-						ob.setEventAPI(ns);
-					}
-				}
+				ns = new NetworkSelector(wc, o.getOperatorId());
+			}
+			// Configure outgoing connections
+			Set<OutgoingConnectionRequest> outgoingConnectionRequests = new HashSet<>();
+			for(OBuffer obuf : obufsToStream) {
+				Connection conn = new Connection(obuf.getDataReference().getEndPoint());
+				OutgoingConnectionRequest ocr = new OutgoingConnectionRequest(conn, obuf);
+				outgoingConnectionRequests.add(ocr);
+			}
+			ns.configureOutgoingConnection(outgoingConnectionRequests);
+			for(OBuffer ob : obufsToStream) {
+				ob.setEventAPI(ns);
 			}
 		}
 		return ns;
