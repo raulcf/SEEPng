@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class JavaSerializer implements Serializer{
+public class JavaSerializer implements Serializer {
 
 	private ByteArrayOutputStream baos;
 	private ByteArrayInputStream bais;

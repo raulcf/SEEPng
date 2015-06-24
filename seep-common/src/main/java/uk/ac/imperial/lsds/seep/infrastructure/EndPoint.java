@@ -3,8 +3,8 @@ package uk.ac.imperial.lsds.seep.infrastructure;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public final class EndPoint {
-
+public final class EndPoint{
+	
 	private final int id;
 	private final String ip;
 	private final int port;
@@ -59,5 +59,15 @@ public final class EndPoint {
 		StringBuffer sb = new StringBuffer();
 		sb.append(this.ip.toString()+" port: "+this.port+" d_port: "+this.dataPort);
 		return sb.toString();
+	}
+	
+	/**
+	 * Empty constructor for kryo serialization
+	 */
+	public EndPoint() {
+		this.id = 0;
+		this.ip = null;
+		this.port = 0;
+		this.dataPort = 0;
 	}
 }

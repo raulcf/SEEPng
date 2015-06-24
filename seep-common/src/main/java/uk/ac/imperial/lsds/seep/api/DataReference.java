@@ -5,7 +5,7 @@ import java.rmi.server.UID;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 
 public final class DataReference {
-
+	
 	private final int uid;
 	private final boolean managed;
 	private final ServeMode serveMode; 
@@ -78,6 +78,18 @@ public final class DataReference {
 	public enum ServeMode {
 		STREAM,
 		STORE
+	}
+	
+	/**
+	 * Empty constructor for Kryo serialization
+	 */
+	public DataReference() {
+		this.uid = 0;
+		this.managed = false;
+		this.serveMode = null;
+		this.partitioned = false;
+		this.dataStore = null;
+		this.endPoint = null;
 	}
 
 }

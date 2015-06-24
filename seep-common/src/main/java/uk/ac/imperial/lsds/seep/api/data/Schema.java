@@ -15,7 +15,7 @@ public class Schema {
 	private final boolean variableSize;
 	// Maps fieldName to fieldPosition (fields are ordered in a certain way)
 	private Map<String, Integer> mapFieldNameToFieldPosition = new HashMap<>();
-		
+	
 	private Schema(int schemaId, Type[] fields, String[] names){
 		this.schemaId = schemaId;
 		this.fields = fields;
@@ -152,6 +152,16 @@ public class Schema {
 			this.names.clear();
 			return toReturn; 
 		}
+	}
+	
+	/**
+	 * Empty constructor for Kryo serialization
+	 */
+	private Schema() { 
+		this.schemaId = 0;
+		this.fields = null;
+		this.names = null;
+		this.variableSize = false;
 	}
 	
 }

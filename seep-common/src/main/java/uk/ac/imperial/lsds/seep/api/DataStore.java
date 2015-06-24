@@ -9,7 +9,8 @@ public class DataStore implements DataStoreDescriptor {
 	private Schema dataSchema;
 	private DataStoreType type;
 	private Properties config;
-		
+
+	
 	public DataStore(Schema schema, DataStoreType type) {
 		this.dataSchema = schema;
 		this.type = type;
@@ -35,5 +36,10 @@ public class DataStore implements DataStoreDescriptor {
 	public Properties getConfig(){
 		return config;
 	}
+	
+	/**
+	 * Empty constructor for kryo serialization
+	 */
+	public DataStore() { }
 
 }

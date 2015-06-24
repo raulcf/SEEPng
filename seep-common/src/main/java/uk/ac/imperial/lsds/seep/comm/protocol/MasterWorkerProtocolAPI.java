@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+
 public enum MasterWorkerProtocolAPI {
+	
 	BOOTSTRAP((short)0, new BootstrapCommand()), 
 	CRASH((short)1, new CrashCommand()), 
 	CODE((short)2, new CodeCommand()), 
@@ -29,4 +31,5 @@ public enum MasterWorkerProtocolAPI {
 	public CommandType clazz(){
 		return c;
 	}
+
 }

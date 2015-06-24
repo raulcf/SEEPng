@@ -24,6 +24,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;

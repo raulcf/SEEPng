@@ -31,6 +31,7 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManage
 
 import com.esotericsoftware.kryo.Kryo;
 
+
 public class MaterializedQueryManager implements QueryManager {
 
 	final private Logger LOG = LoggerFactory.getLogger(MaterializedQueryManager.class);

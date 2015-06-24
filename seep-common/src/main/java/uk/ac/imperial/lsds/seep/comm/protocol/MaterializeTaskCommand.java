@@ -1,17 +1,19 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.comm.serialization.MapWrapper;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 
 public class MaterializeTaskCommand implements CommandType {
-
+	
 	private Map<Integer, EndPoint> mapping;
-	private Map<Integer, Map<Integer, Set<DataReference>>> inputs;
-	private Map<Integer, Map<Integer, Set<DataReference>>> outputs;
-		
+	private Map<Integer, MapWrapper> inputs;
+	private Map<Integer, MapWrapper> outputs;
+	
 	public MaterializeTaskCommand() { }
 	
 	public MaterializeTaskCommand(
@@ -19,8 +21,21 @@ public class MaterializeTaskCommand implements CommandType {
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) { 
 		this.mapping = mapping;
-		this.inputs = inputs;
-		this.outputs = outputs;
+		
+		this.inputs = new HashMap<>();
+		this.outputs = new HashMap<>();
+		
+		// Adapt to inner representation for serialisation/deserialisation
+		for(Integer key : inputs.keySet()) {
+			MapWrapper mw = new MapWrapper();
+			mw.el = inputs.get(key);
+			this.inputs.put(key, mw);
+		}
+		for(Integer key : outputs.keySet()) {
+			MapWrapper mw = new MapWrapper();
+			mw.el = outputs.get(key);
+			this.outputs.put(key, mw);
+		}
 	}
 
 	@Override
@@ -29,11 +44,19 @@ public class MaterializeTaskCommand implements CommandType {
 	}
 	
 	public Map<Integer, Map<Integer, Set<DataReference>>> getInputs() {
-		return inputs;
+		Map<Integer, Map<Integer, Set<DataReference>>> rInputs = new HashMap<>();
+		for(Integer key : inputs.keySet()) {
+			rInputs.put(key, inputs.get(key).el);
+		}
+		return rInputs;
 	}
 	
 	public Map<Integer, Map<Integer, Set<DataReference>>> getOutputs() {
-		return outputs;
+		Map<Integer, Map<Integer, Set<DataReference>>> rOutputs = new HashMap<>();
+		for(Integer key : outputs.keySet()) {
+			rOutputs.put(key, outputs.get(key).el);
+		}
+		return rOutputs;
 	}
 	
 	public Map<Integer, EndPoint> getMapping() {
