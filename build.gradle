@@ -15,7 +15,7 @@ subprojects {
 		compile 'org.slf4j:slf4j-api:1.7.5'
 		compile 'ch.qos.logback:logback-classic:1.0.13'
 		compile 'net.sf.jopt-simple:jopt-simple:4.8'
-		compile 'com.esotericsoftware:kryo:3.0.0'
+		compile 'com.esotericsoftware:kryo:3.0.2'
 		compile 'commons-cli:commons-cli:1.2'
 		compile 'io.dropwizard.metrics:metrics-core:3.1.0'
 
