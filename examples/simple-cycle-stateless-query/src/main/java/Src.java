@@ -1,3 +1,5 @@
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
@@ -5,11 +7,12 @@ import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 
 
-public class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
+public class Src implements Source {
 
-	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
 	private boolean working = true;
 	
 	@Override
@@ -21,20 +24,18 @@ public class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
 	public void processData(ITuple data, API api) {
 		int userId = 0;
 		long ts = 0;
-		waitHere(2000);
 		while(working){
-			byte[] d = OTuple.create(schema, new String[]{"userId", "ts"}, new Object[]{userId, ts});
+			byte[] d = OTuple.create(schema, new String[]{"userId", "ts", "text"}, new Object[]{userId, ts, "some text"});
 			
-			/**
-			 * sendKey receives d:byte[] userId that works as the partitioning key in this case 
-			 * Note that normally, the partitioning key will have some relation with the downstream state (although this is 
-			 * application specific)
-			 */
-			api.sendKey(d, userId);
+			api.send(d);
+			System.out.println("Send ts -> "+ts);
 			
 			userId++;
 			ts++;
+			
+			waitHere(1000);
 		}
+
 	}
 	
 	private void waitHere(int time){
@@ -48,12 +49,13 @@ public class Source implements uk.ac.imperial.lsds.seep.api.sources.Source {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
-		// TODO Auto-generated method stub
+	public void close() {
+		this.working = false;
 	}
 
 	@Override
-	public void close() {
-		this.working = false;
+	public void processDataGroup(List<ITuple> arg0, API arg1) {
+		// TODO Auto-generated method stub
+		
 	}
 }

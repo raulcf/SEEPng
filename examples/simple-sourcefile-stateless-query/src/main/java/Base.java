@@ -1,9 +1,11 @@
 import java.util.Properties;
 
-import uk.ac.imperial.lsds.seep.api.sources.FileConfig;
-import uk.ac.imperial.lsds.seep.api.sources.FileSource;
-import uk.ac.imperial.lsds.seep.api.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
+import uk.ac.imperial.lsds.seep.api.operator.sources.FileSource;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
@@ -24,10 +26,10 @@ public class Base implements QueryComposer {
 		
 		FileSource fileSource = FileSource.newSource(0, p);
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
-		LogicalOperator snk = queryAPI.newStatelessSink(new Sink(), 2);
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);
 		
-		fileSource.connectTo(processor, 0, schema);
-		processor.connectTo(snk, 0, schema);
+		fileSource.connectTo(processor, schema, 0);
+		processor.connectTo(snk, 0, new DataStore(schema, DataStoreType.NETWORK));
 		
 		return queryAPI.build();
 	}

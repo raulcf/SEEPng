@@ -1,3 +1,5 @@
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
@@ -40,13 +42,14 @@ public class Processor implements StatefulSeepTask<SeepMap<Integer, String>> {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void close() {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void close() {
+	public void processDataGroup(List<ITuple> arg0, API arg1) {
 		// TODO Auto-generated method stub
+		
 	}
 	
 }

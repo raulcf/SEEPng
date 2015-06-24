@@ -1,9 +1,12 @@
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 
 
-public class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
+public class Snk implements Sink {
 
 	private int PERIOD = 1000;
 	private int count = 0;
@@ -29,13 +32,14 @@ public class Sink implements uk.ac.imperial.lsds.seep.api.sinks.Sink {
 	}
 
 	@Override
-	public void processDataGroup(ITuple dataBatch, API api) {
+	public void close() {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void close() {
+	public void processDataGroup(List<ITuple> arg0, API arg1) {
 		// TODO Auto-generated method stub
+		
 	}
 
 }
