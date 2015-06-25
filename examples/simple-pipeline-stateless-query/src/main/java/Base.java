@@ -22,7 +22,6 @@ public class Base implements QueryComposer {
 		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);
 		
 		src.connectTo(processor, 0, new DataStore(schema1, DataStoreType.NETWORK));
-		src.connectTo(processor, 0, new DataStore(schema1, DataStoreType.NETWORK));
 		processor.connectTo(snk, 0, new DataStore(schema1, DataStoreType.NETWORK));
 		
 		return queryAPI.build();

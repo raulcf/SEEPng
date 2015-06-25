@@ -24,7 +24,6 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -50,7 +49,8 @@ public class WorkerMasterCommManager {
 	
 	private Conductor c;
 	
-	private String myIp;
+	private InetAddress myIp;
+	
 	private int myPort;
 	
 	private String pathToQueryJar;
@@ -58,14 +58,15 @@ public class WorkerMasterCommManager {
 	private String[] queryArgs;
 	private String methodName;
 	
-	public WorkerMasterCommManager(int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
+	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
 		this.c = c;
+		this.myIp = myIp;
 		this.myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		this.rcl = rcl;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol(rcl);
 		try {
-			serverSocket = new ServerSocket(port);
-			LOG.info(" Listening on {}:{}", InetAddress.getLocalHost(), port);
+			serverSocket = new ServerSocket(port, Utils.SERVER_SOCKET_BACKLOG, myIp);
+			LOG.info(" Listening on {}:{}", myIp, port);
 		} 
 		catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -186,7 +187,7 @@ public class WorkerMasterCommManager {
 		Map<Integer, EndPoint> mapping = mtc.getMapping();
 		Map<Integer, Map<Integer, Set<DataReference>>> inputs = mtc.getInputs();
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
- 		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+ 		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
 		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
 		c.materializeAndConfigureTask();
 	}
@@ -196,7 +197,7 @@ public class WorkerMasterCommManager {
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		// Get schedule description
 		ScheduleDescription sd = sdc.getSchedule();
-		int myOwnId = Utils.computeIdFromIpAndPort(getMyIp(), myPort);
+		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
 		c.configureScheduleTasks(myOwnId, sd, slq);
 	}
 
@@ -213,17 +214,6 @@ public class WorkerMasterCommManager {
 		Map<Integer, Set<DataReference>> input = esc.getInputDataReferences();
 		Map<Integer, Set<DataReference>> output = esc.getOutputDataReference();
 		c.scheduleTask(stageId, input, output);
-	}
-	
-	private InetAddress getMyIp() {
-		InetAddress ip = null;
-		try {
-			ip = InetAddress.getByName(myIp);
-		} 
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		return ip;
 	}
 	
 	private void loadCodeToRuntime(File pathToCode){

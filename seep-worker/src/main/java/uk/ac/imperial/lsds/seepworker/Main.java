@@ -38,7 +38,6 @@ import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerCommManager;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
-import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
 
 public class Main {
@@ -59,8 +58,15 @@ public class Main {
 		int masterId = Utils.computeIdFromIpAndPort(masterIp, masterPort);
 		Connection masterConnection = new Connection(new EndPoint(masterId, masterIp, masterPort));
 		
+		// Read configs with info about IP and port to bind to
+		String myIpStr = wc.getString(WorkerConfig.LISTENING_IP);
+		InetAddress myIp = Utils.getIpFromStringRepresentation(myIpStr);//InetAddress.getByName(myIpStr);
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
+		// If no IP is given, then find some local address
+		if(myIp == null) {
+			myIp = Utils.getLocalIp();
+		}
 		
 		// Create comm object
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
@@ -69,28 +75,28 @@ public class Main {
 		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
 		
 		// Create conductor
-		Conductor c = new Conductor(Utils.getLocalIp(), api, masterConnection, wc, comm);
+		Conductor c = new Conductor(myIp, api, masterConnection, wc, comm);
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());
-		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myPort, wc, rcl, c);
+		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myIp, myPort, wc, rcl, c);
 		wmcm.start();
 		
 		// Start worker-worker communication manager
 		WorkerWorkerAPIImplementation apiWorker = new WorkerWorkerAPIImplementation(comm, c, wc);
 		int wwPort = 0; // TODO: get this somehow...
-		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(wwPort, apiWorker);
+		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(myIp, wwPort, apiWorker);
 		wwcm.start();
 		
 		// Bootstrap
-		String myIp = Utils.getStringRepresentationOfLocalIp();
-		api.bootstrap(masterConnection, myIp, myPort, dataPort);
+		myIpStr = Utils.getStringRepresentationOfIp(myIp);
+		api.bootstrap(masterConnection, myIpStr, myPort, dataPort);
 		
 		// Configure metrics serving
 		this.configureMetricsReporting(wc);
 		
 		// Register JVM shutdown hook
-		registerShutdownHook(Utils.computeIdFromIpAndPort(Utils.getLocalIp(), myPort), c, masterConnection, api);
+		registerShutdownHook(Utils.computeIdFromIpAndPort(myIp, myPort), c, masterConnection, api);
 	}
 	
 	private void configureMetricsReporting(WorkerConfig wc){

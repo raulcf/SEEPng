@@ -21,7 +21,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.Serializer;
 import uk.ac.imperial.lsds.seep.util.ExtendedObjectOutputStream;

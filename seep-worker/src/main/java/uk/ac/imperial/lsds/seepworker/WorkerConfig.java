@@ -21,6 +21,9 @@ public class WorkerConfig extends Config {
     private static final String DEPLOYMENT_TARGET_TYPE_DOC = "The target cluster to which the master will submit queries."
     													+ "Physical cluster(0), yarn container(1), lxc, docker, etc";
     
+    public static final String LISTENING_IP = "worker.ip";
+    private static final String LISTENING_IP_DOC = "The IP in which workers will bind their servers";
+    
     public static final String LISTENING_PORT = "worker.port";
     private static final String LISTENING_PORT_DOC = "The port in which workers will receive commands from the master";
     
@@ -74,6 +77,7 @@ public class WorkerConfig extends Config {
 	
 	static{
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
+				.define(LISTENING_IP, Type.STRING,  null, Importance.MEDIUM, LISTENING_IP_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(MASTER_PORT, Type.INT, 3500, Importance.HIGH, MASTER_PORT_DOC)
 				.define(MASTER_IP, Type.STRING, Importance.HIGH, MASTER_IP_DOC)

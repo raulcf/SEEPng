@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.util.Utils;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -28,12 +29,12 @@ public class WorkerWorkerCommManager {
 	private boolean working = false;
 	private WorkerWorkerAPIImplementation api;
 	
-	public WorkerWorkerCommManager(int port, WorkerWorkerAPIImplementation api){
+	public WorkerWorkerCommManager(InetAddress myIp, int port, WorkerWorkerAPIImplementation api){
 		this.api = api;
 		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
 		try {
-			serverSocket = new ServerSocket(port);
-			LOG.info(" Listening on {}:{}", InetAddress.getLocalHost(), port);
+			serverSocket = new ServerSocket(port, Utils.SERVER_SOCKET_BACKLOG, myIp);
+			LOG.info(" Listening on {}:{}", myIp.toString(), port);
 		} 
 		catch (IOException e) {
 			e.printStackTrace();

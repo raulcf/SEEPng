@@ -25,6 +25,7 @@ public class Utils {
 
 	final static private Logger LOG = LoggerFactory.getLogger(Utils.class);
 	
+	public static int SERVER_SOCKET_BACKLOG = 10;
 	public static String NL = System.getProperty("line.separator");
 	public static String FILE_URI_SCHEME = "file://";
 	
@@ -131,16 +132,19 @@ public class Utils {
 		return fileProperties;
 	}
 	
-	public static String getStringRepresentationOfLocalIp(){
-		String ipStr = null;
+	public static InetAddress getIpFromStringRepresentation(String ipStr) {
+		InetAddress ip = null;
 		try {
-			InetAddress myIp = InetAddress.getLocalHost();
-			ipStr = myIp.getHostAddress();
+			ip = InetAddress.getByName(ipStr);
 		} 
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		return ipStr;
+		return ip;
+	}
+	
+	public static String getStringRepresentationOfIp(InetAddress ip){
+		return ip.getHostAddress();
 	}
 	
 	public static InetAddress getLocalIp(){
