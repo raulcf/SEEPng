@@ -9,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,7 +57,7 @@ public class WorkerMasterCommManager {
 	private String[] queryArgs;
 	private String methodName;
 	
-	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c){
+	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c) {
 		this.c = c;
 		this.myIp = myIp;
 		this.myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
@@ -76,12 +75,12 @@ public class WorkerMasterCommManager {
 		listener.setName(CommMasterWorker.class.getSimpleName());
 	}
 	
-	public void start(){
+	public void start() {
 		this.working = true;
 		this.listener.start();
 	}
 	
-	public void stop(){
+	public void stop() {
 		//TODO: do some other cleaning work here
 		this.working = false;
 	}
@@ -90,10 +89,10 @@ public class WorkerMasterCommManager {
 
 		@Override
 		public void run() {
-			while(working){
+			while(working) {
 				Socket incomingSocket = null;
 				PrintWriter out = null;
-				try{
+				try {
 					// Blocking call
 					incomingSocket = serverSocket.accept();
 					InputStream is = incomingSocket.getInputStream();
@@ -103,7 +102,7 @@ public class WorkerMasterCommManager {
 					short cType = c.type();
 					LOG.debug("RX command with type: {}", cType);
 					// CODE command
-					if(cType == MasterWorkerProtocolAPI.CODE.type()){
+					if(cType == MasterWorkerProtocolAPI.CODE.type()) {
 						LOG.info("RX Code command");
 						CodeCommand cc = c.getCodeCommand();
 						byte[] file = cc.getData();
@@ -128,7 +127,7 @@ public class WorkerMasterCommManager {
 						handleMaterializeTask(mtc);
 					}
 					// SCHEDULE_TASKS command
-					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()){
+					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()) {
 						LOG.info("RX Schedule_Tasks command");
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
@@ -142,25 +141,26 @@ public class WorkerMasterCommManager {
 						handleScheduleStage(esc);
 					}
 					// STARTQUERY command
-					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()){
+					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()) {
 						LOG.info("RX StartRuntime command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
 						handleStartQuery(sqc);
 					}
 					// STOPQUERY command
-					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()){
+					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()) {
 						LOG.info("RX StopRuntime command");
 						StopQueryCommand sqc = c.getStopQueryCommand();
 						out.println("ack");
 						handleStopQuery(sqc);
 					}
+					LOG.debug("Served command of type: {}", cType);
 				}
-				catch(IOException io){
+				catch(IOException io) {
 					io.printStackTrace();
 				}
 				finally {
-					if (incomingSocket != null){
+					if (incomingSocket != null) {
 						try {
 							incomingSocket.close();
 						}
@@ -182,12 +182,15 @@ public class WorkerMasterCommManager {
 	
 	public void handleMaterializeTask(MaterializeTaskCommand mtc) {
 		// Instantiate logical query
+		LOG.info("Composing query and loading to class loader...");
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+		LOG.info("Composing query and loading to class loader...OK");
 		// Get physical info from command
 		Map<Integer, EndPoint> mapping = mtc.getMapping();
 		Map<Integer, Map<Integer, Set<DataReference>>> inputs = mtc.getInputs();
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
  		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
+ 		LOG.info("Computed ID: {}", myOwnId);
 		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
 		c.materializeAndConfigureTask();
 	}

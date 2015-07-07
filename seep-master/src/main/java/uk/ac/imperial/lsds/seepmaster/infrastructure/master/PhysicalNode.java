@@ -13,9 +13,9 @@ public class PhysicalNode implements ExecutionUnit {
 	private EndPoint ep;
 	private int id;
 
-	public PhysicalNode(InetAddress ip, int port, int dataPort) {
+	public PhysicalNode(InetAddress ip, int port, int dataPort, int controlPort) {
 		this.id = Utils.computeIdFromIpAndPort(ip, port);
-		this.ep = new EndPoint(id, ip, port, dataPort);
+		this.ep = new EndPoint(id, ip, port, dataPort, controlPort);
 	}
 
 	@Override

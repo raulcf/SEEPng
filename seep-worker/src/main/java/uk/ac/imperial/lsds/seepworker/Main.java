@@ -56,13 +56,14 @@ public class Main {
 		
 		// Get connection to master node
 		int masterId = Utils.computeIdFromIpAndPort(masterIp, masterPort);
-		Connection masterConnection = new Connection(new EndPoint(masterId, masterIp, masterPort));
+		Connection masterConnection = new Connection(new EndPoint(masterId, masterIp, masterPort).extractMasterControlEndPoint());
 		
 		// Read configs with info about IP and port to bind to
 		String myIpStr = wc.getString(WorkerConfig.LISTENING_IP);
 		InetAddress myIp = Utils.getIpFromStringRepresentation(myIpStr);//InetAddress.getByName(myIpStr);
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
+		int controlPort = wc.getInt(WorkerConfig.CONTROL_PORT);
 		// If no IP is given, then find some local address
 		if(myIp == null) {
 			myIp = Utils.getLocalIp();
@@ -84,13 +85,12 @@ public class Main {
 		
 		// Start worker-worker communication manager
 		WorkerWorkerAPIImplementation apiWorker = new WorkerWorkerAPIImplementation(comm, c, wc);
-		int wwPort = 0; // TODO: get this somehow...
-		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(myIp, wwPort, apiWorker);
+		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(myIp, controlPort, apiWorker);
 		wwcm.start();
 		
 		// Bootstrap
 		myIpStr = Utils.getStringRepresentationOfIp(myIp);
-		api.bootstrap(masterConnection, myIpStr, myPort, dataPort);
+		api.bootstrap(masterConnection, myIpStr, myPort, dataPort, controlPort);
 		
 		// Configure metrics serving
 		this.configureMetricsReporting(wc);

@@ -29,6 +29,9 @@ public class WorkerConfig extends Config {
     
     public static final String DATA_PORT = "data.port";
     private static final String DATA_PORT_DOC = "The port used to receive data through the network";
+    
+    public static final String CONTROL_PORT = "control.port";
+    private static final String CONTROL_PORT_DOC = "The port used to receive control commands from other workers";
 
     public static final String MASTER_IP = "master.ip";
     private static final String MASTER_IP_DOC = "The Ip where the master is listening";
@@ -80,6 +83,7 @@ public class WorkerConfig extends Config {
 				.define(LISTENING_IP, Type.STRING,  null, Importance.MEDIUM, LISTENING_IP_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(MASTER_PORT, Type.INT, 3500, Importance.HIGH, MASTER_PORT_DOC)
+				.define(CONTROL_PORT, Type.INT, 7777, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(MASTER_IP, Type.STRING, Importance.HIGH, MASTER_IP_DOC)
 				.define(MASTER_CONNECTION_RETRIES, Type.INT, Integer.MAX_VALUE, Importance.LOW, MASTER_CONNECTION_RETRIES_DOC)
 				.define(MASTER_RETRY_BACKOFF_MS, Type.INT, 3000, Importance.LOW, MASTER_RETRY_BACKOFF_MS_DOC)

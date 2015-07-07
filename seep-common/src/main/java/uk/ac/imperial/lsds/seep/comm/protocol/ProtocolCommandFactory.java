@@ -14,8 +14,8 @@ public class ProtocolCommandFactory {
 	
 	/** MasterWorker commands **/
 	
-	public static MasterWorkerCommand buildBootstrapCommand(String ip, int port, int dataPort){
-		BootstrapCommand bc = new BootstrapCommand(ip, port, dataPort);
+	public static MasterWorkerCommand buildBootstrapCommand(String ip, int port, int dataPort, int controlPort){
+		BootstrapCommand bc = new BootstrapCommand(ip, port, dataPort, controlPort);
 		MasterWorkerCommand c = new MasterWorkerCommand(bc);
 		return c;
 	}

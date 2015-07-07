@@ -28,14 +28,14 @@ public class PhysicalClusterManager implements InfrastructureManager {
 	}
 	
 	@Override
-	public ExecutionUnit buildExecutionUnit(InetAddress ip, int port, int dataPort) {
-		return new PhysicalNode(ip, port, dataPort);
+	public ExecutionUnit buildExecutionUnit(InetAddress ip, int port, int dataPort, int controlPort) {
+		return new PhysicalNode(ip, port, dataPort, controlPort);
 	}
 	
 	@Override
 	public void addExecutionUnit(ExecutionUnit eu) {
 		physicalNodes.push(eu);
-		connectionsToPhysicalNodes.put(eu.getId(), new Connection(eu.getEndPoint()));
+		connectionsToPhysicalNodes.put(eu.getId(), new Connection(eu.getEndPoint().extractMasterControlEndPoint()));
 	}
 	
 	@Override

@@ -34,8 +34,8 @@ public class WorkerMasterAPIImplementation {
 		this.retryBackOffMs = wc.getInt(WorkerConfig.MASTER_RETRY_BACKOFF_MS);
 	}
 	
-	public void bootstrap(Connection masterConn, String myIp, int myPort, int dataPort){
-		MasterWorkerCommand command = ProtocolCommandFactory.buildBootstrapCommand(myIp, myPort, dataPort);
+	public void bootstrap(Connection masterConn, String myIp, int myPort, int dataPort, int controlPort){
+		MasterWorkerCommand command = ProtocolCommandFactory.buildBootstrapCommand(myIp, myPort, dataPort, controlPort);
 		LOG.info("Bootstrapping...");
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 		LOG.info("Bootstrapping OK conn to master: {}", masterConn.toString());

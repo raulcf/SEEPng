@@ -24,6 +24,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -120,6 +121,7 @@ public class Conductor {
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.initSelector();
 		}
+		
 		// Make sure selectors are initialised, then request connections
 		coreInput.requestInputConnections(comm, k, myIp);
 	}
@@ -206,7 +208,7 @@ public class Conductor {
 
 	//FIXME: refactor, check where to place this method, along with the entire communication with datarefmanager
 	// FIXME: do we need a separate entity for this?
-	public void serveData(int dataRefId, EndPoint ep) {
+	public void serveData(int dataRefId, DataEndPoint ep) {
 		// Make sure DRM manages this DataReferenceId
 		DataReference dr = drm.doesManageDataReference(dataRefId);
 		if (dr == null) {

@@ -2,8 +2,12 @@ package uk.ac.imperial.lsds.seepworker.comm;
 
 import java.net.InetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.protocol.RequestDataReferenceCommand;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -11,6 +15,8 @@ import uk.ac.imperial.lsds.seepworker.core.Conductor;
 
 public class WorkerWorkerAPIImplementation {
 
+	final private Logger LOG = LoggerFactory.getLogger(WorkerWorkerAPIImplementation.class.getName());
+	
 	private Conductor c;
 	
 	public WorkerWorkerAPIImplementation(Comm comm, Conductor c, WorkerConfig wc){
@@ -19,14 +25,15 @@ public class WorkerWorkerAPIImplementation {
 
 	public void handleRequestDataReferenceCommand(RequestDataReferenceCommand requestDataReferenceCommand) {
 		int dataRefId = requestDataReferenceCommand.getDataReferenceId();
-		InetAddress ip = requestDataReferenceCommand.getIp();
+		String ip = requestDataReferenceCommand.getIp();
 		int rxPort = requestDataReferenceCommand.getReceivingDataPort();
 		
 		// Create target endPoint
 		int id = Utils.computeIdFromIpAndPort(ip, rxPort);
-		EndPoint ep = new EndPoint(id, ip, rxPort);
 		
-		c.serveData(dataRefId, ep);
+		DataEndPoint dep = new DataEndPoint(id, ip, rxPort);
+		LOG.info("Request to serve data to: {}", dep.toString());
+		c.serveData(dataRefId, dep);
 	}
 	
 }

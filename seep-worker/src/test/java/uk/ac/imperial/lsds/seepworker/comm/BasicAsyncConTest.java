@@ -13,15 +13,16 @@ import org.junit.Test;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
 
 public class BasicAsyncConTest {
 
 	@Test
 	public void testOpenCon(){
 		try {
-			Connection c = new Connection(new EndPoint(0, InetAddress.getLocalHost(), 2500, 5200));
+			Connection c = new Connection(new EndPoint(0, InetAddress.getLocalHost(), 2500, 5200).extractDataEndPoint());
 			SocketChannel channel = SocketChannel.open();
-			InetSocketAddress address = c.getInetSocketAddressForData();
+			InetSocketAddress address = c.getInetSocketAddress(SeepEndPointType.DATA);
 		    Socket socket = channel.socket();
 		    
 			socket.setKeepAlive(true);

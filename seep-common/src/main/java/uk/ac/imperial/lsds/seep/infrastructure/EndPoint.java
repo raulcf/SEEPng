@@ -3,18 +3,20 @@ package uk.ac.imperial.lsds.seep.infrastructure;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public final class EndPoint{
+public final class EndPoint {
 	
 	private final int id;
 	private final String ip;
 	private final int port;
 	private final int dataPort;
+	private final int controlPort;
 	
 	public EndPoint(int id, InetAddress ip, int port){
 		this.id = id;
 		this.ip = ip.getHostName();
 		this.port = port;
 		this.dataPort = -1; // no data connection to this endpoint
+		this.controlPort = -1; // no control conenction to this endpoint
 	}
 	
 	public EndPoint(int id, InetAddress ip, int port, int dataPort){
@@ -22,6 +24,27 @@ public final class EndPoint{
 		this.ip = ip.getHostName();
 		this.port = port;
 		this.dataPort = dataPort;
+		this.controlPort = -1; // no control connection to this endpoint
+	}
+	
+	public EndPoint(int id, InetAddress ip, int port, int dataPort, int controlPort){
+		this.id = id;
+		this.ip = ip.getHostName();
+		this.port = port;
+		this.dataPort = dataPort;
+		this.controlPort = controlPort;
+	}
+	
+	public SeepEndPoint extractMasterControlEndPoint() {
+		return new MasterControlEndPoint(id, ip, port);
+	}
+	
+	public SeepEndPoint extractWorkerControlEndPoint() {
+		return new WorkerControlEndPoint(id, ip, controlPort);
+	}
+	
+	public SeepEndPoint extractDataEndPoint() {
+		return new DataEndPoint(id, ip, dataPort);
 	}
 	
 	public int getId(){
@@ -41,8 +64,12 @@ public final class EndPoint{
 		return port;
 	}
 	
-	public int getDataPort(){
+	public int getDataPort() {
 		return dataPort;
+	}
+	
+	public int getControlPort() {
+		return controlPort;
 	}
 	
 	/**
@@ -69,5 +96,6 @@ public final class EndPoint{
 		this.ip = null;
 		this.port = 0;
 		this.dataPort = 0;
+		this.controlPort = 0;
 	}
 }

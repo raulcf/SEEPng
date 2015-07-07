@@ -37,8 +37,9 @@ public class MasterWorkerAPIImplementation {
 		}
 		int port = bc.getPort();
 		int dataPort = bc.getDataPort();
-		LOG.info("New worker node in {}:{}, dataPort: {}", bootIp.toString(), port, dataPort);
-		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, port, dataPort);
+		int controlPort = bc.getControlPort();
+		LOG.info("New worker node in {}:{}, dataPort: {}, controlPort: {}", bootIp.toString(), port, dataPort, controlPort);
+		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, port, dataPort, controlPort);
 		inf.addExecutionUnit(eu);
 	}
 	

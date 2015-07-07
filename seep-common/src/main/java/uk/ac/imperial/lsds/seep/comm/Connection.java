@@ -7,41 +7,43 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.errors.SeepException;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 public class Connection {
 
 	final private static Logger LOG = LoggerFactory.getLogger(Connection.class);
 	
-	private final EndPoint ep;
-	private Socket s;
+	private final SeepEndPoint ep;
+	private Socket socket;
 	
-	public Connection(EndPoint ep) {
+	public Connection(SeepEndPoint ep) {
 		boolean valid = ep.isValid();
 		if(!valid){
 			throw new InvalidEndPointException("No IP defined for the endPoint");
 		}
-		LOG.trace("Created connection with EndPoint: {}", ep.toString());
+		LOG.trace("Created connection Object with EndPoint: {}", ep.toString());
 		this.ep = ep;
 	}
 	
-	public int getId(){
+	public int getId() {
 		return ep.getId();
 	}
 	
-	public Socket getSocket(){
-		return s;
+	public Socket getSocket() {
+		return socket;
 	}
 	
-	public Socket getOpenSocket() throws IOException{
-		if(s == null || s.isClosed()){
-			s = new Socket(ep.getIp(), ep.getPort());
-			return s;
+	public Socket getOpenSocket() throws IOException {
+		if(socket == null || socket.isClosed()){
+			socket = new Socket(ep.getIp(), ep.getPort());
+			return socket;
 		}
-		else if(s != null){
-			if(s.isConnected()) {
-				return s;
+		else if(socket != null){
+			if(socket.isConnected()) {
+				return socket;
 			}
 		}
 		// TODO: reopen if closed
@@ -49,18 +51,17 @@ public class Connection {
 		return null;
 	}
 	
-	public InetSocketAddress getInetSocketAddress(){
+	public InetSocketAddress getInetSocketAddress(SeepEndPointType type) {
+		if(type.ofType() != ep.getType()) {
+			// TODO: handle error this properly
+			throw new SeepException("Request wrong type of socket..... ##### FIX THIS");
+		}
 		return new InetSocketAddress(this.ep.getIp(), this.ep.getPort());
 	}
 	
-	public InetSocketAddress getInetSocketAddressForData(){
-		LOG.trace("Building InetSocketAddress with IP: {}, dataPort: {}", this.ep.getIp(), this.ep.getDataPort());
-		return new InetSocketAddress(this.ep.getIp(), this.ep.getDataPort());
-	}
-	
-	public void destroy(){
+	public void destroy() {
 		try {
-			this.s.close();
+			this.socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -68,12 +69,12 @@ public class Connection {
 	}
 	
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("IP: "+ep.getIp().toString()+" port: "+ep.getPort());
 		sb.append(Utils.NL);
-		if(s != null){
-			sb.append("ConnectionStatus: "+s.toString());
+		if(socket != null){
+			sb.append("ConnectionStatus: "+socket.toString());
 		}
 		else{
 			sb.append("ConnectionStatus: NULL");

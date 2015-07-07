@@ -70,6 +70,7 @@ public class WorkerWorkerCommManager {
 					i = new Input(is);
 					WorkerWorkerCommand command = k.readObject(i, WorkerWorkerCommand.class);
 					short type = command.type();
+					LOG.debug("RX WORKER-COMMAND of type: {}", type);
 					
 					if(type == WorkerWorkerProtocolAPI.ACK.type()){
 						LOG.info("RX-> ACK command");
@@ -86,6 +87,7 @@ public class WorkerWorkerCommManager {
 						out.println("ack");
 						api.handleRequestDataReferenceCommand(command.getRequestDataReferenceCommand());
 					}
+					LOG.debug("Served WORKER-COMMAND of type: {}", type);
 				}
 				catch(IOException io){
 					io.printStackTrace();

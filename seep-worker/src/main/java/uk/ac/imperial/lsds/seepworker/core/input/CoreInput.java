@@ -58,16 +58,19 @@ public class CoreInput {
 	}
 
 	public void requestInputConnections(Comm comm, Kryo k, InetAddress myIp) {
+		LOG.info("Requesting input connections...");
 		for(Set<DataReference> i : input.values()) {
 			for(DataReference dr : i) {
 				if(dr.isManaged()) {
 					// Create dataRef request and send to the worker
 					WorkerWorkerCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
-					Connection targetConn = new Connection(dr.getEndPoint());
+					Connection targetConn = new Connection(dr.getEndPoint().extractWorkerControlEndPoint());
+					LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
 					comm.send_object_sync(requestStreamDataReference, targetConn, k);
 				}
 			}
 		}
+		LOG.info("Requesting input connections...OK");
 	}
 	
 }

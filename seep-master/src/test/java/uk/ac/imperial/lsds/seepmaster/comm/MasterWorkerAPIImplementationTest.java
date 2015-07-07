@@ -30,7 +30,7 @@ public class MasterWorkerAPIImplementationTest {
 		int avail = inf.executionUnitsAvailable();
 		assert(avail == 0);
 
-		BootstrapCommand bc = new BootstrapCommand("10.0.0.1", 3500, 4500);
+		BootstrapCommand bc = new BootstrapCommand("10.0.0.1", 3500, 4500, 7777);
 		api.bootstrapCommand(bc);
 		
 		avail = inf.executionUnitsAvailable();

@@ -38,6 +38,17 @@ public class Utils {
 		return ip.hashCode() + port;
 	}
 	
+	public static int computeIdFromIpAndPort(String ip, int port) {
+		InetAddress ip2 = null;
+		try {
+			ip2 = InetAddress.getByName(ip);
+		} 
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip2.hashCode() + port;
+	}
+	
 	public static File writeDataToFile(byte[] serializedFile, String fileName){
 		FileOutputStream fos;
 		try {

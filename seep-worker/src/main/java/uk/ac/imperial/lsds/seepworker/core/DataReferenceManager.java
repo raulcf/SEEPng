@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
@@ -80,8 +81,8 @@ public class DataReferenceManager {
 	}
 	
 	// FIXME: temporal method
-	public void serveDataSet(CoreOutput coreOutput, DataReference dr, EndPoint ep) {
-		Connection c = new Connection(ep);
+	public void serveDataSet(CoreOutput coreOutput, DataReference dr, DataEndPoint dep) {
+		Connection c = new Connection(dep);
 		OBuffer buffer = coreOutput.getBuffers().get(dr.getId());
 		OutgoingConnectionRequest ocr = new OutgoingConnectionRequest(c, buffer);
 		DataStoreType type = dr.getDataStore().type();

@@ -73,7 +73,7 @@ public class SchedulerEngineWorker implements Runnable {
 		Set<EndPoint> eps = stage.getInvolvedNodes();
 		Set<Connection> cons = new HashSet<>();
 		for(EndPoint ep : eps) {
-			Connection c = new Connection(ep);
+			Connection c = new Connection(ep.extractMasterControlEndPoint());
 			cons.add(c);
 		}
 		return cons;

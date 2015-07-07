@@ -7,7 +7,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 
 public interface InfrastructureManager {
 	
-	public ExecutionUnit buildExecutionUnit(InetAddress ip, int port, int dataPort);
+	public ExecutionUnit buildExecutionUnit(InetAddress ip, int port, int dataPort, int controlPort);
 	
 	public void addExecutionUnit(ExecutionUnit eu);
 	public ExecutionUnit getExecutionUnit();

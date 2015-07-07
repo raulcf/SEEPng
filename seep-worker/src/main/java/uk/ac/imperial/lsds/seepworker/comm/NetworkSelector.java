@@ -34,6 +34,7 @@ import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class NetworkSelector implements EventAPI, DataStoreSelector {
@@ -152,6 +153,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	 * @param outgoingConnectionRequest
 	 */
 	public void configureOutgoingConnection(Set<OutgoingConnectionRequest> outgoingConnectionRequest) {
+		LOG.info("Request to configure {} outgoing connections", outgoingConnectionRequest.size());
 		int writerIdx = 0;
 		int totalWriters = writers.length;
 		for(OutgoingConnectionRequest ocr : outgoingConnectionRequest) {
@@ -488,6 +490,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		}
 		
 		public void newConnection(OutgoingConnectionRequest ocr) {
+			LOG.trace("Writer: {} has a pending connection to: {}", id, ocr.connection);
 			this.pendingConnections.add(ocr);
 		}
 		
@@ -589,7 +592,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 					OBuffer ob = ocr.oBuffer;
 					Connection c = ocr.connection;
 					SocketChannel channel = SocketChannel.open();
-					InetSocketAddress address = c.getInetSocketAddressForData();
+					InetSocketAddress address = c.getInetSocketAddress(SeepEndPointType.DATA);
 			        Socket socket = channel.socket();
 			        socket.setKeepAlive(true); // Unlikely in non-production scenarios we'll be up for more than 2 hours but...
 			        socket.setTcpNoDelay(true); // Disabling Nagle's algorithm

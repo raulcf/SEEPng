@@ -92,7 +92,6 @@ public class IOComm implements Comm {
 		for(Connection c : cs){
 			this.send_async(data, c);
 		}
-		
 	}
 
 	@Override
@@ -287,7 +286,7 @@ public class IOComm implements Comm {
 			}
 			oos.close();
 			in.close();
-		} 
+		}
 		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

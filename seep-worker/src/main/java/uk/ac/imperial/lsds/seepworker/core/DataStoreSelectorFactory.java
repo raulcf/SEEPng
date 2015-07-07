@@ -75,14 +75,6 @@ public class DataStoreSelectorFactory {
 			if(ns == null){
 				ns = new NetworkSelector(wc, o.getOperatorId());
 			}
-			// Configure outgoing connections
-			Set<OutgoingConnectionRequest> outgoingConnectionRequests = new HashSet<>();
-			for(OBuffer obuf : obufsToStream) {
-				Connection conn = new Connection(obuf.getDataReference().getEndPoint());
-				OutgoingConnectionRequest ocr = new OutgoingConnectionRequest(conn, obuf);
-				outgoingConnectionRequests.add(ocr);
-			}
-			ns.configureOutgoingConnection(outgoingConnectionRequests);
 			for(OBuffer ob : obufsToStream) {
 				ob.setEventAPI(ns);
 			}

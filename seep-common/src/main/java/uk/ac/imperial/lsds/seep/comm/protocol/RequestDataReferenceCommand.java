@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class RequestDataReferenceCommand implements CommandType {
 
@@ -26,13 +24,8 @@ public class RequestDataReferenceCommand implements CommandType {
 		return dataReferenceId;
 	}
 	
-	public InetAddress getIp() {
-		try {
-			return InetAddress.getByName(ip);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public String getIp() {
+		return ip;
 	}
 	
 	public int getReceivingDataPort() {
