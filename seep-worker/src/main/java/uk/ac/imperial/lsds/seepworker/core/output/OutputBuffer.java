@@ -80,7 +80,6 @@ public class OutputBuffer implements OBuffer {
 			}
 		}
 		return fullyWritten;
-		
 	}
 
 	@Override
@@ -94,7 +93,7 @@ public class OutputBuffer implements OBuffer {
 		tuplesInBatch++;
 		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		
-		if(bufferIsFull()){
+		if(bufferIsFull()) {
 			int currentPosition = buf.position();
 			int currentLimit = buf.limit();
 			buf.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);

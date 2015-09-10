@@ -121,7 +121,7 @@ public class ScheduleTracker {
 			setFinished(stage, results);
 		}
 		else{
-			LOG.warn("Not successful stage... CHECK");
+			LOG.warn("Not successful stage... CHECK, non-FT fully-fledged implementation yet :|");
 			System.exit(-1);
 		}
 	}

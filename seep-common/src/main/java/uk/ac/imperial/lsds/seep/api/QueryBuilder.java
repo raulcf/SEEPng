@@ -27,19 +27,6 @@ public class QueryBuilder implements QueryAPI {
 	public SchemaBuilder schemaBuilder = SchemaBuilder.getInstance();
 	
 	public static SeepLogicalQuery build(){
-//		// Check nonOperator sources and adjust sources accordingly
-//		for(Operator o : qp.getAllOperators()) {
-//			for(UpstreamConnection uc : o.upstreamConnections()) {
-//				LogicalOperator lo = (LogicalOperator) uc.getUpstreamOperator();
-//				if(lo.getSeepTask() instanceof Source) {
-//					// This operator becomes a source
-//					qp.addSource((LogicalOperator)o);
-//				}
-//			}
-//		}
-//		// Remove the template source
-//		qp.cleanMarkerOperators();
-		
 		// Check whether there are StaticSources, in which case, downstream to those become Sources
 		for(LogicalOperator lo : qp.getAllOperators()) {
 			for(UpstreamConnection uc : lo.upstreamConnections()) {
@@ -56,7 +43,6 @@ public class QueryBuilder implements QueryAPI {
 		if(qp.getSink() == null){
 			throw new InvalidQueryDefinitionException("The query must define a sink");
 		}
-		
 		return qp;
 	}
 
@@ -86,7 +72,7 @@ public class QueryBuilder implements QueryAPI {
 	}
 
 	@Override
-	public LogicalOperator newStatefulSource(Source seepTask,	SeepState state, int opId) {
+	public LogicalOperator newStatefulSource(Source seepTask, SeepState state, int opId) {
 		return qp.newStatefulSource(seepTask, state, opId);
 	}
 

@@ -87,7 +87,7 @@ public class Main {
 		
 		// Merge both properties, command line has preference
 		Properties validatedProperties = Utils.overwriteSecondPropertiesWithFirst(commandLineProperties, fileProperties);
-		boolean validates = validateProperties(validatedProperties);		
+		boolean validates = validateProperties(validatedProperties);
 		if(!validates){
 			printHelp(parser);
 			System.exit(0);

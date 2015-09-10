@@ -27,7 +27,7 @@ public class NetworkDataStream implements InputAdapter {
 	// Metrics
 	final Counter qSize;
 	
-	public NetworkDataStream(WorkerConfig wc, int streamId, InputBuffer buffer, Schema expectedSchema) {
+	public NetworkDataStream(WorkerConfig wc, int streamId, IBuffer buffer, Schema expectedSchema) {
 		this.streamId = streamId;
 		this.buffer = buffer;
 		this.iTuple = new ITuple(expectedSchema);

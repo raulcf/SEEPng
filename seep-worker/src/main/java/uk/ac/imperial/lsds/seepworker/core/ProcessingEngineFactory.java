@@ -14,20 +14,20 @@ public class ProcessingEngineFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(ProcessingEngineFactory.class.getName());
 	
-	public static ProcessingEngine buildSingleTaskProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback){
+	public static ProcessingEngine buildSingleTaskProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, DataReferenceManager drm){
 		int engineType = wc.getInt(WorkerConfig.ENGINE_TYPE);
 		if(engineType == ProcessingEngineType.SINGLE_THREAD.ofType()){
 			LOG.info("Building processing engine of type: {}", "SINGLE_THREAD");
-			return new SingleThreadProcessingEngine(wc, id, task, state, coreInput, coreOutput, callback, CollectorType.SIMPLE);
+			return new SingleThreadProcessingEngine(wc, id, task, state, coreInput, coreOutput, callback, CollectorType.SIMPLE, drm);
 		}
 		return null;
 	}
 
-	public static ProcessingEngine buildComposedTaskProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback) {
+	public static ProcessingEngine buildComposedTaskProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, DataReferenceManager drm) {
 		int engineType = wc.getInt(WorkerConfig.ENGINE_TYPE);
-		if(engineType == ProcessingEngineType.SINGLE_THREAD.ofType()){
+		if(engineType == ProcessingEngineType.SINGLE_THREAD.ofType()) {
 			LOG.info("Building processing engine of type: {}", "SINGLE_THREAD");
-			return new SingleThreadProcessingEngine(wc, id, task, state, coreInput, coreOutput, callback, CollectorType.COMPOSED_SEQUENTIAL_TASK);
+			return new SingleThreadProcessingEngine(wc, id, task, state, coreInput, coreOutput, callback, CollectorType.COMPOSED_SEQUENTIAL_TASK, drm);
 		}
 		return null;
 	}

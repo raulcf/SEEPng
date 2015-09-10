@@ -39,7 +39,8 @@ public class MaterializeTaskCommandSerializerTest {
 		}
 		mapping.put(1, new EndPoint(2000, ip, 3000));
 		Set<DataReference> r = new HashSet<>();
-		r.add(DataReference.makeExternalDataReference(null, new EndPoint(1000, ip, 1000), ServeMode.STORE));
+//		r.add(DataReference.makeExternalDataReference(null, new EndPoint(1000, ip, 1000)));
+		r.add(DataReference.makeExternalDataReference(null));
 		Map<Integer, Set<DataReference>> refs = new HashMap<>();
 		refs.put(3, r);
 		Map<Integer, Map<Integer, Set<DataReference>>> inputs = new HashMap<>();

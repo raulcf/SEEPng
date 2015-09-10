@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
@@ -120,7 +121,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	@Override
 	public boolean deployQueryToNodes() {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
-		if(!allowed){
+		if(!allowed) {
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
@@ -144,7 +145,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		LOG.info("Sending query and schedule to nodes...OK {}");
 		
 		LOG.info("Prepare scheduler engine...");
-		seWorker.prepareForStart(connections);
+		// Get the input info for the first stages
+		seWorker.prepareForStart(connections, slq);
 		LOG.info("Prepare scheduler engine...OK");
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
@@ -153,7 +155,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
 	@Override
 	public boolean startQuery() {
-		LOG.info("Start scheduling.");
+		LOG.info("Staring Scheduler");
 		worker.start();
 		return true;
 	}
@@ -205,7 +207,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			Set<Integer> opsAlreadyInSchedule, SeepLogicalQuery slq, Set<Stage> stages, int stageId) {
 		// Check whether this op has already been incorporated to a stage and abort if so
 		int opId = slo.getOperatorId();
-		if(opsAlreadyInSchedule.contains(opId)){
+		if(opsAlreadyInSchedule.contains(opId)) {
 			// Create dependency with the stage governing opId in this case and return
 			parent.dependsOn(stageResponsibleFor(opId));
 			return;
@@ -219,7 +221,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		stages.add(stage);
 		StageType type = stage.getStageType();
 
-		// If we hit a source or unique stage, then just finish
+		// If we hit a source or unique stage, then configure Input and finish
 		if(type.equals(StageType.SOURCE_STAGE) || type.equals(StageType.UNIQUE_STAGE)) {
 			return;
 		}
@@ -249,11 +251,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			if(s.responsibleFor(opId)) {
 				return s;
 			}
-		}
+		} 
 		return null;
 	}
 	
-	private Stage createStageFromLogicalOperator(Stage stage, Set<Integer> opsAlreadyInSchedule, SeepLogicalOperator slo){
+	private Stage createStageFromLogicalOperator(Stage stage, Set<Integer> opsAlreadyInSchedule, SeepLogicalOperator slo) {
 		StageType type = null;
 		boolean containsSinkOperator = false;
 		boolean containsSourceOperator = false;
@@ -302,11 +304,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		} while(!finishesStage);
 		
 		// Set stage type
-		if(containsSourceOperator && containsSinkOperator){
+		if(containsSourceOperator && containsSinkOperator) {
 			type = StageType.UNIQUE_STAGE;
-		} else if(containsSourceOperator){
+		} else if(containsSourceOperator) {
 			type = StageType.SOURCE_STAGE;
-		} else if(containsSinkOperator){
+		} else if(containsSinkOperator) {
 			type = StageType.SINK_STAGE;
 		} else {
 			type = StageType.INTERMEDIATE_STAGE;
@@ -315,7 +317,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		return stage;
 	}
 	
-	private boolean isSink(SeepLogicalOperator slo){
+	private boolean isSink(SeepLogicalOperator slo) {
 		if(slo.getSeepTask() instanceof Sink) {
 			return true;
 		}
@@ -343,7 +345,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	/** Methods to facilitate testing **/
 	
 	public void __initializeEverything(){
-		seWorker.prepareForStart(null);
+		seWorker.prepareForStart(null, slq);
 	}
 	
 	public ScheduleTracker __tracker_for_test(){

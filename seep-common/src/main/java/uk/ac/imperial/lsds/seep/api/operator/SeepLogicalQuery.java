@@ -13,7 +13,6 @@ package uk.ac.imperial.lsds.seep.api.operator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +49,6 @@ public class SeepLogicalQuery {
 		else {
 			LOG.warn("Impossible to honour the requested execution mode. Query will run with: "+qem.toString());
 		}
-		
 	}
 	
 	public QueryExecutionMode getQueryExecutionMode() {
@@ -72,23 +70,6 @@ public class SeepLogicalQuery {
 				return lo;
 		}
 		return null;
-	}
-	
-	public void cleanMarkerOperators(){
-		Iterator<LogicalOperator> it = logicalOperators.iterator();
-		while(it.hasNext()){
-			Operator o = it.next();
-			if(o.getSeepTask() instanceof Source){
-				it.remove();
-			}
-		}
-		it = sources.iterator();
-		while(it.hasNext()){
-			Operator o = it.next();
-			if(o.getSeepTask() instanceof Source){
-				it.remove();
-			}
-		}
 	}
 	
 	public List<SeepState> getAllStates(){

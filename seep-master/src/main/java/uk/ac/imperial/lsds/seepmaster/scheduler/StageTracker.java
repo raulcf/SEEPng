@@ -40,7 +40,6 @@ public class StageTracker {
 			countDown.await();
 		} 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

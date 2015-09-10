@@ -93,7 +93,7 @@ public class GenericQueryManager implements QueryManager {
 			LOG.info("Creating ScheduledQueryManager...OK");
 			break;
 		case AUTOMATIC_HYBRID:
-			throw new NotImplementedException("Most likely lacks implementation (?)");
+			throw new NotImplementedException("Not implemented (?)");
 		default:
 			LOG.error("Execution Mode not supported !");
 			throw new NotImplementedException("Most likely lacks implementation (?)");

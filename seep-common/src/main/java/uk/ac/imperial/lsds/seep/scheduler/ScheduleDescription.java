@@ -12,12 +12,12 @@ public class ScheduleDescription {
 		this.stages = stages;
 	}
 	
-	public Set<Stage> getStages(){
+	public Set<Stage> getStages() {
 		return stages;
 	}
 	
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Schedule with "+stages.size()+" stages");
 		sb.append(Utils.NL);

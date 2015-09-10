@@ -1,9 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import java.util.Set;
-
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
 public class ScheduleDeployCommand implements CommandType {

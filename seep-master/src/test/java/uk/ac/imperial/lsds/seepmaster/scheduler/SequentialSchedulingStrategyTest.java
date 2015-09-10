@@ -127,7 +127,7 @@ public class SequentialSchedulingStrategyTest {
 		System.out.println("total time to schedule (larger): "+numSchedules+" -> "+(stop-start)+" ms");
 		/**
 		 * 0.5 sec for 100K schedules in a crappy machine. Let's assume linear time growth ->
-		 * 1 sec for 200K. 1sec/200K = 0.000005. Tasks plus network latency should be below 50us, hmmm we're fine.
+		 * 1 sec for 200K. 1sec/200K = 0.000005. Tasks plus network latency should be below 50us, hmmmmm we're fine.
 		 */
 	}
 

@@ -20,7 +20,6 @@ public class BaseTest implements QueryComposer {
 	public SeepLogicalQuery compose() {
 		// Declare Source
 		LogicalOperator src = queryAPI.newStatelessSource(new Source(), -1);
-		
 		// Declare processor
 		LogicalOperator p = queryAPI.newStatelessOperator(new Processor(), 1);
 		// Declare sink
@@ -40,6 +39,7 @@ public class BaseTest implements QueryComposer {
 
 	
 	class Source implements uk.ac.imperial.lsds.seep.api.operator.sources.Source {
+		
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
@@ -59,6 +59,7 @@ public class BaseTest implements QueryComposer {
 	}
 	
 	class Processor implements SeepTask {
+		
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
@@ -78,6 +79,7 @@ public class BaseTest implements QueryComposer {
 	}
 	
 	class Sink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
+		
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	

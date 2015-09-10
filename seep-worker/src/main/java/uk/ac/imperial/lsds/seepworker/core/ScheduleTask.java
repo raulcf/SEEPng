@@ -6,6 +6,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
@@ -16,6 +19,8 @@ import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
 public class ScheduleTask implements SeepTask {
 
+	final private static Logger LOG = LoggerFactory.getLogger(ScheduleTask.class.getName());
+	
 	private int stageId;
 	private int euId;
 	private Deque<LogicalOperator> operators;
@@ -37,9 +42,11 @@ public class ScheduleTask implements SeepTask {
 	
 	public static ScheduleTask buildTaskFor(int id, Stage s, SeepLogicalQuery slq) {
 		Deque<Integer> wrappedOps = s.getWrappedOperators();
+		LOG.info("Building stage {}. Wraps {} operators", s.getStageId(), wrappedOps.size());
 		Deque<LogicalOperator> operators = new ArrayDeque<>();
 		while(! wrappedOps.isEmpty()) {
 			LogicalOperator lo = slq.getOperatorWithId(wrappedOps.poll());
+			LOG.debug("op {} is part of stage {}", lo.getOperatorId(), s.getStageId());
 			operators.addLast(lo);
 		}
 		return new ScheduleTask(id, s.getStageId(), operators);

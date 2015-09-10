@@ -63,13 +63,13 @@ public class Conductor {
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm){
+	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm, DataReferenceManager drm){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
 		this.wc = wc;
 		this.scheduleTasks = new HashMap<>();
-		this.drm = DataReferenceManager.makeDataReferenceManager(wc);
+		this.drm = drm;
 		this.comm = comm;
 		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
 	}
@@ -92,7 +92,7 @@ public class Conductor {
 		LOG.info("Configuring local task: {}", task.toString());
 		// set up state if any
 		SeepState state = o.getState();
-		if(o.isStateful()){
+		if (o.isStateful()) {
 			LOG.info("Configuring state of local task: {}", state.toString());
 			((StatefulSeepTask)task).setState(state);
 		}
@@ -100,7 +100,7 @@ public class Conductor {
 		Map<Integer, Set<DataReference>> input = inputs.get(o.getOperatorId());
 		Map<Integer, Set<DataReference>> output = outputs.get(o.getOperatorId());
 		Map<Integer, ConnectionType> connTypeInformation = getInputConnectionType(o);
-		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
+		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 		
 		// Specialized data selectors
@@ -112,7 +112,7 @@ public class Conductor {
 
 		int id = o.getOperatorId();
 		
-		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, new ConductorCallback(true));
+		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, new ConductorCallback(true), drm);
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -130,29 +130,38 @@ public class Conductor {
 		this.id = id;
 		this.query = slq;
 		this.sd = sd;
+		LOG.info("Configuring environment for scheduled operation...");
 		// Create ScheduleTask for every stage
-		for(Stage s : sd.getStages()) {
+		Set<Stage> stages = sd.getStages();
+		LOG.info("Physical plan with {} stages", stages.size());
+		for(Stage s : stages) {
 			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
 			scheduleTasks.put(s, st);
 		}
-		
-//		dataStoreSelectors = DataStoreSelectorFactory.buildDataStoreSelector(coreInput, 
-//		coreOutput, wc, o, myIp, wc.getInt(WorkerConfig.DATA_PORT));
+		// TODO: configure drm
 	}
 	
 	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {
 		Stage s = sd.getStageWithId(stageId);
 		ScheduleTask task = this.scheduleTasks.get(s);
+		LOG.info("Scheduling Stage:Task -> {}:{}", s.getStageId(), task.getEuId());
 		
-		// TODO: get this somehow
-		Map<Integer, ConnectionType> connTypeInformation = null;
+		// TODO: fix this, how useful is to configure this?
+		Map<Integer, ConnectionType> connTypeInformation = new HashMap<>();
+		for(Integer i : input.keySet()) {
+			connTypeInformation.put(i, ConnectionType.ONE_AT_A_TIME);
+		}
 		
-		coreInput = CoreInputFactory.buildCoreInputFor(wc, input, connTypeInformation);
-		coreOutput = CoreOutputFactory.buildCoreOutputForStage(wc, output);
+//		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
+//		coreOutput = CoreInputFactory.buildCoreOutputForStage(wc, output, drm);
+		
+		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
+		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 
 		SeepState state = null;
 		
-		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, s.getStageId(), task, state, coreInput, coreOutput, new ConductorCallback(false));
+		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
+				s.getStageId(), task, state, coreInput, coreOutput, new ConductorCallback(false), drm);
 		engine.start();
 	}
 	

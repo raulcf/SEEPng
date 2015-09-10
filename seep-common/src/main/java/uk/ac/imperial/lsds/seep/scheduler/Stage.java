@@ -17,10 +17,25 @@ public class Stage {
 	private final int stageId;
 	
 	private StageType type;
+	/**
+	 * Dependencies of this stage
+	 */
 	private Set<Stage> upstream;
+	/**
+	 * This stage is a dependency of downstream stages
+	 */
 	private Set<Stage> downstream;
+	/**
+	 * All input data references this stage must consume. These will be partitioned across available tasks
+	 */
 	private Map<Integer, Set<DataReference>> inputDataReferences;
+	/**
+	 * All data references produced by this stage
+	 */
 	private Map<Integer, Set<DataReference>> outputDataReferences;
+	/**
+	 * The logical operators that are part of this stage.
+	 */
 	private Deque<Integer> wrapping;
 	
 	private boolean hasPartitionedState = false;
@@ -51,11 +66,11 @@ public class Stage {
 		return inputDataReferences;
 	}
 	
-	public void addInputDataReference(int stageId, Set<DataReference> dataReferences) {
-		if(! this.inputDataReferences.containsKey(stageId)){
-			this.inputDataReferences.put(stageId, new HashSet<>());
+	public void addInputDataReference(int streamId, Set<DataReference> dataReferences) {
+		if(! this.inputDataReferences.containsKey(streamId)){
+			this.inputDataReferences.put(streamId, new HashSet<>());
 		}
-		this.inputDataReferences.get(stageId).addAll(dataReferences);
+		this.inputDataReferences.get(streamId).addAll(dataReferences);
 	}
 	
 	public Map<Integer, Set<DataReference>> getOutputDataReferences() {

@@ -12,6 +12,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -22,30 +23,31 @@ public class InputAdapterFactory {
 	
 	final static private Logger LOG = LoggerFactory.getLogger(IOComm.class.getName());
 	
-	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<InputBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
+	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
 		List<InputAdapter> ias = null;
 		DataStoreType type = drefs.iterator().next().getDataStore().type();
-		if(type.equals(DataStoreType.NETWORK)){
+		// TODO: What to do in the case of locally serving data from datareferencemanager?
+		if(type.equals(DataStoreType.NETWORK)) {
 			ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
 		}
-		else if(type.equals(DataStoreType.FILE)){
+		else if(type.equals(DataStoreType.FILE)) {
 			ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
 		}
-		else if(type.equals(DataStoreType.KAFKA)){
+		else if(type.equals(DataStoreType.KAFKA)) {
 			ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
 		}
 		return ias;
 	}
 
 	private static List<InputAdapter> buildInputAdapterOfTypeNetworkForOps(
-			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<IBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
 		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
 		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
 			// one-queue-per-conn, one-single-queue, etc.
 			LOG.info("Creating NETWORK inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
-			for(InputBuffer buffer : buffers) {
+			for(IBuffer buffer : buffers) {
 				InputAdapter ia = new NetworkDataStream(wc, streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}
@@ -59,14 +61,14 @@ public class InputAdapterFactory {
 	}
 	
 	private static List<InputAdapter> buildInputAdapterOfTypeFileForOps(
-			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<IBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
 		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
 		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
 			// one-queue-per-conn, one-single-queue, etc.
 			LOG.info("Creating FILE inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
-			for(InputBuffer buffer : buffers) {
+			for(IBuffer buffer : buffers) {
 				InputAdapter ia = new FileDataStream(wc, streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}
@@ -75,14 +77,14 @@ public class InputAdapterFactory {
 	}
 	
 	private static List<InputAdapter> buildInputAdapterOfTypeKafkaForOps(
-			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<InputBuffer> buffers, ConnectionType connType) {
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<IBuffer> buffers, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
 		short cType = connType.ofType();
 		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
 		if(cType == ConnectionType.ONE_AT_A_TIME.ofType()) {
 			// one-queue-per-conn, one-single-queue, etc.
 			LOG.info("Creating KAFKA inputAdapter for upstream streamId: {} of type {}", streamId, "ONE_AT_A_TIME");
-			for(InputBuffer buffer : buffers) {
+			for(IBuffer buffer : buffers) {
 				InputAdapter ia = new KafkaDataStream(streamId, buffer, expectedSchema);
 				ias.add(ia);
 			}

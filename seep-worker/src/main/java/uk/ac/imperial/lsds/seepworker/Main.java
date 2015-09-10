@@ -38,6 +38,7 @@ import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerCommManager;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
+import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
 
 public class Main {
@@ -75,8 +76,11 @@ public class Main {
 		// Create master-worker API handler (to send commands to master)
 		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
 		
+		// Create DataReferenceManager
+		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(wc);
+		
 		// Create conductor
-		Conductor c = new Conductor(myIp, api, masterConnection, wc, comm);
+		Conductor c = new Conductor(myIp, api, masterConnection, wc, comm, drm);
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());

@@ -1,6 +1,9 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -58,15 +64,58 @@ public class SchedulerEngineWorker implements Runnable {
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
 			}
-			// TODO: Come up with a plan: which workers process which dataReferences and where they output data
-			MasterWorkerCommand esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStage.getStageId(), 
-					nextStage.getInputDataReferences(), nextStage.getOutputDataReferences());
+			
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
-			// Send stage to all workers and wait... (easy to get only a subset, since we have inf here)
-			boolean success = comm.send_object_sync(esc, euInvolved, k);
+			List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
+			
+			for(CommandToNode ctn : commands) {
+				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
+			}
+			
 			// Wait until stage is completed
 			waitForNodes(nextStage, euInvolved);
 		}
+	}
+	
+	private class CommandToNode {
+		public CommandToNode(MasterWorkerCommand command, Connection c){
+			this.command = command;
+			this.c = c;
+		}
+		public MasterWorkerCommand command;
+		public Connection c;
+	}
+	
+	// TODO: straw-man solution
+	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
+		// All input data references to process during next stage
+		int nextStageId = nextStage.getStageId();
+		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
+		
+		// Split input DataReference per worker to maximize locality (not load balancing)
+		List<CommandToNode> commands = new ArrayList<>();
+		for(Connection c : conns) {
+			MasterWorkerCommand esc = null;
+			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
+			for(Integer streamId : drefs.keySet()) {
+				for(DataReference dr : drefs.get(streamId)) {
+					// Check whether to assign this DR or not. Shuffled or locality=local
+					if(dr.isPartitioned() || dr.getEndPoint().getId() == c.getId()) {
+						// assign
+						if(! perWorker.containsKey(streamId)) {
+							perWorker.put(streamId, new HashSet<>());
+						}
+						perWorker.get(streamId).add(dr);
+					}
+				}
+			}
+			// FIXME: what is outputdatareferences
+			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
+					perWorker, nextStage.getOutputDataReferences());
+			CommandToNode ctn = new CommandToNode(esc, c);
+			commands.add(ctn);
+		}
+		return commands;
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
@@ -88,19 +137,35 @@ public class SchedulerEngineWorker implements Runnable {
 		tracker.trackAndWait(stage, euIds);
 	}
 	
-	public boolean prepareForStart(Set<Connection> connections) {
+	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {
 		// Set initial connections in worker
 		this.connections = connections;
 		// Basically change stage status so that SOURCE tasks are ready to run
 		boolean success = true;
 		for(Stage stage : scheduleDescription.getStages()) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
+				configureInputForInitialStage(connections, stage, slq);
 				// TODO: configure inputDataReference at this point ??
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}
 		}
 		return success;
+	}
+
+	private void configureInputForInitialStage(Set<Connection> connections, Stage s, SeepLogicalQuery slq) {
+		// Get input type from first operator
+		int srcOpId = s.getWrappedOperators().getLast();
+		LogicalOperator src = slq.getOperatorWithId(srcOpId);
+		Set<DataReference> refs = new HashSet<>();
+		DataStore dataStore = src.upstreamConnections().iterator().next().getDataStore();
+		// make a data reference, considering the datastore that describes the source, in each of the endpoint
+		// these will request to the DRM to get the data. the DRM will see the type synthetic and will create a fake 
+		// dataset that actually serves synthetically generated data
+		DataReference dr = DataReference.makeExternalDataReference(dataStore);
+		int streamId = 0; // only one streamId for sources in scheduled mode
+		refs.add(dr);
+		s.addInputDataReference(streamId, refs);
 	}
 	
 	public void newStageStatus(int stageId, int euId, Map<Integer, Set<DataReference>> results, StageStatusCommand.Status status) {

@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -51,7 +52,7 @@ public class NetworkBarrier implements InputAdapter {
 		this.data = new ArrayList<>();
 	}
 
-	public NetworkBarrier(WorkerConfig wc, int streamId, List<InputBuffer> buffers, Schema expectedSchema) {
+	public NetworkBarrier(WorkerConfig wc, int streamId, List<IBuffer> buffers, Schema expectedSchema) {
 		
 	}
 

@@ -5,37 +5,41 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 
+/**
+ * This has to:
+ * keep track of all DataReferences that the node manages (store and serve types)
+ * keep track of those datasets that correspond to datareferences of type store
+ * provide on-demand access to both datasets and datareferences
+ * @author ra
+ *
+ */
 public class DataReferenceManager {
 
 	final private Logger LOG = LoggerFactory.getLogger(DataReferenceManager.class.getName());
 	private static DataReferenceManager instance;
 		
 	private Map<Integer, DataReference> catalogue;
-	private Map<DataReference, DataSet> managedDataSets;
-	private Executor pool;
+	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
 	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
-		this.managedDataSets = new HashMap<>();
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -45,39 +49,24 @@ public class DataReferenceManager {
 		return instance;
 	}
 	
-	public void manageNewDataReference(DataReference dataRef) {
+	public OBuffer manageNewDataReference(DataReference dataRef) {
 		int id = dataRef.getId();
+		Dataset newDataset = null;
 		if(! catalogue.containsKey(id)) {
 			LOG.info("Start managing new DataReference, id -> {}", id);
 			catalogue.put(id, dataRef);
-		}	
+			// TODO: will become more complex...
+			newDataset = new Dataset(dataRef);
+			datasets.put(id, newDataset);
+		}
 		else {
 			LOG.warn("Attempt to register an already existent DataReference, id -> {}", id);
 		}
+		return newDataset;
 	}
 	
 	public DataReference doesManageDataReference(int dataRefId) {
 		return catalogue.get(dataRefId);
-	}
-	
-	public void stopManagingDataReference(DataReference dataRef) {
-		
-	}
-	
-	public void createNewDataSet(DataReference dataRef) {
-		
-	}
-	
-	public void storeDataSet(DataSet dataSet) {
-		
-	}
-	
-	public void createAndStoreDataSet(DataSet dataSet) {
-		
-	}
-	
-	public void deleteDataSet(DataSet dataSet) {
-		
 	}
 	
 	// FIXME: temporal method
@@ -109,6 +98,14 @@ public class DataReferenceManager {
 			if(dss.type() == type) return dss;
 		}
 		return null;
+	}
+
+	public IBuffer getInputBufferFor(DataReference dr) {
+		// Sanity check
+		if(doesManageDataReference(dr.getId()) == null) {
+			// TODO: throw error
+		}
+		return datasets.get(dr.getId());
 	}
 	
 }

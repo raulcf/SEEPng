@@ -38,10 +38,12 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	private SeepTask task;
 	private SeepState state;
 	
+	private DataReferenceManager drm;
+	
 	// Metrics
 	final private Meter m;
 	
-	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, CollectorType collectorType) {
+	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, CollectorType collectorType, DataReferenceManager drm) {
 		this.id = id;
 		this.task = task;
 		this.state = state;
@@ -53,6 +55,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
 		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
+		this.drm = drm;
 	}
 
 	@Override
@@ -101,7 +104,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 				api = new Collector(id, coreOutput);
 				break;
 			case COMPOSED_SEQUENTIAL_TASK:
-				api = new SchedulePipelineCollector(id, coreOutput, task);
+				// FIXME: probably no need to differentiate at this point. FIX this after first push
+				api = new SchedulePipelineCollector(id, coreOutput);
 				break;
 			}
 			
