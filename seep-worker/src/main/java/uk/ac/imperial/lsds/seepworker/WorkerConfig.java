@@ -12,6 +12,14 @@ import uk.ac.imperial.lsds.seep.config.ConfigKey;
 public class WorkerConfig extends Config {
 
     private static final ConfigDef config;
+    
+    public static final String SYNTHETIC_DATA_GENERATOR_ID = "syntheticdatagen.id";
+    private static final String SYNTHETIC_DATA_GENERATOR_ID_DOC = "Id assigned in all worker nodes to the Dataset representing"
+    		+ "the synthetic generator of data";
+    
+    public static final String SYNTHETIC_DATA_GENERATOR_TYPE = "syntheticdatagen.type";
+    private static final String SYNTHETIC_DATA_GENERATOR_TYPE_DOC = "The type of data generator to use for generating synthetic data";
+    
 	
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
@@ -80,6 +88,8 @@ public class WorkerConfig extends Config {
 	
 	static{
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
+				.define(SYNTHETIC_DATA_GENERATOR_ID, Type.INT, -666, Importance.LOW, SYNTHETIC_DATA_GENERATOR_ID_DOC)
+				.define(SYNTHETIC_DATA_GENERATOR_TYPE, Type.INT, 0, Importance.LOW, SYNTHETIC_DATA_GENERATOR_TYPE)
 				.define(LISTENING_IP, Type.STRING,  null, Importance.MEDIUM, LISTENING_IP_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(MASTER_PORT, Type.INT, 3500, Importance.HIGH, MASTER_PORT_DOC)

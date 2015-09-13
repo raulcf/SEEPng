@@ -152,9 +152,6 @@ public class Conductor {
 			connTypeInformation.put(i, ConnectionType.ONE_AT_A_TIME);
 		}
 		
-//		coreInput = CoreInputFactory.buildCoreInputForStage(wc, input);
-//		coreOutput = CoreInputFactory.buildCoreOutputForStage(wc, output, drm);
-		
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 

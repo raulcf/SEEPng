@@ -145,7 +145,6 @@ public class SchedulerEngineWorker implements Runnable {
 		for(Stage stage : scheduleDescription.getStages()) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
 				configureInputForInitialStage(connections, stage, slq);
-				// TODO: configure inputDataReference at this point ??
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}

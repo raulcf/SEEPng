@@ -30,10 +30,11 @@ public class CoreOutputFactory {
 			List<OBuffer> buffers = new ArrayList<>();
 			for(DataReference dr : entry.getValue()) {
 				OBuffer ob = null;
-				// TODO: The type of OBuffer will change depending on the type of DataReference.Serving or Store, no?
+				// We indicate DRM to manage a new DataReference and get a Dataset that will host the data in return
 				if(dr.getServeMode().equals(ServeMode.STORE)) {
 					ob = drm.manageNewDataReference(dr);
 				}
+				// We simply create an outputBuffer that will host the data that will ship to an external system
 				else {
 					ob = new OutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
 				}

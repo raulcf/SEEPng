@@ -1,6 +1,5 @@
 package uk.ac.imperial.lsds.seepworker.core.input;
 
-import java.awt.dnd.DragSourceMotionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -36,6 +36,9 @@ public class CoreInputFactory {
 				// If DR is managed internally and locally
 				if(drm.doesManageDataReference(dr.getId()) != null) {
 					ib = drm.getInputBufferFor(dr);
+				}
+				else if(dr.getDataStore().type().equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+					ib = drm.getSyntheticDataset(dr);
 				}
 				// If not
 				else {

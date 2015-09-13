@@ -16,6 +16,7 @@ import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.Dataset;
 
 public class InputAdapterFactory {
 
@@ -25,16 +26,41 @@ public class InputAdapterFactory {
 	
 	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
 		List<InputAdapter> ias = null;
-		DataStoreType type = drefs.iterator().next().getDataStore().type();
-		// TODO: What to do in the case of locally serving data from datareferencemanager?
-		if(type.equals(DataStoreType.NETWORK)) {
-			ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
+		DataReference dRef_reference = drefs.iterator().next();
+		DataStoreType type = dRef_reference.getDataStore().type();
+		
+		// The case of locally serving a DataReference
+		if(dRef_reference.isManaged()) {
+			List<Dataset> datasets = new ArrayList<>();
+			for(IBuffer iBuf : buffers){
+				if( ! (iBuf instanceof Dataset)) {
+					// TODO: throw some exception here, what other method is there to host managed data otherwise?
+				}
+				datasets.add((Dataset)iBuf);
+			}
+			ias = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
 		}
-		else if(type.equals(DataStoreType.FILE)) {
-			ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
+		else{
+			if(type.equals(DataStoreType.NETWORK)) {
+				ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
+			}
+			else if(type.equals(DataStoreType.FILE)) {
+				ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
+			}
+			else if(type.equals(DataStoreType.KAFKA)) {
+				ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
+			}
 		}
-		else if(type.equals(DataStoreType.KAFKA)) {
-			ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
+		return ias;
+	}
+	
+	private static List<InputAdapter> buildInputAdapterOfTypeDatasetForOps(
+			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<Dataset> datasets){
+		List<InputAdapter> ias = new ArrayList<>();
+		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
+		for(Dataset dataset : datasets) {
+			InputAdapter ia = new DatasetInputAdapter(wc, streamId, dataset, expectedSchema);
+			ias.add(ia);
 		}
 		return ias;
 	}

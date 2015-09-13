@@ -3,20 +3,39 @@ package uk.ac.imperial.lsds.seepworker.core;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
 public class Dataset implements IBuffer, OBuffer {
 
+	private int id;
 	private DataReference dataReference;
-	public ByteBuffer buffer = ByteBuffer.allocate(8092);
+	
+	// FIXME: for now, just make sure nobody writes and reads this simultaneously
+	public ByteBuffer buffer = ByteBuffer.allocate(8192);
+	private final int BATCH_SIZE = 4096;
+	
+	// Writing artifacts
+	private AtomicBoolean completed = new AtomicBoolean(false);
+	private int tuplesInBatch = 0;
+	private int currentBatchSize = 0;
 
 	public Dataset(DataReference dataReference) {
 		this.dataReference = dataReference;
+		this.id = dataReference.getId();
 	}
+	
+	public Dataset(int id, byte[] syntheticData) {
+		this.dataReference = null;
+		this.id = id;
+		buffer.put(syntheticData);
+	}
+	
 	
 	/**
 	 * IBuffer
@@ -58,8 +77,7 @@ public class Dataset implements IBuffer, OBuffer {
 
 	@Override
 	public int id() {
-		// TODO Auto-generated method stub
-		return 0;
+		return id;
 	}
 
 	@Override
@@ -76,8 +94,26 @@ public class Dataset implements IBuffer, OBuffer {
 
 	@Override
 	public boolean write(byte[] data) {
-		// TODO Auto-generated method stub
-		return false;
+		
+		// FIXME: assume there is always enough space
+		
+		int tupleSize = data.length;
+		buffer.putInt(tupleSize);
+		buffer.put(data);
+		tuplesInBatch++;
+		currentBatchSize = currentBatchSize + tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		if(buffer.position() >= BATCH_SIZE) {
+			int currentPosition = buffer.position();
+			int currentLimit = buffer.limit();
+			buffer.position(TupleInfo.NUM_TUPLES_BATCH_OFFSET);
+			buffer.putInt(tuplesInBatch);
+			buffer.putInt(currentBatchSize);
+			buffer.position(currentPosition);
+			buffer.limit(currentLimit);
+			buffer.flip(); // leave the buffer ready to be read
+		}
+		return true;
 	}
 
 	@Override

@@ -38,8 +38,12 @@ public class DataReferenceManager {
 	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
 	
+	private int syntheticDatasetGenerator;
+	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
+		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
+		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -106,6 +110,18 @@ public class DataReferenceManager {
 			// TODO: throw error
 		}
 		return datasets.get(dr.getId());
+	}
+	
+	public IBuffer getSyntheticDataset(DataReference dr) {
+		// Generate synthetic data
+		byte[] data = new byte[1024];
+		// TODO: generate synthetic data
+		
+		// Store synthetic data in synthetic dataset
+		Dataset synthetic = new Dataset(syntheticDatasetGenerator, data);
+		// Store in catalogue and return it for use
+		datasets.put(syntheticDatasetGenerator, synthetic);
+		return synthetic;
 	}
 	
 }

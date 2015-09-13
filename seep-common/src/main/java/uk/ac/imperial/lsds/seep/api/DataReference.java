@@ -6,6 +6,11 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 
 public final class DataReference {
 	
+	public enum ServeMode {
+		STREAM,
+		STORE
+	}
+	
 	/**
 	 * An ID for the DR. It can be used to include an "owner", e.g. the operator that can serve it.
 	 */
@@ -91,11 +96,6 @@ public final class DataReference {
 	
 	public boolean isPartitioned() {
 		return partitioned;
-	}
-	
-	public enum ServeMode {
-		STREAM,
-		STORE
 	}
 	
 	/**
