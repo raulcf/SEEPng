@@ -51,5 +51,10 @@ public class Array extends Type {
 	public boolean isVariableSize() {
 		return type.isVariableSize();
 	}
+	
+	@Override
+	public Object defaultValue() {
+		return new Object[1];
+	}
 
 }
