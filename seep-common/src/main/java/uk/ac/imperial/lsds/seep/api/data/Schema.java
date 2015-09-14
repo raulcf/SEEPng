@@ -163,5 +163,17 @@ public class Schema {
 		this.names = null;
 		this.variableSize = false;
 	}
+
+	/**
+	 * Will return an array of default values that follow this schema
+	 * @return
+	 */
+	public Object[] defaultValues() {
+		Object[] values = new Object[fields.length];
+		for(int i = 0; i < values.length; i++) {
+			values[i] = fields[i].defaultValue();
+		}
+		return values;
+	}
 	
 }

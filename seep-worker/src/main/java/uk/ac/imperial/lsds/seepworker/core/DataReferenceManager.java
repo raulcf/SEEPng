@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
@@ -113,12 +116,26 @@ public class DataReferenceManager {
 	}
 	
 	public IBuffer getSyntheticDataset(DataReference dr) {
-		// Generate synthetic data
-		byte[] data = new byte[1024];
-		// TODO: generate synthetic data
 		
+		// TODO: basic generation of data
+		ByteBuffer d = ByteBuffer.allocate(1024);
+		
+		// Generate synthetic data
+		Schema s = dr.getDataStore().getSchema();
+		int totalWritten = 0;
+		boolean goOn = true;
+		while(goOn) {
+			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
+			if(d.position() + tuple.length < d.capacity()) {
+				d.put(tuple);
+				totalWritten = totalWritten + tuple.length;
+			}
+			else {
+				goOn = false;
+			}
+		}
 		// Store synthetic data in synthetic dataset
-		Dataset synthetic = new Dataset(syntheticDatasetGenerator, data);
+		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array());
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;

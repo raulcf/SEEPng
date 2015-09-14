@@ -12,6 +12,7 @@ public abstract class Type {
 	public abstract Object read(ByteBuffer buffer);
 	public abstract int sizeOf(Object o);
 	public abstract boolean isVariableSize();
+	public abstract Object defaultValue();
 	
 	public enum JavaType{
 		BYTE, SHORT, INT, LONG, STRING, BYTES
@@ -44,6 +45,11 @@ public abstract class Type {
 			return false;
 		}
 		
+		@Override
+		public Object defaultValue() {
+			return 0;
+		}
+		
 	};
 	
 	public static final Type SHORT = new Type() {
@@ -71,6 +77,11 @@ public abstract class Type {
 		@Override
 		public boolean isVariableSize() {
 			return false;
+		}
+		
+		@Override
+		public Object defaultValue() {
+			return 0;
 		}
 	};
 	
@@ -100,6 +111,11 @@ public abstract class Type {
 		public boolean isVariableSize() {
 			return false;
 		}
+		
+		@Override
+		public Object defaultValue() {
+			return 0;
+		}
 	};
 	
 	public static final Type LONG = new Type() {
@@ -128,6 +144,11 @@ public abstract class Type {
 		@Override
 		public boolean isVariableSize() {
 			return false;
+		}
+		
+		@Override
+		public Object defaultValue() {
+			return 0;
 		}
 	};
 	
@@ -178,6 +199,11 @@ public abstract class Type {
 		public boolean isVariableSize() {
 			return true;
 		}
+		
+		@Override
+		public Object defaultValue() {
+			return "string";
+		}
 	};
 	
 	public static final Type SHORTSTRING = new Type(){
@@ -209,6 +235,11 @@ public abstract class Type {
 		@Override
 		public boolean isVariableSize() {
 			return false;
+		}
+		
+		@Override
+		public Object defaultValue() {
+			return "string";
 		}
 		
 	};
@@ -246,6 +277,11 @@ public abstract class Type {
 		@Override
 		public boolean isVariableSize() {
 			return true;
+		}
+		
+		@Override
+		public Object defaultValue() {
+			return new byte[1];
 		}
 	};
 	
