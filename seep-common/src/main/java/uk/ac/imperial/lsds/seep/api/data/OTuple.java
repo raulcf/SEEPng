@@ -37,8 +37,8 @@ public class OTuple {
 		Object[] values = new Object[vs.length];
 		for(int i = 0; i < fields.length; i++){
 			Object toTypeCheck = vs[i];
-			if(! schema.typeCheck(fields[i], toTypeCheck)){
-				String error = "Field: "+fields[i].toString()+" does not type check";
+			if(! schema.typeCheck(fields[i], toTypeCheck)) {
+				String error = "Field: " + fields[i].toString() + " does not type check";
 				throw new SchemaException(error);
 			}
 			else{

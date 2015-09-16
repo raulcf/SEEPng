@@ -9,6 +9,7 @@ import uk.ac.imperial.lsds.seep.api.QueryBuilder;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
@@ -51,13 +52,16 @@ public class LongPipelineBase implements QueryComposer {
 	}
 	
 	class Source implements uk.ac.imperial.lsds.seep.api.operator.sources.Source {
+		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
 		}
 		@Override
 		public void processData(ITuple data, API api) {
-			// TODO Auto-generated method stub	
+			System.out.println("Im " + this.toString());
+			byte[] o = OTuple.create(srcSchema, srcSchema.names(), srcSchema.defaultValues());
+			api.send(o);
 		}
 		@Override
 		public void processDataGroup(List<ITuple> dataList, API api) {
@@ -70,13 +74,16 @@ public class LongPipelineBase implements QueryComposer {
 	}
 	
 	class Processor implements SeepTask {
+		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
 		}
 		@Override
 		public void processData(ITuple data, API api) {
-			// TODO Auto-generated method stub	
+			System.out.println("Im " + this.toString());
+			byte[] o = OTuple.create(srcSchema, srcSchema.names(), srcSchema.defaultValues());
+			api.send(o);
 		}
 		@Override
 		public void processDataGroup(List<ITuple> dataList, API api) {
@@ -89,13 +96,16 @@ public class LongPipelineBase implements QueryComposer {
 	}
 	
 	class Sink implements uk.ac.imperial.lsds.seep.api.operator.sinks.Sink {
+		Schema srcSchema = queryAPI.schemaBuilder.newField(Type.SHORT, "id").build();
 		@Override
 		public void setUp() {
 			// TODO Auto-generated method stub	
 		}
 		@Override
 		public void processData(ITuple data, API api) {
-			// TODO Auto-generated method stub	
+			System.out.println("Im " + this.toString());
+			byte[] o = OTuple.create(srcSchema, srcSchema.names(), srcSchema.defaultValues());
+//			api.send(o);
 		}
 		@Override
 		public void processDataGroup(List<ITuple> dataList, API api) {

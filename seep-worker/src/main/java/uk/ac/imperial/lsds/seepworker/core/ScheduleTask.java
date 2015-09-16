@@ -16,6 +16,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.util.Utils;
 
 public class ScheduleTask implements SeepTask {
 
@@ -69,19 +70,50 @@ public class ScheduleTask implements SeepTask {
 			taskIterator = tasks.iterator();
 		}
 	}
-
-	@Override
-	public void processData(ITuple data, API api) {
+	
+	
+	public void _processData(ITuple data, API api) {
+		API scApi = new SimpleCollector();
+		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
+		// Check whether there are tasks ahead
 		while(taskIterator.hasNext()) {
-			SeepTask next = taskIterator.next();
-			next.processData(data, api);
-			byte[] o = ((SchedulePipelineCollector)api).collect();
-			
+			// There is a next OP, we simply need to collect output
+			next.processData(data, scApi);
+			byte[] o = ((SimpleCollector)scApi).collect();
 			LogicalOperator nextOp = opIt.next();
 			Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
 			data = new ITuple(schema);
 			data.setData(o);
+			// Otherwise we simply forward the data
+			next = taskIterator.next();
 		}
+		// Finally use real API for real forwarding
+		next.processData(data, api);
+		// Then reset iterators for more processing
+		taskIterator = tasks.iterator();
+		opIt = operators.iterator();
+	}
+
+	@Override
+	public void processData(ITuple data, API api) {
+		API scApi = new SimpleCollector();
+		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
+		while(taskIterator.hasNext()) {
+			// There is a next OP, we simply need to collect output
+			if(taskIterator.hasNext()) {
+				next.processData(data, scApi);
+				byte[] o = ((SimpleCollector)scApi).collect();
+				LogicalOperator nextOp = opIt.next();
+				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+				data = new ITuple(schema);
+				data.setData(o);
+			}
+			// Otherwise we simply forward the data
+			else {
+				next.processData(data, api);
+			}
+		}
+		// Then reset iterators for more processing
 		taskIterator = tasks.iterator();
 		opIt = operators.iterator();
 	}
@@ -104,5 +136,19 @@ public class ScheduleTask implements SeepTask {
 		else{
 			taskIterator = tasks.iterator();
 		}
+	}
+	
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("Stage: " + this.stageId + ", running on: " + this.euId);
+		sb.append(Utils.NL);
+		StringBuffer tasksDescr = new StringBuffer();
+		for(LogicalOperator lo : operators) {
+			tasksDescr.append(" t: " + lo.getOperatorId() + "-> " + lo.getSeepTask().toString());
+			tasksDescr.append(Utils.NL);
+		}
+		sb.append(tasksDescr.toString());
+		return sb.toString();
 	}
 }

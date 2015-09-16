@@ -47,7 +47,7 @@ public abstract class Type {
 		
 		@Override
 		public Object defaultValue() {
-			return 0;
+			return (byte)0;
 		}
 		
 	};
@@ -81,7 +81,7 @@ public abstract class Type {
 		
 		@Override
 		public Object defaultValue() {
-			return 0;
+			return (short)0;
 		}
 	};
 	
@@ -148,7 +148,7 @@ public abstract class Type {
 		
 		@Override
 		public Object defaultValue() {
-			return 0;
+			return (long)0L;
 		}
 	};
 	
