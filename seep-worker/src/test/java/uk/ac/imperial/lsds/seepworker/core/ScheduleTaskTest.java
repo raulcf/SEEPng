@@ -78,7 +78,13 @@ public class ScheduleTaskTest {
 		byte[] output = ((SimpleCollector)api).collect();
 		ITuple out = new ITuple(schema);
 		out.setData(output);
-		out.toString();
+		System.out.println(out.toString());
+		
+		st3.processData(data, api);
+		output = ((SimpleCollector)api).collect();
+		out = new ITuple(schema);
+		out.setData(output);
+		System.out.println(out.toString());
 				
 	}
 

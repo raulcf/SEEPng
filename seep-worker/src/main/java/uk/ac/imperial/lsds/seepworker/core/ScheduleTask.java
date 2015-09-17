@@ -63,16 +63,39 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void setUp() {
-		if(taskIterator.hasNext()){
-			taskIterator.next().setUp();
-		}
-		else{
+		if(! taskIterator.hasNext()) {
 			taskIterator = tasks.iterator();
+		}
+		if(! opIt.hasNext()) {
+			opIt = operators.iterator();
 		}
 	}
 	
 	
-	public void _processData(ITuple data, API api) {
+//	public void _processData(ITuple data, API api) {
+//		API scApi = new SimpleCollector();
+//		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
+//		// Check whether there are tasks ahead
+//		while(taskIterator.hasNext()) {
+//			// There is a next OP, we simply need to collect output
+//			next.processData(data, scApi);
+//			byte[] o = ((SimpleCollector)scApi).collect();
+//			LogicalOperator nextOp = opIt.next();
+//			Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+//			data = new ITuple(schema);
+//			data.setData(o);
+//			// Otherwise we simply forward the data
+//			next = taskIterator.next();
+//		}
+//		// Finally use real API for real forwarding
+//		next.processData(data, api);
+//		// Then reset iterators for more processing
+//		taskIterator = tasks.iterator();
+//		opIt = operators.iterator();
+//	}
+
+	@Override
+	public void processData(ITuple data, API api) {
 		API scApi = new SimpleCollector();
 		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
 		// Check whether there are tasks ahead
@@ -89,30 +112,6 @@ public class ScheduleTask implements SeepTask {
 		}
 		// Finally use real API for real forwarding
 		next.processData(data, api);
-		// Then reset iterators for more processing
-		taskIterator = tasks.iterator();
-		opIt = operators.iterator();
-	}
-
-	@Override
-	public void processData(ITuple data, API api) {
-		API scApi = new SimpleCollector();
-		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
-		while(taskIterator.hasNext()) {
-			// There is a next OP, we simply need to collect output
-			if(taskIterator.hasNext()) {
-				next.processData(data, scApi);
-				byte[] o = ((SimpleCollector)scApi).collect();
-				LogicalOperator nextOp = opIt.next();
-				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
-				data = new ITuple(schema);
-				data.setData(o);
-			}
-			// Otherwise we simply forward the data
-			else {
-				next.processData(data, api);
-			}
-		}
 		// Then reset iterators for more processing
 		taskIterator = tasks.iterator();
 		opIt = operators.iterator();
