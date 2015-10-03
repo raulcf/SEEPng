@@ -93,7 +93,6 @@ public class DataReferenceManager {
 			
 			break;
 		}
-		
 	}
 
 	public void setDataStoreSelectors(List<DataStoreSelector> dataStoreSelectors) {

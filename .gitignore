@@ -51,6 +51,9 @@ examples/simple-kafka-stateless-pipeline/.settings/
 examples/simple-kafka-stateless-pipeline/build/*
 examples/static-scaleout-pipeline-stateful-query/.settings/
 examples/static-scaleout-pipeline-stateful-query/build/
+examples/simple-dag-schedule/.settings/
+examples/simple-dag-schedule/build/
+
 deploy/
 dist/
 install/
