@@ -82,8 +82,9 @@ public class Stage {
 	}
 	
 	public Set<EndPoint> getInvolvedNodes() {
+		// FIXME: cannot depend on DR, as these can be external, i.e. no endpoint inside
 		Set<EndPoint> in = new HashSet<>();
-		for(Set<DataReference> drs : inputDataReferences.values()){
+		for(Set<DataReference> drs : inputDataReferences.values()) {
 			for(DataReference dr : drs) {
 				in.add(dr.getEndPoint());
 			}

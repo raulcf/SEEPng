@@ -24,6 +24,7 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -99,8 +100,16 @@ public class SchedulerEngineWorker implements Runnable {
 			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
 			for(Integer streamId : drefs.keySet()) {
 				for(DataReference dr : drefs.get(streamId)) {
-					// Check whether to assign this DR or not. Shuffled or locality=local
-					if(dr.isPartitioned() || dr.getEndPoint().getId() == c.getId()) {
+					// EXTERNAL. assign one and continue
+					if(! dr.isManaged()) {
+						if(! perWorker.containsKey(streamId)) {
+							perWorker.put(streamId, new HashSet<>());
+						}
+						perWorker.get(streamId).add(dr);
+						break;
+					}
+					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
+					else if(dr.isPartitioned() || dr.getEndPoint().getId() == c.getId()) {
 						// assign
 						if(! perWorker.containsKey(streamId)) {
 							perWorker.put(streamId, new HashSet<>());
@@ -119,11 +128,23 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
-		Set<EndPoint> eps = stage.getInvolvedNodes();
 		Set<Connection> cons = new HashSet<>();
-		for(EndPoint ep : eps) {
-			Connection c = new Connection(ep.extractMasterControlEndPoint());
-			cons.add(c);
+		// In this case DataReference do not necessarily contain EndPoint information
+		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
+			//TODO: probably this won't work later
+			// Simply report all nodes
+			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
+				Connection conn = new Connection(eu.getEndPoint().extractMasterControlEndPoint());
+				cons.add(conn);
+			}
+		}
+		// If not first stages, then DataReferences contain the right EndPoint information
+		else {
+			Set<EndPoint> eps = stage.getInvolvedNodes();
+			for(EndPoint ep : eps) {
+				Connection c = new Connection(ep.extractMasterControlEndPoint());
+				cons.add(c);
+			}
 		}
 		return cons;
 	}
@@ -159,8 +180,7 @@ public class SchedulerEngineWorker implements Runnable {
 		Set<DataReference> refs = new HashSet<>();
 		DataStore dataStore = src.upstreamConnections().iterator().next().getDataStore();
 		// make a data reference, considering the datastore that describes the source, in each of the endpoint
-		// these will request to the DRM to get the data. the DRM will see the type synthetic and will create a fake 
-		// dataset that actually serves synthetically generated data
+		// these will request to the DRM to get the data.
 		DataReference dr = DataReference.makeExternalDataReference(dataStore);
 		int streamId = 0; // only one streamId for sources in scheduled mode
 		refs.add(dr);

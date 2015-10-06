@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepmaster.infrastructure.master;
 
 import java.net.InetAddress;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,11 +20,13 @@ public class PhysicalClusterManager implements InfrastructureManager {
 	final private Logger LOG = LoggerFactory.getLogger(PhysicalClusterManager.class);
 	
 	public final ExecutionUnitType executionUnitType = ExecutionUnitType.PHYSICAL_NODE;
-	private Deque<ExecutionUnit> physicalNodes;
+	private Deque<ExecutionUnit> availablePhysicalNodes;
+	private Deque<ExecutionUnit> usedPhysicalNodes;
 	private Map<Integer, Connection> connectionsToPhysicalNodes;
 
 	public PhysicalClusterManager(){
-		this.physicalNodes = new ArrayDeque<>();
+		this.availablePhysicalNodes = new ArrayDeque<>();
+		this.usedPhysicalNodes = new ArrayDeque<>();
 		this.connectionsToPhysicalNodes = new HashMap<>();
 	}
 	
@@ -34,15 +37,17 @@ public class PhysicalClusterManager implements InfrastructureManager {
 	
 	@Override
 	public void addExecutionUnit(ExecutionUnit eu) {
-		physicalNodes.push(eu);
+		availablePhysicalNodes.push(eu);
 		connectionsToPhysicalNodes.put(eu.getId(), new Connection(eu.getEndPoint().extractMasterControlEndPoint()));
 	}
 	
 	@Override
 	public ExecutionUnit getExecutionUnit(){
-		if(physicalNodes.size() > 0){
-			LOG.debug("Returning 1 executionUnit, remaining: {}", physicalNodes.size()-1);
-			return physicalNodes.pop();
+		if(availablePhysicalNodes.size() > 0){
+			LOG.debug("Returning 1 executionUnit, remaining: {}", availablePhysicalNodes.size()-1);
+			ExecutionUnit toReturn = availablePhysicalNodes.pop();
+			usedPhysicalNodes.push(toReturn);
+			return toReturn;
 		}
 		else{
 			LOG.error("No available executionUnits !!!");
@@ -52,11 +57,19 @@ public class PhysicalClusterManager implements InfrastructureManager {
 
 	@Override
 	public boolean removeExecutionUnit(int id) {
-		for(ExecutionUnit eu : physicalNodes){
+		for(ExecutionUnit eu : usedPhysicalNodes){
 			if(eu.getId() == id){
-				boolean success = physicalNodes.remove(eu);
+				boolean success = usedPhysicalNodes.remove(eu);
 				if(success){
-					LOG.info("ExecutionUnit id: {} was removed");
+					LOG.info("ExecutionUnit id: {} was removed from usedPhysicalNodes");
+				}
+			}
+		}
+		for(ExecutionUnit eu : availablePhysicalNodes){
+			if(eu.getId() == id){
+				boolean success = availablePhysicalNodes.remove(eu);
+				if(success){
+					LOG.info("ExecutionUnit id: {} was removed from availablePhysicalNodes");
 					return true;
 				}
 			}
@@ -66,7 +79,12 @@ public class PhysicalClusterManager implements InfrastructureManager {
 
 	@Override
 	public int executionUnitsAvailable() {
-		return physicalNodes.size();
+		return availablePhysicalNodes.size();
+	}
+	
+	@Override
+	public Collection<ExecutionUnit> executionUnitsInUse() {
+		return usedPhysicalNodes;
 	}
 
 	@Override
