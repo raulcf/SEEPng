@@ -18,6 +18,8 @@ public class UpstreamConnection {
 		this.dataStore = dataStore;
 		this.connectionType = connectionType;
 	}
+	
+	public UpstreamConnection() { }
 
 	public Operator getUpstreamOperator() {
 		return upstreamOperator;

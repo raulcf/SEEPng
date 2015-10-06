@@ -50,6 +50,10 @@ public class Stage {
 		this.wrapping = new ArrayDeque<>();
 	}
 	
+	public Stage() { 
+		this.stageId = 0;
+	}
+	
 	public int getStageId(){
 		return stageId;
 	}

@@ -157,7 +157,7 @@ public class Schema {
 	/**
 	 * Empty constructor for Kryo serialization
 	 */
-	private Schema() { 
+	public Schema() {
 		this.schemaId = 0;
 		this.fields = null;
 		this.names = null;

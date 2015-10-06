@@ -8,6 +8,8 @@ public class ScheduleDescription {
 
 	private Set<Stage> stages;
 	
+	public ScheduleDescription() { }
+	
 	public ScheduleDescription(Set<Stage> stages) {
 		this.stages = stages;
 	}

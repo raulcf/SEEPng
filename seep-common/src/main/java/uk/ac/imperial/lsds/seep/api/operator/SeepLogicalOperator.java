@@ -36,6 +36,9 @@ public class SeepLogicalOperator implements LogicalOperator {
 		this.stateful = true;
 	}
 	
+	// Empty constructor for serialization
+	public SeepLogicalOperator() { }
+	
 	public static LogicalOperator newStatelessOperator(int opId, SeepTask task){
 		String name = new Integer(opId).toString();
 		return SeepLogicalOperator.newStatelessOperator(opId, task, name);

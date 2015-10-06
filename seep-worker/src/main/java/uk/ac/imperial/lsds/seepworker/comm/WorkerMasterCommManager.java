@@ -128,28 +128,28 @@ public class WorkerMasterCommManager {
 					}
 					// SCHEDULE_TASKS command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_TASKS.type()) {
-						LOG.info("RX Schedule_Tasks command");
+						LOG.info("RX SCHEDULE_TASKS command");
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
 						handleScheduleDeploy(sdc);
 					}
 					// SCHEDULE_STAGE command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
-						LOG.info("RX Schedule Stage command");
+						LOG.info("RX SCHEDULE_STAGE command");
 						ScheduleStageCommand esc = c.getScheduleStageCommand();
 						out.println("ack");
 						handleScheduleStage(esc);
 					}
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()) {
-						LOG.info("RX StartRuntime command");
+						LOG.info("RX STARTQUERY command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
 						handleStartQuery(sqc);
 					}
 					// STOPQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()) {
-						LOG.info("RX StopRuntime command");
+						LOG.info("RX STOPQUERY command");
 						StopQueryCommand sqc = c.getStopQueryCommand();
 						out.println("ack");
 						handleStopQuery(sqc);
@@ -202,6 +202,7 @@ public class WorkerMasterCommManager {
 		ScheduleDescription sd = sdc.getSchedule();
 		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
 		c.configureScheduleTasks(myOwnId, sd, slq);
+		LOG.info("Scheduled deploy is done. Waiting for master commands...");
 	}
 
 	public void handleStartQuery(StartQueryCommand sqc) {

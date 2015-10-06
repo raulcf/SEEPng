@@ -21,8 +21,8 @@ public class Base implements QueryComposer {
 		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(), 1);
 		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(), 2);
 		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 3);
-		LogicalOperator branchtwo = queryAPI.newStatelessOperator(new Branch2(), 3);
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 4);
+		LogicalOperator branchtwo = queryAPI.newStatelessOperator(new Branch2(), 4);
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 5);
 		
 		synSrc.connectTo(adderOne, schema, 0);
 		synSrc.connectTo(adderTwo, schema, 1);

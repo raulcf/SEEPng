@@ -89,7 +89,7 @@ public class WorkerConfig extends Config {
 	static{
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
 				.define(SYNTHETIC_DATA_GENERATOR_ID, Type.INT, -666, Importance.LOW, SYNTHETIC_DATA_GENERATOR_ID_DOC)
-				.define(SYNTHETIC_DATA_GENERATOR_TYPE, Type.INT, 0, Importance.LOW, SYNTHETIC_DATA_GENERATOR_TYPE)
+				.define(SYNTHETIC_DATA_GENERATOR_TYPE, Type.INT, 0, Importance.LOW, SYNTHETIC_DATA_GENERATOR_TYPE_DOC)
 				.define(LISTENING_IP, Type.STRING,  null, Importance.MEDIUM, LISTENING_IP_DOC)
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(MASTER_PORT, Type.INT, 3500, Importance.HIGH, MASTER_PORT_DOC)

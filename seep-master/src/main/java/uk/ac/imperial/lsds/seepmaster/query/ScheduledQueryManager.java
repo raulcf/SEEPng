@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
@@ -208,7 +209,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		int opId = slo.getOperatorId();
 		if(opsAlreadyInSchedule.contains(opId)) {
 			// Create dependency with the stage governing opId in this case and return
-			parent.dependsOn(stageResponsibleFor(opId));
+			Stage dependency = stageResponsibleFor(opId);
+			parent.dependsOn(dependency);
 			return;
 		}
 		// Create new stage and dependency with parent
@@ -236,13 +238,12 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 				buildScheduleFromStage(stage, upstreamOp, opsAlreadyInSchedule, slq, stages, stageId);
 			}
 		// If not explore the previous op
-		} 
+		}
 		else {
 			SeepLogicalOperator upstreamOp = (SeepLogicalOperator)slo.upstreamConnections().get(0).getUpstreamOperator();
 			stageId++;
 			buildScheduleFromStage(stage, upstreamOp,  opsAlreadyInSchedule, slq, stages, stageId);
 		}
-			
 	}
 	
 	private Stage stageResponsibleFor(int opId) {
@@ -290,7 +291,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			// if not source op, then...
 			else {
 				// has upstream downstreams other than me?
-				if(slo.upstreamConnections().get(0).getUpstreamOperator().downstreamConnections().size() > 1){	
+				Operator op = slo.upstreamConnections().get(0).getUpstreamOperator();
+				if(op == null || op.downstreamConnections().size() > 1) {
 					finishesStage = true;
 				}
 			}
@@ -323,8 +325,10 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		return false;
 	}
 	
-	private boolean isSource(SeepLogicalOperator slo){
-		if(slo.getSeepTask() instanceof Source) {
+	private boolean isSource(SeepLogicalOperator slo) {
+		// Source if the op is a Source itself, or if its unique upstream is null. 
+		// Null indicates that it's a tagging operator
+		if(slo.getSeepTask() instanceof Source || slo.upstreamConnections().get(0).getUpstreamOperator() == null) {
 			return true;
 		}
 		return false;
