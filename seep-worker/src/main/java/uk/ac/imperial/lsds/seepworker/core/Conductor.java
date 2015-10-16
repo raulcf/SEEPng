@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,6 +15,9 @@ import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
@@ -26,6 +30,7 @@ import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -136,6 +141,7 @@ public class Conductor {
 		LOG.info("Physical plan with {} stages", stages.size());
 		for(Stage s : stages) {
 			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
+			st.setUp();
 			scheduleTasks.put(s, st);
 		}
 		// TODO: configure drm
@@ -153,13 +159,40 @@ public class Conductor {
 		}
 		
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
+		if(output.size() == 0) {
+			output = createOutputForTask(s);
+		}
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 
 		SeepState state = null;
 		
+		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
 				s.getStageId(), task, state, coreInput, coreOutput, new ConductorCallback(false), drm);
 		engine.start();
+	}
+	
+	private Map<Integer, Set<DataReference>> createOutputForTask(Stage s) {
+		// Master did not assign output, so we need to create it here
+		// This basically depends on how many outputs we need to generate
+		Map<Integer, Set<DataReference>> output = new HashMap<>();
+		if(s.hasPartitionedStage()) {
+			// create a DR per partition, that are managed
+			// TODO: figure out this later, once shuffle is clear
+		}
+		else {
+			// create a single DR, that is managed
+			// TODO:
+			int streamId = 0;
+			Set<DataReference> drefs = new HashSet<>();
+			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
+			DataStore dataStore = new DataStore(null, DataStoreType.IN_MEMORY); // how to get this
+			EndPoint endPoint = new EndPoint(id, myIp, -1, wc.getInt(WorkerConfig.DATA_PORT)); // me
+			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+			drefs.add(dr);
+			output.put(streamId, drefs);
+		}
+		return output;
 	}
 	
 	public void startProcessing(){
@@ -207,6 +240,7 @@ public class Conductor {
 		}
 
 		public void notifyOk() {
+			// TODO: this guy should already contain all this info so that it can communicate with master
 //			masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
 		}
 		

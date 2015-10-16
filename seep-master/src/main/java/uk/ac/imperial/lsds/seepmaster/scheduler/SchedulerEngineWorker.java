@@ -178,7 +178,8 @@ public class SchedulerEngineWorker implements Runnable {
 		int srcOpId = s.getWrappedOperators().getLast();
 		LogicalOperator src = slq.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
-		DataStore dataStore = src.upstreamConnections().iterator().next().getDataStore();
+//		DataStore dataStore = src.upstreamConnections().iterator().next().getDataStore();
+		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
 		// make a data reference, considering the datastore that describes the source, in each of the endpoint
 		// these will request to the DRM to get the data.
 		DataReference dr = DataReference.makeExternalDataReference(dataStore);

@@ -38,6 +38,9 @@ public class Stage {
 	 */
 	private Deque<Integer> wrapping;
 	
+	/**
+	 * Whether this stage will create a partitioned output or not
+	 */
 	private boolean hasPartitionedState = false;
 	private boolean hasMultipleInput = false;
 	

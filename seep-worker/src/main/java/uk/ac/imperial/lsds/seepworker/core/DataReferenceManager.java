@@ -14,6 +14,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
@@ -45,6 +46,7 @@ public class DataReferenceManager {
 	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
+		this.datasets = new HashMap<>();
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
 	}
@@ -124,10 +126,18 @@ public class DataReferenceManager {
 		int totalWritten = 0;
 		boolean goOn = true;
 		while(goOn) {
+			byte control = 0;
+			int nTuples = 1;
 			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
-			if(d.position() + tuple.length < d.capacity()) {
+			int tupleSize = tuple.length;
+			int batchSize = tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+			if(d.position() + batchSize + TupleInfo.PER_BATCH_OVERHEAD_SIZE < d.capacity()) {
+				d.put(control);
+				d.putInt(nTuples);
+				d.putInt(batchSize);
+				d.putInt(tupleSize);
 				d.put(tuple);
-				totalWritten = totalWritten + tuple.length;
+				totalWritten = totalWritten + TupleInfo.PER_BATCH_OVERHEAD_SIZE + batchSize;
 			}
 			else {
 				goOn = false;

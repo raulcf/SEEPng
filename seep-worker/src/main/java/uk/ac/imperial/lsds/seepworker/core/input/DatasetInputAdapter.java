@@ -1,6 +1,9 @@
 package uk.ac.imperial.lsds.seepworker.core.input;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -56,7 +59,12 @@ public class DatasetInputAdapter implements InputAdapter {
 		
 		if(iTupleBuffer.size() == 0) {
 		
+			// FIXME: This buffer is pointing to the last written position. THINK this
 			ByteBuffer sourceData = dataset.buffer;
+			// FIXME: temporal solution?
+			sourceData.flip();
+			// TODO: write a more convenient method, if possible readablebytechannel to 
+			// so basically create a readablebytechannel from sourceData
 			
 			// Read first into a stream from the dataset (should be indep of where dataset keeps )
 			if(header.remaining() > 0) {
@@ -98,7 +106,10 @@ public class DatasetInputAdapter implements InputAdapter {
 	}
 	
 	private int read(ByteBuffer src, ByteBuffer dst) {
-		src.get(dst.array());
+		int offset = src.position();
+		int length = dst.remaining();
+		dst.put(src.array(), offset, length);
+		src.position(offset + length); // advance position after reading from backup array
 		return 0;
 	}
 

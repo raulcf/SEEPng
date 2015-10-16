@@ -133,6 +133,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 					}
 					else {
 						callback.notifyOk();
+						// TODO: shouldn't we simply quit here? with a 'break'
 					}
 					
 				}

@@ -30,8 +30,7 @@ public class SyntheticSource implements StaticConnectable, StaticSource {
 	}
 
 	@Override
-	public void connectTo(LogicalOperator operator, Schema schema,
-			int streamId, ConnectionType connType) {
+	public void connectTo(LogicalOperator operator, Schema schema, int streamId, ConnectionType connType) {
 		DataStore ds = new DataStore(schema, DataStoreType.SEEP_SYNTHETIC_GEN, properties);
 		((SeepLogicalOperator)operator).reverseConnection(this, streamId, ds, connType);
 	}

@@ -29,8 +29,9 @@ public class InputAdapterFactory {
 		DataReference dRef_reference = drefs.iterator().next();
 		DataStoreType type = dRef_reference.getDataStore().type();
 		
-		// The case of locally serving a DataReference
-		if(dRef_reference.isManaged()) {
+		// The case of locally serving a DataReference.
+		// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
+		if(dRef_reference.isManaged() || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
 			List<Dataset> datasets = new ArrayList<>();
 			for(IBuffer iBuf : buffers){
 				if( ! (iBuf instanceof Dataset)) {
