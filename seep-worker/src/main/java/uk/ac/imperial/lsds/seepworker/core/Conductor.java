@@ -39,6 +39,7 @@ import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 
 public class Conductor {
 
@@ -117,7 +118,7 @@ public class Conductor {
 
 		int id = o.getOperatorId();
 		
-		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, new ConductorCallback(true), drm);
+		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, makeContinuousConductorCallback(), drm);
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -168,7 +169,7 @@ public class Conductor {
 		
 		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
-				s.getStageId(), task, state, coreInput, coreOutput, new ConductorCallback(false), drm);
+				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output), drm);
 		engine.start();
 	}
 	
@@ -227,12 +228,30 @@ public class Conductor {
 		return -1;
 	}
 	
+	public ConductorCallback makeContinuousConductorCallback() {
+		return new ConductorCallback(true);
+	}
+	
+	public ConductorCallback makeConductorCallbackForScheduleStage(int stageId, int euId, Map<Integer, Set<DataReference>> output) {
+		return new ConductorCallback(false, stageId, euId, output);
+	}
+	
 	class ConductorCallback {
 
 		private boolean continuousTask;
+		private int stageId;
+		private int euId;
+		private Map<Integer, Set<DataReference>> refToProducedOutput;
 		
-		public ConductorCallback(boolean continuousTask) {
+		private ConductorCallback(boolean continuousTask) {
 			this.continuousTask = continuousTask;
+		}
+		
+		private ConductorCallback(boolean continuousTask, int stageId, int euId, Map<Integer, Set<DataReference>> output) {
+			this.continuousTask = continuousTask;
+			this.stageId = stageId;
+			this.euId = euId;
+			this.refToProducedOutput = output;
 		}
 		
 		public boolean isContinuousTask() {
@@ -240,8 +259,7 @@ public class Conductor {
 		}
 
 		public void notifyOk() {
-			// TODO: this guy should already contain all this info so that it can communicate with master
-//			masterApi.scheduleTaskStatus(masterConn, stageId, euId, StageStatusCommand.Status.OK, producedOutput);
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput);
 		}
 		
 	}

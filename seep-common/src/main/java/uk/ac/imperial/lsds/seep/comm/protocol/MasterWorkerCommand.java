@@ -48,6 +48,9 @@ public class MasterWorkerCommand implements SeepCommand {
 		else if(type == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
 			this.esc = (ScheduleStageCommand)ct;
 		}
+		else if(type == MasterWorkerProtocolAPI.STAGE_STATUS.type()) {
+			this.ssc = (StageStatusCommand)ct;
+		}
 		else if(type == MasterWorkerProtocolAPI.MATERIALIZE_TASK.type()) {
 			this.mtc = (MaterializeTaskCommand)ct;
 		}

@@ -133,7 +133,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 					}
 					else {
 						callback.notifyOk();
-						// TODO: shouldn't we simply quit here? with a 'break'
+						// FIXME: control flow looks bad, what if it's necessary > 1 input for this stage
+						working = false;
 					}
 					
 				}
