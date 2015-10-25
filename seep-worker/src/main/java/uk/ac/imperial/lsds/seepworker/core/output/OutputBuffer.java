@@ -68,14 +68,14 @@ public class OutputBuffer implements OBuffer {
 				buf.clear();
 				buf.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 				boolean success = completed.compareAndSet(true, false);
-				if(!success){
+				if(!success) {
 					System.out.println("PROB WHEN DRAINING");
 					System.exit(0);
 				}
 				notifyHere();
 				return true;
 			}
-			else{
+			else {
 				return false;
 			}
 		}

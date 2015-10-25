@@ -28,9 +28,10 @@ public class DatasetInputAdapter implements InputAdapter {
 	
 	private Deque<byte[]> iTupleBuffer;
 	
-	public DatasetInputAdapter(WorkerConfig wc, int streamId, Dataset dataset, Schema expectedSchema) {
+	public DatasetInputAdapter(WorkerConfig wc, int streamId, Dataset dataset) {
 		this.streamId = streamId;
 		this.dataset = dataset;
+		Schema expectedSchema = this.dataset.getSchemaForDataset();
 		this.iTuple = new ITuple(expectedSchema);
 		this.iTupleBuffer = new ArrayDeque<>();
 	}
@@ -87,7 +88,7 @@ public class DatasetInputAdapter implements InputAdapter {
 						byte[] completedRead = new byte[tupleSize];
 						payload.get(completedRead, 0, tupleSize);
 						
-						iTupleBuffer.push(completedRead);
+						iTupleBuffer.add(completedRead);
 					}
 					payload.clear();
 					payload = null;
@@ -96,7 +97,7 @@ public class DatasetInputAdapter implements InputAdapter {
 				}
 			}
 		}
-		byte[] data = iTupleBuffer.pop();
+		byte[] data = iTupleBuffer.poll();
 		iTuple.setData(data);
 		iTuple.setStreamId(streamId);
 		return iTuple;

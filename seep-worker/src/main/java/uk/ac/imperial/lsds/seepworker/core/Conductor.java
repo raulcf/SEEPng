@@ -20,6 +20,7 @@ import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
@@ -161,7 +162,9 @@ public class Conductor {
 		
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
 		if(output.size() == 0) {
-			output = createOutputForTask(s);
+			Schema expectedSchema = input.entrySet().iterator().next().getValue().iterator().next().getDataStore().getSchema();
+			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
+			output = createOutputForTask(s, expectedSchema);
 		}
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 
@@ -173,7 +176,7 @@ public class Conductor {
 		engine.start();
 	}
 	
-	private Map<Integer, Set<DataReference>> createOutputForTask(Stage s) {
+	private Map<Integer, Set<DataReference>> createOutputForTask(Stage s, Schema schema) {
 		// Master did not assign output, so we need to create it here
 		// This basically depends on how many outputs we need to generate
 		Map<Integer, Set<DataReference>> output = new HashMap<>();
@@ -186,8 +189,7 @@ public class Conductor {
 			// TODO:
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
-			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
-			DataStore dataStore = new DataStore(null, DataStoreType.IN_MEMORY); // how to get this
+			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY); // how to get this
 			EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
 			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 			drefs.add(dr);

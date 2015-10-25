@@ -144,7 +144,7 @@ public class DataReferenceManager {
 			}
 		}
 		// Store synthetic data in synthetic dataset
-		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array());
+		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array(), dr);
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;

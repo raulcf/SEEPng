@@ -6,6 +6,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
@@ -16,9 +17,9 @@ public class Dataset implements IBuffer, OBuffer {
 	private int id;
 	private DataReference dataReference;
 	
-	// FIXME: for now, just make sure nobody writes and reads this simultaneously
+	
 	public ByteBuffer buffer = ByteBuffer.allocate(8192);
-	private final int BATCH_SIZE = 4096;
+	private final int BATCH_SIZE = 9; // FIXME: rethink this, too much overhead per tuple
 	
 	// Writing artifacts
 	private AtomicBoolean completed = new AtomicBoolean(false);
@@ -28,14 +29,27 @@ public class Dataset implements IBuffer, OBuffer {
 	public Dataset(DataReference dataReference) {
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
+		allocateInitialBuffer();
 	}
 	
-	public Dataset(int id, byte[] syntheticData) {
-		this.dataReference = null;
+	public Dataset(int id, byte[] syntheticData, DataReference dr) {
+		this.dataReference = dr;
 		this.id = id;
+		// FIXME: for now, just make sure nobody writes and reads this simultaneously
+		this.buffer = ByteBuffer.allocate(8192);
+		// This data is ready to be simply copied over
 		buffer.put(syntheticData);
 	}
 	
+	private void allocateInitialBuffer() {
+		// FIXME: for now, just make sure nobody writes and reads this simultaneously
+		this.buffer = ByteBuffer.allocate(8192);
+		this.buffer.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
+	}
+	
+	public Schema getSchemaForDataset() {
+		return this.dataReference.getDataStore().getSchema();
+	}
 	
 	/**
 	 * IBuffer
@@ -111,7 +125,7 @@ public class Dataset implements IBuffer, OBuffer {
 			buffer.putInt(currentBatchSize);
 			buffer.position(currentPosition);
 			buffer.limit(currentLimit);
-			buffer.flip(); // leave the buffer ready to be read
+			//buffer.flip(); // leave the buffer ready to be read FIXME: not in store mode....
 		}
 		return true;
 	}
