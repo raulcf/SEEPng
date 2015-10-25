@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,10 +73,11 @@ public class ScheduleTracker {
 			// Finished schedule
 			this.status = ScheduleStatus.FINISHED;
 			// TODO: what to do with results in this case
+			LOG.warn("TODO: what to do with results in this case");
 		}
 		// Check whether the new stage makes ready new stages, and propagate results
 		for(Stage downstream : stage.getDependants()) {
-			Set<DataReference> resultsForThisStage = results.get(downstream.getStageId()); 
+			Set<DataReference> resultsForThisStage = results.get(downstream.getStageId());
 			downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
 			if(isStageReadyToRun(downstream)) {
 				this.scheduleStatus.put(downstream, StageStatus.READY);
@@ -112,9 +114,13 @@ public class ScheduleTracker {
 		return true;
 	}
 	
-	public void trackAndWait(Stage stage, Set<Integer> euInvolved) {
+	public void trackWorkersAndBlock(Stage stage, Set<Integer> euInvolved) {
 		currentStageTracker = new StageTracker(stage.getStageId(), euInvolved);
-		currentStageTracker.await();
+		currentStageTracker.waitForStageToFinish();
+	}
+	
+	public void waitForFinishedStageAndCompleteBookeeping(Stage stage) {
+		currentStageTracker.waitForStageToFinish();
 		// Check status of the stage
 		if(currentStageTracker.finishedSuccessfully()) {
 			Map<Integer, Set<DataReference>> results = currentStageTracker.getStageResults();

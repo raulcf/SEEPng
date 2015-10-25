@@ -22,7 +22,7 @@ public class StageTracker {
 	private final CountDownLatch countDown;
 	private Set<Integer> completed;
 	private Map<Integer, Set<DataReference>> results;
-	
+		
 	public StageTracker(int stageId, Set<Integer> euInvolved) {
 		this.stageId = stageId;
 		this.euInvolved = euInvolved;
@@ -35,7 +35,7 @@ public class StageTracker {
 		return results;
 	}
 	
-	public void await(){
+	public void waitForStageToFinish() {
 		try {
 			countDown.await();
 		} 
@@ -56,8 +56,11 @@ public class StageTracker {
 		else{
 			for(Entry<Integer, Set<DataReference>> entry : newResults.entrySet()) {
 				int key = entry.getKey();
-				if(! results.containsKey(key)) results.put(key, new HashSet<>());
-				results.get(key).addAll(newResults.get(entry.getValue()));
+				if(! results.containsKey(key)){
+					results.put(key, new HashSet<>());
+				}
+				Set<DataReference> newDRefs = newResults.get(entry.getKey());
+				results.get(key).addAll(newDRefs);
 			}
 			countDown.countDown();
 		}

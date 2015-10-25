@@ -1,10 +1,7 @@
 package uk.ac.imperial.lsds.seep.api.data;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -22,7 +19,7 @@ public class ITuple {
 	public ITuple(Schema schema){
 		this.schema = schema;
 		mapFieldToOffset = new HashMap<>();
-		if(! schema.isVariableSize()){
+		if(! schema.isVariableSize()) {
 			// This only happens once
 			this.populateOffsets();
 		}

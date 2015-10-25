@@ -188,7 +188,7 @@ public class Conductor {
 			Set<DataReference> drefs = new HashSet<>();
 			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
 			DataStore dataStore = new DataStore(null, DataStoreType.IN_MEMORY); // how to get this
-			EndPoint endPoint = new EndPoint(id, myIp, -1, wc.getInt(WorkerConfig.DATA_PORT)); // me
+			EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
 			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 			drefs.add(dr);
 			output.put(streamId, drefs);

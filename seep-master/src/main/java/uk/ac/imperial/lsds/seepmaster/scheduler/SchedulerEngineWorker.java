@@ -67,14 +67,17 @@ public class SchedulerEngineWorker implements Runnable {
 			}
 			
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
+			
+			trackStageCompletionAsync(nextStage, euInvolved);
+			
 			List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
 			
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
 			
-			// Wait until stage is completed
-			waitForNodes(nextStage, euInvolved);
+			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			
 		}
 	}
 	
@@ -149,13 +152,18 @@ public class SchedulerEngineWorker implements Runnable {
 		return cons;
 	}
 	
-	private void waitForNodes(Stage stage, Set<Connection> euInvolved) {
-		// better to wait on a latch or something....
-		Set<Integer> euIds = new HashSet<>();
-		for(Connection c : euInvolved) {
-			euIds.add(c.getId());
-		}
-		tracker.trackAndWait(stage, euIds);
+	private void trackStageCompletionAsync(Stage stage, Set<Connection> euInvolved) {
+		// Just start the tracker async
+		new Thread(new Runnable() {
+			public void run() {
+				// Wait until stage is completed
+				Set<Integer> euIds = new HashSet<>();
+				for(Connection c : euInvolved) {
+					euIds.add(c.getId());
+				}
+				tracker.trackWorkersAndBlock(stage, euIds);
+			}
+		}).start();
 	}
 	
 	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {

@@ -58,7 +58,12 @@ public class InputAdapterFactory {
 	private static List<InputAdapter> buildInputAdapterOfTypeDatasetForOps(
 			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<Dataset> datasets){
 		List<InputAdapter> ias = new ArrayList<>();
-		Schema expectedSchema = drefs.iterator().next().getDataStore().getSchema();
+		DataReference dr = drefs.iterator().next();
+		Schema expectedSchema = dr.getDataStore().getSchema();
+		if(expectedSchema == null) {
+			LOG.info("SCHEMA IS NULL");
+			System.exit(-1);
+		}
 		for(Dataset dataset : datasets) {
 			InputAdapter ia = new DatasetInputAdapter(wc, streamId, dataset, expectedSchema);
 			ias.add(ia);
