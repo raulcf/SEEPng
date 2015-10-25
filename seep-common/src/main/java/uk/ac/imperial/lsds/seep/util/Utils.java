@@ -35,7 +35,10 @@ public class Utils {
 	}
 	
 	public static int computeIdFromIpAndPort(InetAddress ip, int port){
-		return ip.hashCode() + port;
+		int hash = 23;
+		hash = hash * 31 + ip.hashCode();
+		hash = hash * 31 + port;
+		return hash;
 	}
 	
 	public static int computeIdFromIpAndPort(String ip, int port) {

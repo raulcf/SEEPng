@@ -25,6 +25,40 @@ public class ITuple {
 		}
 	}
 	
+	/** FIXME: temporal solution to allow on-demand ITuple creation **/
+	
+	public ITuple(Schema schema, byte[] data) {
+		this.schema = schema;
+		mapFieldToOffset = new HashMap<>();
+		if( ! schema.isVariableSize()) {
+			this.populateOffsets();
+		}
+		this.data = data;
+		// greedily populate offsets for lazy deserialisation
+		if(schema.isVariableSize()){
+			this.populateOffsets();
+		}
+		wrapper = ByteBuffer.wrap(data);
+	}
+	
+	public Schema getSchema() {
+		return schema;
+	}
+	
+	/** FIXME: end fixme **/
+
+	@Override
+	public ITuple consume() {
+		if(!consumed){
+			consumed = true;
+			return this;
+		}
+		else{
+			consumed = true;
+			return null;
+		}
+	}
+	
 	public void setStreamId(int streamId){
 		this.streamId = streamId;
 	}
