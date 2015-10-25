@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,7 @@ public class Conductor {
 	private CoreOutput coreOutput;
 	private ProcessingEngine engine;
 	private DataReferenceManager drm;
+	private CountDownLatch registerFlag;
 	
 	// Keep stage - scheduleTask
 	private Map<Stage, ScheduleTask> scheduleTasks;
@@ -79,6 +81,7 @@ public class Conductor {
 		this.drm = drm;
 		this.comm = comm;
 		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
+		this.registerFlag = new CountDownLatch(1);
 	}
 	
 	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
@@ -116,6 +119,13 @@ public class Conductor {
 		
 		// Share selectors with DRM so that it can serve data directly
 		drm.setDataStoreSelectors(dataStoreSelectors);
+		// Register in DRM all DataReferences managed
+		for(Set<DataReference> drefs : output.values()) {
+			for(DataReference dr : drefs) {
+				drm.registerDataReferenceInCatalogue(dr);
+			}
+		}
+		registerFlag.countDown();
 
 		int id = o.getOperatorId();
 		
@@ -266,13 +276,20 @@ public class Conductor {
 		
 	}
 
-	//FIXME: refactor, check where to place this method, along with the entire communication with datarefmanager
+	// FIXME: refactor, check where to place this method, along with the entire communication with datarefmanager
 	// FIXME: do we need a separate entity for this?
 	public void serveData(int dataRefId, DataEndPoint ep) {
+		try {
+			registerFlag.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// Make sure DRM manages this DataReferenceId
 		DataReference dr = drm.doesManageDataReference(dataRefId);
 		if (dr == null) {
 			// FIXME: error
+			LOG.error("DataRefernece is null!!!");
 			System.exit(-1);
 		}
 		drm.serveDataSet(coreOutput, dr, ep);

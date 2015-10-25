@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
@@ -31,7 +32,7 @@ public class InputAdapterFactory {
 		
 		// The case of locally serving a DataReference.
 		// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
-		if(dRef_reference.isManaged() || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+		if((dRef_reference.isManaged() && dRef_reference.getServeMode().equals(ServeMode.STORE)) || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
 			List<Dataset> datasets = new ArrayList<>();
 			for(IBuffer iBuf : buffers){
 				if( ! (iBuf instanceof Dataset)) {

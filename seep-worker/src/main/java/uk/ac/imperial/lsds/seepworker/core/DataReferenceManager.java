@@ -74,6 +74,16 @@ public class DataReferenceManager {
 		return newDataset;
 	}
 	
+	public boolean registerDataReferenceInCatalogue(DataReference dr) {
+		int drId = dr.getId();
+		if( ! catalogue.containsKey(drId)) {
+			catalogue.put(drId, dr);
+			LOG.info("DataReference id -> {} registered in DRM", drId);
+			return true;
+		}
+		return false;
+	}
+	
 	public DataReference doesManageDataReference(int dataRefId) {
 		return catalogue.get(dataRefId);
 	}
