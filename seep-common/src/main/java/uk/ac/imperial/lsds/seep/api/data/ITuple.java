@@ -45,20 +45,6 @@ public class ITuple {
 		return schema;
 	}
 	
-	/** FIXME: end fixme **/
-
-	@Override
-	public ITuple consume() {
-		if(!consumed){
-			consumed = true;
-			return this;
-		}
-		else{
-			consumed = true;
-			return null;
-		}
-	}
-	
 	public void setStreamId(int streamId){
 		this.streamId = streamId;
 	}
