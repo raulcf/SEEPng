@@ -29,7 +29,6 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	
 	private boolean working = false;
 	private Thread worker;
-	private CollectorType collectorType;
 	private ConductorCallback callback;
 	
 	private int id;
@@ -37,13 +36,11 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	private CoreOutput coreOutput;
 	private SeepTask task;
 	private SeepState state;
-	
-	private DataReferenceManager drm;
-	
+		
 	// Metrics
 	final private Meter m;
 	
-	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback, CollectorType collectorType, DataReferenceManager drm) {
+	public SingleThreadProcessingEngine(WorkerConfig wc, int id, SeepTask task, SeepState state, CoreInput coreInput, CoreOutput coreOutput, ConductorCallback callback) {
 		this.id = id;
 		this.task = task;
 		this.state = state;
@@ -51,11 +48,9 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 		this.coreOutput = coreOutput;
 		this.callback = callback;
 		this.MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS = wc.getInt(WorkerConfig.MAX_WAIT_TIME_PER_INPUTADAPTER_MS);
-		this.collectorType = collectorType;
 		this.worker = new Thread(new Worker());
 		this.worker.setName(this.getClass().getSimpleName());
 		m = SeepMetrics.REG.meter(name(SingleThreadProcessingEngine.class, "event", "per", "sec"));
-		this.drm = drm;
 	}
 
 	@Override
@@ -98,16 +93,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			short many = InputAdapterReturnType.MANY.ofType();
 			LOG.info("Configuring SINGLETHREAD processing engine with {} outputBuffers", coreOutput.getBuffers().size());
 			
-			API api = null;
-			switch(collectorType){
-			case SIMPLE:
-				api = new Collector(id, coreOutput);
-				break;
-			case COMPOSED_SEQUENTIAL_TASK:
-				// FIXME: probably no need to differentiate at this point. FIX this after first push
-				api = new SchedulePipelineCollector(id, coreOutput);
-				break;
-			}
+			API api = new Collector(id, coreOutput);
 			
 			while(working) {
 				while(it.hasNext()) {

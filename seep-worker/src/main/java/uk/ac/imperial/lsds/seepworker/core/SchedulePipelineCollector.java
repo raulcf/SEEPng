@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seepworker.core.output.routing.NotEnoughRoutingInform
 import uk.ac.imperial.lsds.seepworker.core.output.routing.Router;
 import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
 
+@Deprecated
 public class SchedulePipelineCollector implements API {
 
 	private final boolean NOT_SEND_API;
@@ -194,11 +195,6 @@ public class SchedulePipelineCollector implements API {
 	@Override
 	public void send_opid(int opId, byte[] o) {
 		throw new DoYouKnowWhatYouAreDoingException("You seem to know too much about the topology of this dataflow...");
-	}
-	
-	public byte[] collect() {
-		
-		return null;
 	}
 
 }

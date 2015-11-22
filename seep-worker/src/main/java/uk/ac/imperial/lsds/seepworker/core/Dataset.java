@@ -78,18 +78,6 @@ public class Dataset implements IBuffer, OBuffer {
 	 */
 
 	@Override
-	public void setEventAPI(EventAPI eAPI) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public EventAPI getEventAPI() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public int id() {
 		return id;
 	}

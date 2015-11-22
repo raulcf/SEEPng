@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
-import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 
-public class OutputBuffer implements OBuffer {
+public class OutputBuffer implements EventBasedOBuffer {
 	
 	private final int BATCH_SIZE;
 	private DataReference dr;

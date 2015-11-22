@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -105,8 +106,8 @@ public class Collector implements API {
 			ob = buffers.get(id);
 		}
 		boolean completed = ob.write(o);
-		if(completed){
-			ob.getEventAPI().readyForWrite(id);
+		if(completed && ob instanceof EventBasedOBuffer){
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
 		
 	}
@@ -125,12 +126,12 @@ public class Collector implements API {
 			int id = entry.getKey();
 			ob = entry.getValue();
 			boolean completed = ob.write(o);
-			if(completed){
+			if(completed && ob instanceof EventBasedOBuffer) {
 				ids.add(id);
 			}
 		}
 		if(ids.size() > 0){
-			ob.getEventAPI().readyForWrite(ids);
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(ids);
 		}
 	}
 
@@ -140,9 +141,9 @@ public class Collector implements API {
 		int id = theRouter.route(key);
 		OBuffer ob = buffers.get(id);
 		
-		boolean complete = ob.write(o);
-		if(complete){
-			ob.getEventAPI().readyForWrite(id);
+		boolean completed = ob.write(o);
+		if(completed && ob instanceof EventBasedOBuffer){
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
 		
 	}
@@ -162,9 +163,9 @@ public class Collector implements API {
 		int id = r.route();
 		OBuffer ob = buffers.get(id);
 		boolean completed = ob.write(o);
-		if(completed){
-			ob.getEventAPI().readyForWrite(id);
-		}	
+		if(completed && ob instanceof EventBasedOBuffer){
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
+		}
 	}
 
 	@Override

@@ -129,7 +129,7 @@ public class Conductor {
 
 		int id = o.getOperatorId();
 		
-		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, makeContinuousConductorCallback(), drm);
+		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, makeContinuousConductorCallback());
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -182,7 +182,7 @@ public class Conductor {
 		
 		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
-				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output), drm);
+				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output));
 		engine.start();
 	}
 	

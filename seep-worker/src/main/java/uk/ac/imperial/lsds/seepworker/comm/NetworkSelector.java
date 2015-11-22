@@ -32,6 +32,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
+import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
@@ -65,16 +66,8 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 	private int numUpstreamConnections;
 	
 	public NetworkSelector(WorkerConfig wc, int opId) {
-//	public NetworkSelector(WorkerConfig wc, int opId, Map<Integer, IBuffer> ibMap) {
 		this.myId = opId;
 		this.writersConfiguredLatch = new CountDownLatch(0); // Initially non-defined, nobody waits here
-//		this.ibMap = ibMap;
-//		int expectedUpstream = ibMap.size();
-//		for(InputAdapter ia : iapMap.values()) {
-//			if(ia.getDataOriginType().equals(DataStoreType.NETWORK)) expectedUpstream++;
-//		}
-//		this.numUpstreamConnections  = expectedUpstream;
-//		LOG.info("Expecting {} upstream connections", numUpstreamConnections);
 		this.numReaderWorkers = wc.getInt(WorkerConfig.NUM_NETWORK_READER_THREADS);
 		this.numWriterWorkers = wc.getInt(WorkerConfig.NUM_NETWORK_WRITER_THREADS);
 		this.totalNumberPendingConnectionsPerThread = wc.getInt(WorkerConfig.MAX_PENDING_NETWORK_CONNECTION_PER_THREAD);

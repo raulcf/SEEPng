@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
@@ -75,8 +76,11 @@ public class DataStoreSelectorFactory {
 			if(ns == null){
 				ns = new NetworkSelector(wc, o.getOperatorId());
 			}
+			// TODO: maybe we can iterate directly over eventbasedOBuffer ?
 			for(OBuffer ob : obufsToStream) {
-				ob.setEventAPI(ns);
+				if (ob instanceof EventBasedOBuffer) {
+					((EventBasedOBuffer)ob).setEventAPI(ns);
+				}
 			}
 		}
 		return ns;
