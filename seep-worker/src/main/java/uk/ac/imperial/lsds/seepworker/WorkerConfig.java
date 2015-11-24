@@ -85,6 +85,13 @@ public class WorkerConfig extends Config {
     
     public static final String REPORT_METRICS_JMX= "metrics.report.jmx";
     private static final String REPORT_METRICS_JMX_DOC = "Activate JMX reporting. Requires MBeans plugin in visualVM to visualize";
+
+	public static final String BUFFERPOOL_MIN_BUFFER_SIZE = "bufferpool.min.buffer.size";
+    private static final String BUFFERPOOL_MIN_BUFFER_SIZE_DOC = "Minimum size of newly allocated buffers";
+    
+    public static final String BUFFERPOOL_MAX_MEM_AVAILABLE = "bufferpool.max.memory.available";
+    private static final String BUFFERPOOL_MAX_MEM_AVAILABLE_DOC = "Maximum memory available to the buffer pool";
+
 	
 	static{
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
@@ -108,7 +115,9 @@ public class WorkerConfig extends Config {
 				.define(MAX_WAIT_TIME_PER_INPUTADAPTER_MS, Type.INT, 500, Importance.MEDIUM, MAX_WAIT_TIME_PER_INPUTADAPTER_MS_DOC)
 				.define(REPORT_METRICS_CONSOLE_PERIOD, Type.INT, -1, Importance.LOW, REPORT_METRICS_CONSOLE_PERIOD_DOC)
 				.define(REPORT_METRICS_JMX, Type.INT, 1, Importance.MEDIUM, REPORT_METRICS_JMX_DOC)
-				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
+				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
+				.define(BUFFERPOOL_MIN_BUFFER_SIZE, Type.INT, 8192, Importance.MEDIUM, BUFFERPOOL_MIN_BUFFER_SIZE_DOC)
+				.define(BUFFERPOOL_MAX_MEM_AVAILABLE, Type.INT, Importance.HIGH, BUFFERPOOL_MAX_MEM_AVAILABLE_DOC);
 	}
 	
 	public WorkerConfig(Map<? extends Object, ? extends Object> originals) {

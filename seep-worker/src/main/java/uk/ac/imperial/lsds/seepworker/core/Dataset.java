@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
-import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
@@ -16,6 +15,7 @@ public class Dataset implements IBuffer, OBuffer {
 
 	private int id;
 	private DataReference dataReference;
+	private BufferPool bufferPool;
 	
 	
 	public ByteBuffer buffer = ByteBuffer.allocate(8192);
@@ -26,9 +26,10 @@ public class Dataset implements IBuffer, OBuffer {
 	private int tuplesInBatch = 0;
 	private int currentBatchSize = 0;
 
-	public Dataset(DataReference dataReference) {
+	public Dataset(DataReference dataReference, BufferPool bufferPool) {
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
+		this.bufferPool = bufferPool;
 		allocateInitialBuffer();
 	}
 	
@@ -41,6 +42,7 @@ public class Dataset implements IBuffer, OBuffer {
 		buffer.put(syntheticData);
 	}
 	
+	// FIXME: this guy will use the bufferPool to get the buffer. In general no one allocates mem like this ever
 	private void allocateInitialBuffer() {
 		// FIXME: for now, just make sure nobody writes and reads this simultaneously
 		this.buffer = ByteBuffer.allocate(8192);

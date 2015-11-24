@@ -91,6 +91,7 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	// TODO: straw-man solution
+	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
 	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();

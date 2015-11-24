@@ -44,11 +44,14 @@ public class DataReferenceManager {
 	
 	private int syntheticDatasetGenerator;
 	
+	private BufferPool bufferPool;
+	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
 		this.datasets = new HashMap<>();
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
+		this.bufferPool = BufferPool.createBufferPool(wc);
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -65,7 +68,7 @@ public class DataReferenceManager {
 			LOG.info("Start managing new DataReference, id -> {}", id);
 			catalogue.put(id, dataRef);
 			// TODO: will become more complex...
-			newDataset = new Dataset(dataRef);
+			newDataset = new Dataset(dataRef, bufferPool);
 			datasets.put(id, newDataset);
 		}
 		else {
