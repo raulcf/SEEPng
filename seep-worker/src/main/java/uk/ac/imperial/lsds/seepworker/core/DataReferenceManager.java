@@ -132,32 +132,47 @@ public class DataReferenceManager {
 	public IBuffer getSyntheticDataset(DataReference dr) {
 		
 		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(1024);
+		ByteBuffer d = ByteBuffer.allocate(4000);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();
 		int totalWritten = 0;
 		boolean goOn = true;
 		while(goOn) {
-			byte control = 0;
-			int nTuples = 1;
 			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
-			int tupleSize = tuple.length;
-			int batchSize = tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
-			if(d.position() + batchSize + TupleInfo.PER_BATCH_OVERHEAD_SIZE < d.capacity()) {
-				d.put(control);
-				d.putInt(nTuples);
-				d.putInt(batchSize);
-				d.putInt(tupleSize);
+			
+			if(d.position() + tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD < d.capacity()) {
+				d.putInt(tuple.length);
 				d.put(tuple);
-				totalWritten = totalWritten + TupleInfo.PER_BATCH_OVERHEAD_SIZE + batchSize;
+				totalWritten = totalWritten + TupleInfo.TUPLE_SIZE_OVERHEAD + tuple.length;
 			}
 			else {
+				// stop when no more data fits
 				goOn = false;
 			}
+			
 		}
+		
+//		while(goOn) {
+//			byte control = 0;
+//			int nTuples = 1;
+//			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
+//			int tupleSize = tuple.length;
+//			int batchSize = tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+//			if(d.position() + batchSize + TupleInfo.PER_BATCH_OVERHEAD_SIZE < d.capacity()) {
+//				d.put(control);
+//				d.putInt(nTuples);
+//				d.putInt(batchSize);
+//				d.putInt(tupleSize);
+//				d.put(tuple);
+//				totalWritten = totalWritten + TupleInfo.PER_BATCH_OVERHEAD_SIZE + batchSize;
+//			}
+//			else {
+//				goOn = false;
+//			}
+//		}
 		// Store synthetic data in synthetic dataset
-		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array(), dr);
+		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array(), dr, bufferPool);
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;

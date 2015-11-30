@@ -14,6 +14,7 @@ import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
+// No thread safe. In particular no simultaneous write and read is allowed right now
 public class Dataset implements IBuffer, OBuffer {
 
 	private int id;
@@ -30,15 +31,14 @@ public class Dataset implements IBuffer, OBuffer {
 		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
 		this.wPtrToBuffer = bufferPool.borrowBuffer();
-		this.wPtrToBuffer.position(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 		this.buffers = new LinkedList<>();
 		this.buffers.add(wPtrToBuffer);
 	}
 	
-	public Dataset(int id, byte[] syntheticData, DataReference dr) {
+	public Dataset(int id, byte[] syntheticData, DataReference dr, BufferPool bufferPool) {
 		this.dataReference = dr;
 		this.id = id;
-		// FIXME: for now, just make sure nobody writes and reads this simultaneously
+		this.bufferPool = bufferPool;
 		this.wPtrToBuffer = bufferPool.borrowBuffer();
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);

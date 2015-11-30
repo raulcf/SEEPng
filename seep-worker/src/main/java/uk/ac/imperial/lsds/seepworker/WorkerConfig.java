@@ -94,6 +94,7 @@ public class WorkerConfig extends Config {
 
 	
 	static{
+		long availableMemoryBytes = Runtime.getRuntime().totalMemory();
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
 				.define(SYNTHETIC_DATA_GENERATOR_ID, Type.INT, -666, Importance.LOW, SYNTHETIC_DATA_GENERATOR_ID_DOC)
 				.define(SYNTHETIC_DATA_GENERATOR_TYPE, Type.INT, 0, Importance.LOW, SYNTHETIC_DATA_GENERATOR_TYPE_DOC)
@@ -117,7 +118,7 @@ public class WorkerConfig extends Config {
 				.define(REPORT_METRICS_JMX, Type.INT, 1, Importance.MEDIUM, REPORT_METRICS_JMX_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
 				.define(BUFFERPOOL_MIN_BUFFER_SIZE, Type.INT, 8192, Importance.MEDIUM, BUFFERPOOL_MIN_BUFFER_SIZE_DOC)
-				.define(BUFFERPOOL_MAX_MEM_AVAILABLE, Type.INT, Importance.HIGH, BUFFERPOOL_MAX_MEM_AVAILABLE_DOC);
+				.define(BUFFERPOOL_MAX_MEM_AVAILABLE, Type.INT, (int)(availableMemoryBytes/2), Importance.HIGH, BUFFERPOOL_MAX_MEM_AVAILABLE_DOC);
 	}
 	
 	public WorkerConfig(Map<? extends Object, ? extends Object> originals) {
