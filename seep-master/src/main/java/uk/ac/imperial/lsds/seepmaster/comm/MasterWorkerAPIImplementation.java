@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
+import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
@@ -38,7 +39,8 @@ public class MasterWorkerAPIImplementation {
 		int port = bc.getPort();
 		int dataPort = bc.getDataPort();
 		int controlPort = bc.getControlPort();
-		LOG.info("New worker node in {}:{}, dataPort: {}, controlPort: {}", bootIp.toString(), port, dataPort, controlPort);
+		int workerId = Utils.computeIdFromIpAndPort(bootIp, port);
+		LOG.info("New worker [id-> {}] node in {}:{}, dataPort: {}, controlPort: {}", workerId, bootIp.toString(), port, dataPort, controlPort);
 		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, port, dataPort, controlPort);
 		inf.addExecutionUnit(eu);
 	}

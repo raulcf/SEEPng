@@ -88,6 +88,18 @@ public final class EndPoint {
 		return sb.toString();
 	}
 	
+	@Override
+	public int hashCode() {
+		// invariant of id being unique
+		return id;
+	}
+	
+	@Override
+	public boolean equals(Object obj){
+		if(this.hashCode() == obj.hashCode()) return true;
+		return false;
+	}
+	
 	/**
 	 * Empty constructor for kryo serialization
 	 */

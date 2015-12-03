@@ -57,6 +57,17 @@ public class WorkerControlEndPoint implements SeepEndPoint {
 		return sb.toString();
 	}
 	
+	@Override
+	public int hashCode() {
+		return id;
+	}
+	
+	@Override
+	public boolean equals(Object obj){
+		if(this.hashCode() == obj.hashCode()) return true;
+		return false;
+	}
+	
 	/**
 	 * Empty constructor for kryo serialization
 	 */

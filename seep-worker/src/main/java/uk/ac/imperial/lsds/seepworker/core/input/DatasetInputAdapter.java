@@ -44,6 +44,7 @@ public class DatasetInputAdapter implements InputAdapter {
 	@Override
 	public ITuple pullDataItem(int timeout) {
 		byte[] data = dataset.consumeData();
+		if(data == null) return null;
 		iTuple.setData(data);
 		iTuple.setStreamId(streamId);
 		return iTuple;

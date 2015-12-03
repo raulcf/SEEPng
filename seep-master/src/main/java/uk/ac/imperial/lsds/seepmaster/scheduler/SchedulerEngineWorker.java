@@ -59,11 +59,17 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	@Override
 	public void run() {
+		LOG.info("[START JOB]");
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
+				if(tracker.isScheduledFinished()) {
+					LOG.info("TODO: 1-Schedule has finished at this point");
+					work = false;
+					continue;
+				}
 			}
 			
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
@@ -72,12 +78,12 @@ public class SchedulerEngineWorker implements Runnable {
 			
 			List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
 			
+			LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
 			
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
-			
 		}
 	}
 	
@@ -187,7 +193,6 @@ public class SchedulerEngineWorker implements Runnable {
 		int srcOpId = s.getWrappedOperators().getLast();
 		LogicalOperator src = slq.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
-//		DataStore dataStore = src.upstreamConnections().iterator().next().getDataStore();
 		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
 		// make a data reference, considering the datastore that describes the source, in each of the endpoint
 		// these will request to the DRM to get the data.

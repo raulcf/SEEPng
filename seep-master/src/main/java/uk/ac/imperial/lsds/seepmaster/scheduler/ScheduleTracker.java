@@ -42,6 +42,10 @@ public class ScheduleTracker {
 		}
 	}
 	
+	public boolean isScheduledFinished() {
+		return this.status == ScheduleStatus.FINISHED;
+	}
+	
 	public Stage getHead(){
 		return sink;
 	}
@@ -66,11 +70,13 @@ public class ScheduleTracker {
 	}
 	
 	public boolean setFinished(Stage stage, Map<Integer, Set<DataReference>> results) {
+		LOG.info("[FINISH] SCHEDULING Stage {}", stage.getStageId());
 		// Set finish
 		this.scheduleStatus.put(stage, StageStatus.FINISHED);
 		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
 			// Finished schedule
 			this.status = ScheduleStatus.FINISHED;
+			LOG.info("[FINISHED-JOB]");
 			// TODO: what to do with results in this case
 			LOG.warn("TODO: what to do with results in this case");
 		}

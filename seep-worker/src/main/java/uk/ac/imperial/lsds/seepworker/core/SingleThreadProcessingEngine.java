@@ -2,8 +2,10 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import static com.codahale.metrics.MetricRegistry.name;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +97,11 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			
 			API api = new Collector(id, coreOutput);
 			
+			// StreamId - Finished?
+			Map<Integer, Boolean> trackFinishedStreams = new HashMap<>();
+			for(InputAdapter ia : inputAdapters) {
+				trackFinishedStreams.put(ia.getStreamId(), false);
+			}
 			while(working) {
 				while(it.hasNext()) {
 					InputAdapter ia = it.next();
@@ -104,6 +111,10 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							task.processData(d, api);
 							m.mark();
 						}
+						else {
+							// Exhausted IA
+							trackFinishedStreams.put(ia.getStreamId(), true);
+						}
 					}
 					else if(ia.returnType() == many) {
 						List<ITuple> d = ia.pullDataItems(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
@@ -111,18 +122,23 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 							task.processDataGroup(d, api);
 							m.mark();
 						}
-					}
-					if(callback.isContinuousTask()) {
-						if(!it.hasNext() && working) {
-							it = inputAdapters.iterator();
+						else {
+							// Exhausted IA
+							trackFinishedStreams.put(ia.getStreamId(), true);
 						}
 					}
-					else {
-						callback.notifyOk();
-						// FIXME: control flow looks bad, what if it's necessary > 1 input for this stage
-						working = false;
+					// Always recharge it
+					if(!it.hasNext() && working) {
+						it = inputAdapters.iterator();
 					}
-					
+					if(! callback.isContinuousTask()) {
+						if(allStreamsFinished(trackFinishedStreams)) {
+							callback.notifyOk();
+							working = false;
+							// FIXME: hack -> just exhaust the iterator to force out of the loop
+							while(it.hasNext()) it.next();
+						}
+					}
 				}
 				// If there are no input adapters, assume processData contain all necessary and give null input data
 				if(working){
@@ -132,6 +148,14 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 				}
 			}
 			this.closeEngine();
+		}
+		
+		private boolean allStreamsFinished(Map<Integer, Boolean> tracker) {
+			boolean finished = true;
+			for(boolean f : tracker.values()) {
+				finished = finished & f;
+			}
+			return finished;
 		}
 		
 		private void closeEngine(){

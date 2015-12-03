@@ -132,19 +132,21 @@ public class DataReferenceManager {
 	public IBuffer getSyntheticDataset(DataReference dr) {
 		
 		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(4000);
+		ByteBuffer d = ByteBuffer.allocate(3999);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();
 		int totalWritten = 0;
 		boolean goOn = true;
+		int totalTuples = 0;
 		while(goOn) {
 			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
 			
-			if(d.position() + tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD < d.capacity()) {
+			if(d.position() + tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD <= d.capacity()) {
 				d.putInt(tuple.length);
 				d.put(tuple);
 				totalWritten = totalWritten + TupleInfo.TUPLE_SIZE_OVERHEAD + tuple.length;
+				totalTuples++;
 			}
 			else {
 				// stop when no more data fits
@@ -152,27 +154,12 @@ public class DataReferenceManager {
 			}
 			
 		}
-		
-//		while(goOn) {
-//			byte control = 0;
-//			int nTuples = 1;
-//			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
-//			int tupleSize = tuple.length;
-//			int batchSize = tupleSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
-//			if(d.position() + batchSize + TupleInfo.PER_BATCH_OVERHEAD_SIZE < d.capacity()) {
-//				d.put(control);
-//				d.putInt(nTuples);
-//				d.putInt(batchSize);
-//				d.putInt(tupleSize);
-//				d.put(tuple);
-//				totalWritten = totalWritten + TupleInfo.PER_BATCH_OVERHEAD_SIZE + batchSize;
-//			}
-//			else {
-//				goOn = false;
-//			}
-//		}
+		//Copy only the written bytes
+		byte[] dataToForward = new byte[totalWritten];
+		System.arraycopy(d.array(), 0, dataToForward, 0, totalWritten);
+		LOG.info("Synthetic dataset with {} tuples, size: {}", totalTuples, totalWritten);
 		// Store synthetic data in synthetic dataset
-		Dataset synthetic = new Dataset(syntheticDatasetGenerator, d.array(), dr, bufferPool);
+		Dataset synthetic = new Dataset(syntheticDatasetGenerator, dataToForward, dr, bufferPool);
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
