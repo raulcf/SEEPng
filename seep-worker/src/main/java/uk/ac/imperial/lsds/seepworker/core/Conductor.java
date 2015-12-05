@@ -35,6 +35,7 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
@@ -199,9 +200,17 @@ public class Conductor {
 			// TODO:
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
-			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY); // how to get this
+			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
 			EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
-			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+			DataReference dr = null;
+			// TODO: is this enough?
+			if(s.getStageType().equals(StageType.SINK_STAGE)) {
+				dr = DataReference.makeExternalDataReference(dataStore);
+			}
+			else {
+				dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+			}
+//			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 			drefs.add(dr);
 			output.put(streamId, drefs);
 		}

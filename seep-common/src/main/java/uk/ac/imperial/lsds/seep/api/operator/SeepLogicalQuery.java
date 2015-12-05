@@ -23,9 +23,9 @@ import uk.ac.imperial.lsds.seep.api.InvalidQueryDefinitionException;
 import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
-import uk.ac.imperial.lsds.seep.api.operator.sinks.StaticSink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.TaggingSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
-import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
+import uk.ac.imperial.lsds.seep.api.operator.sources.TaggingSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
@@ -84,6 +84,10 @@ public class SeepLogicalQuery {
 		this.sources.add(lo);
 	}
 	
+	public void addSink(LogicalOperator lo) {
+		this.sink = lo;
+	}
+	
 	public LogicalOperator getSink(){
 		return sink;
 	}
@@ -104,7 +108,7 @@ public class SeepLogicalQuery {
 		if(lo == null){
 			throw new InvalidQueryDefinitionException("Impossible to set num instances for NON-EXISTENT op: "+opId);
 		}
-		if(lo instanceof StaticSource || lo instanceof StaticSink) {
+		if(lo instanceof TaggingSource || lo instanceof TaggingSink) {
 			throw new InvalidQueryDefinitionException("Impossible to scale out a predefined Source or Sink");
 		}
 		// Create scale out and update numInstances per op

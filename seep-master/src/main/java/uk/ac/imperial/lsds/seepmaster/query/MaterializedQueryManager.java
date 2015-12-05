@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.TagSink;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -205,7 +206,14 @@ public class MaterializedQueryManager implements QueryManager {
 			// One dataReference per downstream, group by streamId
 			for(DownstreamConnection dc : lo.downstreamConnections()) {
 				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
-				DataReference dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep, ServeMode.STREAM);
+				DataReference dref = null;
+				if(dc.getDownstreamOperator() instanceof TagSink) {
+					// TODO: is this enough for sink ops?
+					dref = DataReference.makeExternalDataReference(dataStore);
+				}
+				else {
+					dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep, ServeMode.STREAM);
+				}
 				int streamId = dc.getStreamId();
 				if(! output.containsKey(streamId)) {
 					output.put(streamId, new HashSet<>());

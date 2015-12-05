@@ -15,10 +15,13 @@ import java.util.List;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.TagSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
@@ -35,6 +38,14 @@ public class QueryBuilder implements QueryAPI {
 			for(UpstreamConnection uc : lo.upstreamConnections()) {
 				if(uc.getUpstreamOperator() == null) {
 					qp.addSource(lo); // the op with staticSource as upstream becomes Source
+				}
+			}
+		}
+		// Detect TagSink and make their upstreams sinks
+		for(LogicalOperator o : qp.getAllOperators()) {
+			for(DownstreamConnection dc : o.downstreamConnections()) {
+				if(dc.getDownstreamOperator() instanceof TagSink) {
+					qp.addSink(o);
 				}
 			}
 		}

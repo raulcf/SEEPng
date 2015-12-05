@@ -6,7 +6,7 @@ import java.util.List;
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
+import uk.ac.imperial.lsds.seep.api.operator.sources.TaggingSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -103,7 +103,7 @@ public class SeepLogicalOperator implements LogicalOperator {
 		((SeepLogicalOperator)downstreamOperator).addUpstream(this, streamId, dataStore, connectionType);
 	}
 	
-	public void reverseConnection(StaticSource ss, int streamId, DataStore dataStore, ConnectionType connectionType) {
+	public void reverseConnection(TaggingSource ss, int streamId, DataStore dataStore, ConnectionType connectionType) {
 		this.addUpstream(null, streamId, dataStore, connectionType);
 	}
 	
