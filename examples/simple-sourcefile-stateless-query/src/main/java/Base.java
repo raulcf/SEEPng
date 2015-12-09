@@ -26,10 +26,13 @@ public class Base implements QueryComposer {
 		
 		FileSource fileSource = FileSource.newSource(0, p);
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);
+        TagSink sink = TagSink.newSink(2);
+
+		//LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);
 		
 		fileSource.connectTo(processor, schema, 0);
-		processor.connectTo(snk, 0, new DataStore(schema, DataStoreType.NETWORK));
+        p.setProperty(FileConfig.FILE_PATH, "output.txt");
+		processor.connectTo(sink, 0, new DataStore(schema, DataStoreType.FILE, p));
 		
 		return queryAPI.build();
 	}

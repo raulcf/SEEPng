@@ -34,8 +34,11 @@ public class CoreOutputFactory {
 				if(dr.getServeMode().equals(ServeMode.STORE)) {
 					ob = drm.manageNewDataReference(dr);
 				}
+				else if (dr.getServeMode().equals(ServeMode.SINK)) {
+					ob = new OutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
+				}
 				// We simply create an outputBuffer that will host the data that will ship to an external system
-				else {
+				else if(dr.getServeMode().equals(ServeMode.STREAM)) {
 					ob = new OutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
 				}
 				oBuffers.put(dr.getId(), ob); // dr.id -> obuffer

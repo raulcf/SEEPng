@@ -6,12 +6,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -22,13 +24,13 @@ import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
-import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
-public class FileSelector implements DataStoreSelector {
+public class FileSelector implements DataStoreSelector, EventAPI {
 
 	final private static Logger LOG = LoggerFactory.getLogger(FileSelector.class);
 	
@@ -41,8 +43,10 @@ public class FileSelector implements DataStoreSelector {
 	
 	private Map<Integer, IBuffer> dataAdapters;
 	
+	private Map<Integer, SelectionKey> writerKeys;
+	
 	public FileSelector(WorkerConfig wc) {
-		
+		this.writerKeys = new HashMap<>();
 	}
 	
 	@Override
@@ -120,7 +124,7 @@ public class FileSelector implements DataStoreSelector {
 		this.reader.availableChannels(channels);
 	}
 	
-	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters){
+	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters) {
 		this.dataAdapters = dataAdapters;
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
 		SeekableByteChannel sbc = null;
@@ -138,8 +142,12 @@ public class FileSelector implements DataStoreSelector {
 		this.reader.availableChannels(channels);
 	}
 	
-	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest){
-		// TODO: implement this, configure writer, etc...
+	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest) {
+		// Lazily configure the writer
+		this.writer = new Writer();
+		this.writerWorker = new Thread(this.writer);
+		this.writerWorker.setName("File-Writer");
+		// TODO: create files and open streams to them with fileDest
 		throw new NotImplementedException("TODO: ");
 	}
 	
@@ -149,7 +157,7 @@ public class FileSelector implements DataStoreSelector {
 		private Selector readSelector;
 		private Map<SeekableByteChannel, Integer> channels;
 		
-		public Reader(){
+		public Reader() {
 			try {
 				this.readSelector = Selector.open();
 			}
@@ -158,11 +166,11 @@ public class FileSelector implements DataStoreSelector {
 			}
 		}
 		
-		public void availableChannels(Map<SeekableByteChannel, Integer> channels){
+		public void availableChannels(Map<SeekableByteChannel, Integer> channels) {
 			this.channels = channels;
 		}
 		
-		public void stop(){
+		public void stop() {
 			this.working = false;
 		}
 		
@@ -170,7 +178,7 @@ public class FileSelector implements DataStoreSelector {
 		public void run() {
 			LOG.info("Started File Reader worker: {}", Thread.currentThread().getName());
 			while(working){
-				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()){
+				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()) {
 					int id = e.getValue();
 					ReadableByteChannel rbc = e.getKey();
 					IBuffer ib = dataAdapters.get(id);
@@ -201,14 +209,56 @@ public class FileSelector implements DataStoreSelector {
 	
 	class Writer implements Runnable {
 
+		private boolean working = true;
+		private Selector writeSelector;
+		private Map<SeekableByteChannel, Integer> channels;
+		
 		public void stop(){
 			// TODO: implement
 		}
 		
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			
+			LOG.info("Started File Writer worker: {}", Thread.currentThread().getName());
+			while(working){
+				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()) {
+					int id = e.getValue();
+					ReadableByteChannel rbc = e.getKey();
+					IBuffer ib = dataAdapters.get(id);
+					if(rbc.isOpen()){
+						ib.readFrom(rbc);
+					}
+					else{
+						working = false;
+					}
+				}
+			}
+			LOG.info("Finished File Reader worker: {}", Thread.currentThread().getName());
+			this.closeWriter();
+		}
+		
+		private void closeWriter(){
+			for(SeekableByteChannel sbc : channels.keySet()){
+				try {
+					sbc.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void readyForWrite(int id) {
+		writerKeys.get(id).selector().wakeup();
+	}
+
+	@Override
+	public void readyForWrite(List<Integer> ids) {
+		for(Integer id : ids){
+			readyForWrite(id);
 		}
 	}
 }

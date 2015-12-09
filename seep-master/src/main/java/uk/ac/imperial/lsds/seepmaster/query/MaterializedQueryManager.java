@@ -208,8 +208,7 @@ public class MaterializedQueryManager implements QueryManager {
 				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
 				DataReference dref = null;
 				if(dc.getDownstreamOperator() instanceof TagSink) {
-					// TODO: is this enough for sink ops?
-					dref = DataReference.makeExternalDataReference(dataStore);
+					dref = DataReference.makeSinkExternalDataReference(dataStore);
 				}
 				else {
 					dref = DataReference.makeManagedDataReferenceWithOwner(opId, dataStore, ep, ServeMode.STREAM);

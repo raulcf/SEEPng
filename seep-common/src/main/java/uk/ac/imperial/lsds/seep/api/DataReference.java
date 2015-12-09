@@ -8,7 +8,8 @@ public final class DataReference {
 	
 	public enum ServeMode {
 		STREAM,
-		STORE
+		STORE,
+		SINK
 	}
 	
 	/**
@@ -72,6 +73,10 @@ public final class DataReference {
 	
 	public static DataReference makeExternalDataReference(DataStore dataStore) {
 		return new DataReference(dataStore, null, false, false, null);
+	}
+	
+	public static DataReference makeSinkExternalDataReference(DataStore dataStore) {
+		return new DataReference(dataStore, null, false, false, ServeMode.SINK);
 	}
 	
 	public int getId() {
