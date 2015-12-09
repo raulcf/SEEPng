@@ -76,6 +76,10 @@ public class GenericQueryManager implements QueryManager {
 		}
 		// get logical query
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
+		if (slq == null) {
+			LOG.error("Failed to load class " + definitionClassName + " from file " + pathToQueryJar);
+			return false;
+		}
 		return this.loadQueryFromParameter(slq, pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
 	}
 	

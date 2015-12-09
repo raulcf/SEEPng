@@ -121,7 +121,8 @@ public class SimpleConsoleUI implements UI {
 					LOG.info("Stopping query...OK");
 					break;
 				case "100":
-					//
+					// FIXME: Contact workers to shut them down
+					System.exit(0);
 					break;
 				default:
 					System.out.println("NOT RECOGNIZED");
