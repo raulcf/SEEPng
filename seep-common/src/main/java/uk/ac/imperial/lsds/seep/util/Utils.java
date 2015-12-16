@@ -8,11 +8,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
@@ -170,6 +174,29 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return myIp;
+	}
+	
+	public static InetAddress getPublicIp(){
+		InetAddress myIp = null;
+		try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface ni = (NetworkInterface) networkInterfaces.nextElement();
+                Enumeration<InetAddress> nias = ni.getInetAddresses();
+                while(nias.hasMoreElements()) {
+                    myIp = (InetAddress) nias.nextElement();
+                    if (!myIp.isLinkLocalAddress() 
+                     && !myIp.isLoopbackAddress()
+                     && myIp instanceof Inet4Address) {
+                    	LOG.debug("Public-local IP is {} - {} interface", myIp, ni.getName() );
+                        return myIp;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            LOG.error("Unable to get public-local IP " + e.getMessage(), e);
+        }
+        return null;
 	}
 	
 	public static int utf8Length(CharSequence s) {

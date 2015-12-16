@@ -55,9 +55,9 @@ public class Main {
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		int controlPort = wc.getInt(WorkerConfig.CONTROL_PORT);
-		// If no IP is given, then find some local address
+		// If no IP is given, then find the local-public address
 		if(myIp == null) {
-			myIp = Utils.getLocalIp();
+			myIp = Utils.getPublicIp();
 		}
 		
 		// Create comm object
