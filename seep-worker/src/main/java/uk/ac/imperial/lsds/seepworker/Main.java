@@ -51,15 +51,16 @@ public class Main {
 		
 		// Read configs with info about IP and port to bind to
 		String myIpStr = wc.getString(WorkerConfig.LISTENING_IP);
-		InetAddress myIp = Utils.getIpFromStringRepresentation(myIpStr);//InetAddress.getByName(myIpStr);
 		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
 		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		int controlPort = wc.getInt(WorkerConfig.CONTROL_PORT);
 		// If no IP is given, then find the local-public address
-		if(myIp == null) {
+		InetAddress myIp = null;
+		if(myIpStr == "")
 			myIp = Utils.getPublicIp();
-		}
-		
+		else
+			myIp = Utils.getIpFromStringRepresentation(myIpStr);//InetAddress.getByName(myIpStr);
+			
 		// Create comm object
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
