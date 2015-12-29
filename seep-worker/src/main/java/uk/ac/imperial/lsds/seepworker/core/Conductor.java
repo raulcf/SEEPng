@@ -204,12 +204,11 @@ public class Conductor {
 			DataReference dr = null;
 			// TODO: is this enough?
 			if(s.getStageType().equals(StageType.SINK_STAGE)) {
-				dr = DataReference.makeExternalDataReference(dataStore);
+				dr = DataReference.makeSinkExternalDataReference(dataStore);
 			}
 			else {
 				dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 			}
-//			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 			drefs.add(dr);
 			output.put(streamId, drefs);
 		}

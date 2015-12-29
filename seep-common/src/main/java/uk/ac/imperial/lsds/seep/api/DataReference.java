@@ -7,9 +7,9 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 public final class DataReference {
 	
 	public enum ServeMode {
-		STREAM,
-		STORE,
-		SINK
+		STREAM,	// When data is meant to be managed by seep in a diffrent place that where it's generated
+		STORE,	// When data is meant to be managed by seep where it is generated
+		SINK	// When data is not meant to be managed by seep, i.e. in the case of a sink that externalizes it
 	}
 	
 	/**
@@ -71,6 +71,7 @@ public final class DataReference {
 		return new DataReference(dataStore, endPoint, true, true, serveMode);
 	}
 	
+	@Deprecated
 	public static DataReference makeExternalDataReference(DataStore dataStore) {
 		return new DataReference(dataStore, null, false, false, null);
 	}

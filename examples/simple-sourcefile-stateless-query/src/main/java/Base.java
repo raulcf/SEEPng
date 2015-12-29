@@ -2,6 +2,7 @@ import java.util.Properties;
 
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileSource;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.TagSink;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.DataStore;
