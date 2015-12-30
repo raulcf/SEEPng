@@ -71,8 +71,6 @@ public class DataStoreSelectorFactory {
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
-//			Set<OBuffer> obufsToStream = filterOBufferToStream(coreOutput.getBuffers());
-			// FIXME: try this 
 			Set<OBuffer> obufsToStream = coreOutput.getOBufferToDataStoreOfType(DataStoreType.NETWORK);
 			// If ns is null create it first
 			if(ns == null){
@@ -86,19 +84,6 @@ public class DataStoreSelectorFactory {
 			}
 		}
 		return ns;
-	}
-
-	// FIXME: don't filter by stream, instead, filter by type of store
-	@Deprecated
-	private static Set<OBuffer> filterOBufferToStream(Map<Integer, OBuffer> buffers) {
-		// Select only those that are meant to be streamed
-		Set<OBuffer> filtered = new HashSet<>();
-		for(OBuffer oBuffer : buffers.values()) {
-			if(oBuffer.getDataReference().getServeMode().equals(ServeMode.STREAM)) {
-				filtered.add(oBuffer);
-			}
-		}
-		return filtered;
 	}
 	
 	public static FileSelector maybeConfigureFileSelector(CoreInput coreInput, CoreOutput coreOutput, 
@@ -117,7 +102,7 @@ public class DataStoreSelectorFactory {
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
 			Set<OBuffer> obufsToStream = coreOutput.getOBufferToDataStoreOfType(DataStoreType.FILE);
-			// If ns is null create it first
+			// If fs is null create it first
 			if(fs == null) {
 				fs = new FileSelector(wc);
 			}

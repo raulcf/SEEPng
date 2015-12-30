@@ -577,10 +577,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			key.interestOps(newOps);
 		}
 		
-		private void handleNewConnections(){
+		private void handleNewConnections() {
 			try {
 				OutgoingConnectionRequest ocr = null;
-				while((ocr = this.pendingConnections.poll()) != null){
+				while((ocr = this.pendingConnections.poll()) != null) {
 					OBuffer ob = ocr.oBuffer;
 					Connection c = ocr.connection;
 					SocketChannel channel = SocketChannel.open();

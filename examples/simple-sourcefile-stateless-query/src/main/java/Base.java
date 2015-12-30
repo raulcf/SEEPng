@@ -28,8 +28,6 @@ public class Base implements QueryComposer {
 		FileSource fileSource = FileSource.newSource(0, p);
 		LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);
         TagSink sink = TagSink.newSink(2);
-
-		//LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);
 		
 		fileSource.connectTo(processor, schema, 0);
         p.setProperty(FileConfig.FILE_PATH, "output.txt");
