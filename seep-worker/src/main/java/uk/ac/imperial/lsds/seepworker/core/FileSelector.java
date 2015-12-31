@@ -252,7 +252,7 @@ public class FileSelector implements DataStoreSelector, EventAPI {
 				try {
 					channel = FileChannel.open(p);
 					
-				} 
+				}
 				catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -107,7 +107,7 @@ public class DataStoreSelectorFactory {
 				fs = new FileSelector(wc);
 			}
 			Map<Integer, DataStore> fileDest = coreOutput.getMapStreamIdToDataStore();
-			fs.configureDownstreamFiles(fileDest);
+			fs.configureDownstreamFiles(fileDest, obufsToStream);
 			// TODO: maybe we can iterate directly over eventbasedOBuffer ?
 			for(OBuffer ob : obufsToStream) {
 				if (ob instanceof EventBasedOBuffer) {
