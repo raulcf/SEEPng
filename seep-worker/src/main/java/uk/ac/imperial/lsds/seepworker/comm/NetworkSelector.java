@@ -618,7 +618,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private void closeWriter(){
 			// FIXME: test this
-			try{
+			try {
 				for(SelectionKey sk : writeSelector.keys()){
 					sk.channel().close();
 					sk.cancel();

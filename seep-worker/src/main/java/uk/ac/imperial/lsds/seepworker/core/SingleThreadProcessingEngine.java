@@ -107,8 +107,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 					InputAdapter ia = it.next();
 					if(ia.returnType() == one) {
 						ITuple d = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
-						if(d != null) {
-							task.processData(d, api);
+						if(d != null) {							task.processData(d, api);
 							m.mark();
 						}
 						else {

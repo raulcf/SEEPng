@@ -14,18 +14,18 @@ import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
 
-public class TagSink implements TaggingSink, Operator {
+public class MarkerSink implements TaggingSink, Operator {
 
-	final private static Logger LOG = LoggerFactory.getLogger(TagSink.class);
+	final private static Logger LOG = LoggerFactory.getLogger(MarkerSink.class);
 	
 	private int id;
 	
-	private TagSink(int id) {
+	private MarkerSink(int id) {
 		this.id = id;
 	}
 	
-	public static TagSink newSink(int id) {
-		return new TagSink(id);
+	public static MarkerSink newSink(int id) {
+		return new MarkerSink(id);
 	}
 	
 	/**
@@ -48,36 +48,42 @@ public class TagSink implements TaggingSink, Operator {
 	@Override
 	public int getOperatorId() {
 		// TODO Auto-generated method stub
-		return id;
+		return 0;
 	}
 
 	@Override
 	public String getOperatorName() {
-		return "" + id + "";
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public boolean isStateful() {
+		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public SeepState getState() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public SeepTask getSeepTask() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public List<DownstreamConnection> downstreamConnections() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public List<UpstreamConnection> upstreamConnections() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

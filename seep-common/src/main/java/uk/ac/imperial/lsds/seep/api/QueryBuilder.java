@@ -10,7 +10,7 @@ import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
-import uk.ac.imperial.lsds.seep.api.operator.sinks.TagSink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.MarkerSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
@@ -33,7 +33,7 @@ public class QueryBuilder implements QueryAPI {
 		// Detect TagSink and make their upstreams sinks
 		for(LogicalOperator o : qp.getAllOperators()) {
 			for(DownstreamConnection dc : o.downstreamConnections()) {
-				if(dc.getDownstreamOperator() instanceof TagSink) {
+				if(dc.getDownstreamOperator() instanceof MarkerSink) {
 					qp.addSink(o);
 				}
 			}

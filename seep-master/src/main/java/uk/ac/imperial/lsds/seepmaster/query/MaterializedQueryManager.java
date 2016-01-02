@@ -15,9 +15,10 @@ import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
-import uk.ac.imperial.lsds.seep.api.operator.sinks.TagSink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.MarkerSink;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -181,15 +182,29 @@ public class MaterializedQueryManager implements QueryManager {
 			for(UpstreamConnection uc : lo.upstreamConnections()) {
 				int streamId = uc.getStreamId();
 				// Find all DataReferences that produce to this streamId filter by upstream operator
-				int upstreamOpId = uc.getUpstreamOperator().getOperatorId();
-				for(Entry<Integer, Set<DataReference>> produces : outputs.get(upstreamOpId).entrySet()) {
-					if(produces.getKey() == streamId) {
-						if(! input.containsKey(streamId)) {
-							input.put(streamId, new HashSet<>());
+				Operator upstreamOp = uc.getUpstreamOperator();
+				if(upstreamOp != null) {
+					int upstreamOpId = upstreamOp.getOperatorId();
+					for(Entry<Integer, Set<DataReference>> produces : outputs.get(upstreamOpId).entrySet()) {
+						if(produces.getKey() == streamId) {
+							if(! input.containsKey(streamId)) {
+								input.put(streamId, new HashSet<>());
+							}
+							input.get(streamId).addAll(produces.getValue());
 						}
-						input.get(streamId).addAll(produces.getValue());
 					}
 				}
+				else {
+					// This can occur when sources simply mark data origin. In this case we can create the 
+					// DataReference directly
+					DataReference dRef = DataReference.makeExternalDataReference(uc.getDataStore());
+					// Then we add the DataReferences
+					if(! input.containsKey(streamId)) {
+						input.put(streamId, new HashSet<>());
+					}
+					input.get(streamId).add(dRef);
+				}
+				
 			}
 			inputs.put(opId, input);
 		}
@@ -207,7 +222,7 @@ public class MaterializedQueryManager implements QueryManager {
 			for(DownstreamConnection dc : lo.downstreamConnections()) {
 				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
 				DataReference dref = null;
-				if(dc.getDownstreamOperator() instanceof TagSink) {
+				if(dc.getDownstreamOperator() instanceof MarkerSink) {
 					dref = DataReference.makeSinkExternalDataReference(dataStore);
 				}
 				else {

@@ -71,7 +71,7 @@ public final class DataReference {
 		return new DataReference(dataStore, endPoint, true, true, serveMode);
 	}
 	
-	@Deprecated
+	//TODO: consider refactoring name to makeSourceExternalDataReference, is there any other type of external dref?
 	public static DataReference makeExternalDataReference(DataStore dataStore) {
 		return new DataReference(dataStore, null, false, false, null);
 	}

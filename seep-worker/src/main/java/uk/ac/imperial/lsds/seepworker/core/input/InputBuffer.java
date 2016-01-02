@@ -36,7 +36,8 @@ public class InputBuffer implements IBuffer {
 	}
 	
 	@Override
-	public void readFrom(ReadableByteChannel channel) {
+	public int readFrom(ReadableByteChannel channel) {
+		int totalTuplesRead = 0;
 		if(header.remaining() > 0) {
 			this.read(channel, header);
 		}
@@ -52,12 +53,13 @@ public class InputBuffer implements IBuffer {
 		if(payload != null) {
 			this.read(channel, payload);
 			if(!payload.hasRemaining()) {
-				this.forwardTuples(payload, nTuples);
+				totalTuplesRead = this.forwardTuples(payload, nTuples);
 				payload = null;
 				header.clear();
 				nTuples = 0;
 			}
 		}
+		return totalTuplesRead;
 	}
 	
 	private int read(ReadableByteChannel src, ByteBuffer dst){
@@ -70,7 +72,8 @@ public class InputBuffer implements IBuffer {
 		return -1;
 	}
 	
-	private void forwardTuples(ByteBuffer buf, int numTuples) {
+	private int forwardTuples(ByteBuffer buf, int numTuples) {
+		int totalTuplesForwarded = 0;
 		int tupleSize = 0;
 		buf.flip(); // Prepare buffer to read
 		for(int i = 0; i < numTuples; i++){			
@@ -78,8 +81,10 @@ public class InputBuffer implements IBuffer {
 			byte[] completedRead = new byte[tupleSize];
 			buf.get(completedRead, 0, tupleSize);
 			this.pushData(completedRead);
+			totalTuplesForwarded++;
 		}
 		buf.clear();
+		return totalTuplesForwarded;
 	}
 	
 	@Override

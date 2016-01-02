@@ -131,9 +131,9 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 
 	@Override
-	public void readFrom(ReadableByteChannel channel) {
+	public int readFrom(ReadableByteChannel channel) {
 		// TODO Auto-generated method stub
-		
+		return -1;
 	}
 
 	@Override
