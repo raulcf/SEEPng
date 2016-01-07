@@ -29,6 +29,11 @@ public final class DataReference {
 	 */
 	private final boolean partitioned;
 	/**
+	 * When a DataReference is partitioned, this indicates the partitionId
+	 * FIXME: make it final and see where to assign the id
+	 */
+	private int partitionId;
+	/**
 	 * Info necessary for the DRM to serve this DR
 	 */
 	private final DataStore dataStore;
@@ -102,6 +107,10 @@ public final class DataReference {
 	
 	public boolean isPartitioned() {
 		return partitioned;
+	}
+	
+	public int getPartitionId() {
+		return partitionId;
 	}
 	
 	/**

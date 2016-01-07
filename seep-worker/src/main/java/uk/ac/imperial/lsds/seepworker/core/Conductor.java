@@ -156,7 +156,6 @@ public class Conductor {
 			st.setUp();
 			scheduleTasks.put(s, st);
 		}
-		// TODO: configure drm
 	}
 	
 	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {

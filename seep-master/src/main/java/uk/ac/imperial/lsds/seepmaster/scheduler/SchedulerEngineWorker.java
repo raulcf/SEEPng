@@ -105,6 +105,8 @@ public class SchedulerEngineWorker implements Runnable {
 		
 		// Split input DataReference per worker to maximize locality (not load balancing)
 		List<CommandToNode> commands = new ArrayList<>();
+		final int totalWorkers = conns.size();
+		int currentWorker = 0;
 		for(Connection c : conns) {
 			MasterWorkerCommand esc = null;
 			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
@@ -112,21 +114,28 @@ public class SchedulerEngineWorker implements Runnable {
 				for(DataReference dr : drefs.get(streamId)) {
 					// EXTERNAL. assign one and continue
 					if(! dr.isManaged()) {
-						if(! perWorker.containsKey(streamId)) {
-							perWorker.put(streamId, new HashSet<>());
-						}
-						perWorker.get(streamId).add(dr);
+						assignDataReferenceToWorker(perWorker, streamId, dr);
+						currentWorker++;
 						break;
 					}
 					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
-					else if(dr.isPartitioned() || dr.getEndPoint().getId() == c.getId()) {
-						// assign
-						if(! perWorker.containsKey(streamId)) {
-							perWorker.put(streamId, new HashSet<>());
+					else {
+						// SHUFFLE/PARTITIONED CASE
+						if(dr.isPartitioned()) {
+							// In this case, assign to this worker all DataReference with seqId module
+							int partitionSeqId = dr.getPartitionId();
+							if(partitionSeqId % totalWorkers == currentWorker) {
+								assignDataReferenceToWorker(perWorker, streamId, dr);
+							}
 						}
-						perWorker.get(streamId).add(dr);
+						// NORMAL CASE, MAKE LOCALITY=LOCAL
+						else if(dr.getEndPoint().getId() == c.getId()) {
+							// assign
+							assignDataReferenceToWorker(perWorker, streamId, dr);
+						}
 					}
 				}
+				currentWorker++;
 			}
 			// FIXME: what is outputdatareferences
 			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
@@ -135,6 +144,13 @@ public class SchedulerEngineWorker implements Runnable {
 			commands.add(ctn);
 		}
 		return commands;
+	}
+	
+	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
+		if(! perWorker.containsKey(streamId)) {
+			perWorker.put(streamId, new HashSet<>());
+		}
+		perWorker.get(streamId).add(dr);
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
