@@ -13,13 +13,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.config.ConfigKey;
+import uk.ac.imperial.lsds.seep.config.ConfigDef.Type;
 
 public class Utils {
 
@@ -139,8 +144,33 @@ public class Utils {
 		return prop;
 	}
 	
-	public static Properties overwriteSecondPropertiesWithFirst(Properties commandLineProperties, Properties fileProperties) {
+	// Default configuration values (so far) can be either INT or STRING
+	public static boolean isDefaultConfigValue(ConfigKey key1, Object key2) {
+		switch (key1.type) {
+			case INT:
+				if (key2 instanceof Integer) 
+					return (Integer) key1.defaultValue == key2;
+				else if (key2 instanceof String) 
+					return (Integer) key1.defaultValue == Integer.parseInt((String) key2);
+			case STRING:
+				return key1.defaultValue.equals(key2);
+			default:
+				return false;
+		}
+	}
+	
+	public static Properties overwriteSecondPropertiesWithFirst(Properties commandLineProperties, Properties fileProperties, List<ConfigKey> configKeys) {
+		Map<String, ConfigKey> configKeysMap = configKeys.stream().collect(Collectors.toMap(ConfigKey::getName, item -> item));
+		
 		for(Object key : commandLineProperties.keySet()){
+			//Case where we have the same property defined both from command line as from file
+			if( (commandLineProperties.get(key)!= null) && (fileProperties.get(key)!= null) && (configKeysMap.get(key).hasDefault()) ){
+				
+				//if it is the default => keep the fileproperty - Skipping
+				if(isDefaultConfigValue( configKeysMap.get(key), commandLineProperties.get(key)))
+					continue;
+				
+			}
 			fileProperties.put(key, commandLineProperties.get(key));
 		}
 		return fileProperties;

@@ -114,7 +114,7 @@ public class Main {
 		// Get properties from file, if any
 		Properties fileProperties = Utils.readPropertiesFromFile(cla.getProperties().getProperty(WorkerConfig.PROPERTIES_FILE), WorkerConfig.PROPERTIES_RESOURCE_FILE);
 		
-		Properties validatedProperties = Utils.overwriteSecondPropertiesWithFirst(commandLineProperties, fileProperties);
+		Properties validatedProperties = Utils.overwriteSecondPropertiesWithFirst(commandLineProperties, fileProperties, configKeys);
 		boolean validates = validateProperties(validatedProperties);
 		if(!validates){
 			printHelp(parser);

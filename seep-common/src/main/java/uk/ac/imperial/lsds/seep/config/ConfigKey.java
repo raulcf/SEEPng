@@ -27,7 +27,12 @@ public class ConfigKey {
         this.documentation = documentation;
     }
 
+    public String getName(){
+    	return this.name;
+    }
+    
     public boolean hasDefault() {
         return this.defaultValue != NO_DEFAULT_VALUE;
     }
+    
 }
