@@ -3,7 +3,6 @@ package uk.ac.imperial.lsds.seepworker.core;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,17 +10,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
-import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -71,7 +67,7 @@ public class DataStoreSelectorFactory {
 		}
 		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
 			LOG.info("Configuring networkSelector for output");
-			Set<OBuffer> obufsToStream = filterOBufferToStream(coreOutput.getBuffers());
+			Set<OBuffer> obufsToStream = coreOutput.getOBufferToDataStoreOfType(DataStoreType.NETWORK);
 			// If ns is null create it first
 			if(ns == null){
 				ns = new NetworkSelector(wc, o.getOperatorId());
@@ -85,35 +81,61 @@ public class DataStoreSelectorFactory {
 		}
 		return ns;
 	}
-
-	private static Set<OBuffer> filterOBufferToStream(Map<Integer, OBuffer> buffers) {
-		// Select only those that are meant to be streamed
-		Set<OBuffer> filtered = new HashSet<>();
-		for(OBuffer oBuffer : buffers.values()) {
-			if(oBuffer.getDataReference().getServeMode().equals(ServeMode.STREAM)) {
-				filtered.add(oBuffer);
-			}
-		}
-		return filtered;
-	}
-
+	
 	public static FileSelector maybeConfigureFileSelector(CoreInput coreInput, CoreOutput coreOutput, 
-			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort){
+			WorkerConfig wc, LogicalOperator o, InetAddress myIp, int dataPort) {
 		FileSelector fs = null;
-		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
 			fs = new FileSelector(wc);
+			// DataReferenceId - DataStore
 			Map<Integer, DataStore> fileOrigins = new HashMap<>();
-			for(UpstreamConnection uc : o.upstreamConnections()){
-				int opId = uc.getUpstreamOperator().getOperatorId();
-				if(uc.getDataStoreType() == DataStoreType.FILE) {
-					fileOrigins.put(opId, uc.getDataStore());
+			Map<Integer, Set<DataReference>> i_dRefs = coreInput.getDataReferences();
+			
+			for(Set<DataReference> dRefs : i_dRefs.values()) {
+				for(DataReference dR : dRefs) {
+					DataStore dataStore = dR.getDataStore();
+					if(dataStore.type() == DataStoreType.FILE) {
+						int dRefId = dR.getId();
+						fileOrigins.put(dRefId, dataStore);
+					}
 				}
 			}
+			
+			
+//			for(DataReference dR : dRefs) {
+//				DataStore dataStore = dR.getDataStore();
+//				if(dataStore.type() == DataStoreType.FILE) {
+//					int dRefId = dR.getId();
+//					fileOrigins.put(dRefId, dataStore);
+//				}
+//			}
+			
+//			for(UpstreamConnection uc : o.upstreamConnections()) {
+//				if(uc.getDataStoreType() == DataStoreType.FILE) {
+//					int sId = uc.getStreamId();
+//					fileOrigins.put(sId, uc.getDataStore());
+//				}
+//			}
+			
+			
 			fs.configureAccept(fileOrigins, coreInput.getIBufferProvider());
 		}
-		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)){
-			throw new NotImplementedException("not implemented yet...");
-		}
+		// Output of type File is taken care of
+//		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
+//			Set<OBuffer> obufsToStream = coreOutput.getOBufferToDataStoreOfType(DataStoreType.FILE);
+//			// If fs is null create it first
+//			if(fs == null) {
+//				fs = new FileSelector(wc);
+//			}
+//			Map<Integer, DataStore> fileDest = coreOutput.getMapStreamIdToDataStore();
+//			fs.configureDownstreamFiles(fileDest, obufsToStream);
+//			// TODO: maybe we can iterate directly over eventbasedOBuffer ?
+//			for(OBuffer ob : obufsToStream) {
+//				if (ob instanceof EventBasedOBuffer) {
+//					((EventBasedOBuffer)ob).setEventAPI(fs);
+//				}
+//			}
+//		}
 		return fs;
 	}
 

@@ -12,8 +12,6 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.kryo.Kryo;
-
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
@@ -28,20 +26,22 @@ import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
-import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
+
+import com.esotericsoftware.kryo.Kryo;
 
 public class Conductor {
 
@@ -199,9 +199,16 @@ public class Conductor {
 			// TODO:
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
-			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY); // how to get this
+			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
 			EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
-			DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+			DataReference dr = null;
+			// TODO: is this enough?
+			if(s.getStageType().equals(StageType.SINK_STAGE)) {
+				dr = DataReference.makeSinkExternalDataReference(dataStore);
+			}
+			else {
+				dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+			}
 			drefs.add(dr);
 			output.put(streamId, drefs);
 		}

@@ -24,7 +24,7 @@ public class Processor implements SeepTask {
 		System.out.println("data send: "+d.length);
 		api.send(d);
 		
-		waitHere(10);
+//		waitHere(10);
 	}
 	
 	private void waitHere(int time){

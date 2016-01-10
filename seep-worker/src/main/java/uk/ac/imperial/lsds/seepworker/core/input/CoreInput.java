@@ -38,6 +38,10 @@ public class CoreInput {
 		LOG.info("Configured CoreInput with {} inputAdapters", inputAdapters.size());
 	}
 	
+	public Map<Integer, Set<DataReference>> getDataReferences() {
+		return input;
+	}
+	
 	public List<InputAdapter> getInputAdapters(){
 		return inputAdapters;
 	}

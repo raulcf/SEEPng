@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -30,12 +31,23 @@ public class CoreOutputFactory {
 			List<OBuffer> buffers = new ArrayList<>();
 			for(DataReference dr : entry.getValue()) {
 				OBuffer ob = null;
-				// We indicate DRM to manage a new DataReference and get a Dataset that will host the data in return
+				// If STORE, then DRM is responsible for the new DataReference
 				if(dr.getServeMode().equals(ServeMode.STORE)) {
 					ob = drm.manageNewDataReference(dr);
 				}
-				// We simply create an outputBuffer that will host the data that will ship to an external system
-				else {
+				// If SINK, then it will depend on the target DataStoreType
+				else if (dr.getServeMode().equals(ServeMode.SINK)) {
+					// TODO: refactor this into a another private method below
+					DataStoreType type = dr.getDataStore().type();
+					if(type.equals(DataStoreType.FILE)) {
+						ob = new FileOutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
+					}
+					else {
+						ob = new NullOutputBuffer();
+					}
+				}
+				// If STREAM, data is kept in an OutputBuffer until the network services pulls it
+				else if(dr.getServeMode().equals(ServeMode.STREAM)) {
 					ob = new OutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
 				}
 				oBuffers.put(dr.getId(), ob); // dr.id -> obuffer

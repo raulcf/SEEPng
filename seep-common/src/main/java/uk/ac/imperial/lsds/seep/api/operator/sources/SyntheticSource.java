@@ -9,7 +9,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 
-public class SyntheticSource implements StaticConnectable, StaticSource {
+public class SyntheticSource implements StaticConnectable, TaggingSource {
 
 	private int id;
 	private Properties properties;

@@ -6,7 +6,8 @@ import java.util.List;
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
-import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.TaggingSink;
+import uk.ac.imperial.lsds.seep.api.operator.sources.TaggingSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -99,11 +100,17 @@ public class SeepLogicalOperator implements LogicalOperator {
 	public void connectTo(Operator downstreamOperator, int streamId, DataStore dataStore, ConnectionType connectionType){
 		// Add downstream to this operator
 		this.addDownstream(downstreamOperator, streamId, dataStore, connectionType);
-		// Add this, as upstream, to the downstream operator
-		((SeepLogicalOperator)downstreamOperator).addUpstream(this, streamId, dataStore, connectionType);
+		// Add this as a new upstream to the downstream operator. With the exception of downstream being a 
+		// TaggingSink in which case its existence is transient and its purpose of limited scope,
+		// like that of all of us. At least until someone figures out how to cure aging, and people start
+		// reading more philosophy and less shit, and working hard to figure out why they want to be alive, 
+		// instead of simply following their animal instincts of survival. Those lazy bastards.
+		if(! (downstreamOperator instanceof TaggingSink)) {
+			((SeepLogicalOperator)downstreamOperator).addUpstream(this, streamId, dataStore, connectionType);
+		}
 	}
 	
-	public void reverseConnection(StaticSource ss, int streamId, DataStore dataStore, ConnectionType connectionType) {
+	public void reverseConnection(TaggingSource ss, int streamId, DataStore dataStore, ConnectionType connectionType) {
 		this.addUpstream(null, streamId, dataStore, connectionType);
 	}
 	

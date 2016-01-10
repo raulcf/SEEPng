@@ -32,7 +32,6 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
-import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
@@ -578,10 +577,10 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 			key.interestOps(newOps);
 		}
 		
-		private void handleNewConnections(){
+		private void handleNewConnections() {
 			try {
 				OutgoingConnectionRequest ocr = null;
-				while((ocr = this.pendingConnections.poll()) != null){
+				while((ocr = this.pendingConnections.poll()) != null) {
 					OBuffer ob = ocr.oBuffer;
 					Connection c = ocr.connection;
 					SocketChannel channel = SocketChannel.open();
@@ -619,7 +618,7 @@ public class NetworkSelector implements EventAPI, DataStoreSelector {
 		
 		private void closeWriter(){
 			// FIXME: test this
-			try{
+			try {
 				for(SelectionKey sk : writeSelector.keys()){
 					sk.channel().close();
 					sk.cancel();

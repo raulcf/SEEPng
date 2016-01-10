@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2013 Imperial College London.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors:
- *     Raul Castro Fernandez - initial design and implementation
- ******************************************************************************/
 package uk.ac.imperial.lsds.seep.api;
 
 import java.util.HashSet;
@@ -15,10 +5,12 @@ import java.util.List;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.MarkerSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 
@@ -35,6 +27,14 @@ public class QueryBuilder implements QueryAPI {
 			for(UpstreamConnection uc : lo.upstreamConnections()) {
 				if(uc.getUpstreamOperator() == null) {
 					qp.addSource(lo); // the op with staticSource as upstream becomes Source
+				}
+			}
+		}
+		// Detect TagSink and make their upstreams sinks
+		for(LogicalOperator o : qp.getAllOperators()) {
+			for(DownstreamConnection dc : o.downstreamConnections()) {
+				if(dc.getDownstreamOperator() instanceof MarkerSink) {
+					qp.addSink(o);
 				}
 			}
 		}

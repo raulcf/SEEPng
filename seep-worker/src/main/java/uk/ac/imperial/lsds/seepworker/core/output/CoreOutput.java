@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core.output;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
@@ -37,7 +40,21 @@ public class CoreOutput {
 	public Map<Integer, OBuffer> getBuffers() {
 		return oBuffers;
 	}
-
+	
+	public Set<OBuffer> getOBufferToDataStoreOfType(DataStoreType dst) {
+		Set<OBuffer> bufs = new HashSet<>();
+		for(Set<DataReference> set : output.values()) {
+			for(DataReference dr : set) {
+				if(dr.getDataStore().type().equals(dst)) {
+					int id = dr.getId();
+					bufs.add(oBuffers.get(id));
+				}
+			}
+		}
+		return bufs;
+	}
+	
+	
 	public boolean requiresConfigureSelectorOfType(DataStoreType type) {
 		for(Set<DataReference> dres : output.values()) {
 			for(DataReference dr : dres) {
@@ -48,28 +65,14 @@ public class CoreOutput {
 		}
 		return false;
 	}
-	
-//	public Set<OutputBuffer> getOutputBuffers(){
-//		Set<OutputBuffer> cons = new HashSet<>();
-//		for(OutputAdapter oa : outputAdapters){
-//			cons.addAll(oa.getOutputBuffers().values());
-//		}
-//		return cons;
-//	}
-//	
-//	public boolean requiresConfigureSelectorOfType(DataStoreType type){
-//		for(OutputAdapter oa : outputAdapters){
-//			if(oa.getDataOriginType().equals(type)){
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-//	
-//	public void setEventAPI(EventAPI eAPI){
-//		for(OutputAdapter oa : outputAdapters){
-//			oa.setEventAPI(eAPI);
-//		}
-//	}
+
+	public Map<Integer, DataStore> getMapStreamIdToDataStore() {
+		Map<Integer, DataStore> toReturn = new HashMap<>();
+		for(Set<DataReference> set : output.values()) {
+			DataReference sample = set.iterator().next();
+			toReturn.put(sample.getId(), sample.getDataStore());
+		}
+		return toReturn;
+	}
 	
 }

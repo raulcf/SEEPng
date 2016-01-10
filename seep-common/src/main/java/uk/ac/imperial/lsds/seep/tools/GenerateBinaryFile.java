@@ -25,6 +25,12 @@ public class GenerateBinaryFile {
 	private static int BATCH_SIZE = 10;
 	
 	public static void main(String[] args){
+		/**
+		 * EXAMPLE parameters command line:
+		 * --output test.txt --schema "param1, param2" --types "int, int" --values 0 1 --filesize 10
+		 * The right name for types: look at the method that does the parsing below
+		 */
+		
 		OptionParser parser = new OptionParser();
 		parser.accepts("schema", "Schema fields").withRequiredArg().required();
 		parser.accepts("types", "Seed values").withRequiredArg().required();
@@ -94,7 +100,7 @@ public class GenerateBinaryFile {
 		
 		SchemaBuilder sb = SchemaBuilder.getInstance();
 		for(int i = 0; i < sTokens.length; i++){
-			Type type = getType(tTokens[i]);
+			Type type = getType(tTokens[i].trim());
 			sb.newField(type, sTokens[i]);
 		}
 		

@@ -6,7 +6,7 @@ import java.nio.channels.ReadableByteChannel;
 // iBuffer implementation that need it, e.g. ReadableIBuffer.
 public interface IBuffer {
 
-	public void readFrom(ReadableByteChannel channel);
+	public int readFrom(ReadableByteChannel channel);
 	public byte[] read(int timeout);
 	void pushData(byte[] data);
 	
