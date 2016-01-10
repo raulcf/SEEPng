@@ -54,7 +54,6 @@ public class CoreOutput {
 		return bufs;
 	}
 	
-	
 	public boolean requiresConfigureSelectorOfType(DataStoreType type) {
 		for(Set<DataReference> dres : output.values()) {
 			for(DataReference dr : dres) {

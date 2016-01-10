@@ -26,47 +26,52 @@ public class InputAdapterFactory {
 	final static private Logger LOG = LoggerFactory.getLogger(IOComm.class.getName());
 	
 	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
-		List<InputAdapter> ias = null;
-		DataReference dRef_reference = drefs.iterator().next();
-		DataStoreType type = dRef_reference.getDataStore().type();
+		List<InputAdapter> ias = new ArrayList<>();
 		
-		// The case of locally serving a DataReference.
-		// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
-		if((dRef_reference.isManaged() && dRef_reference.getServeMode().equals(ServeMode.STORE)) || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
-			List<Dataset> datasets = new ArrayList<>();
-			for(IBuffer iBuf : buffers){
-				if( ! (iBuf instanceof Dataset)) {
-					// TODO: throw some exception here, what other method is there to host managed data otherwise?
+		List<InputAdapter> ias_dataset = null;
+		List<InputAdapter> ias_network = null;
+		List<InputAdapter> ias_file = null;
+		List<InputAdapter> ias_kafka = null;
+		
+		// Iterate through DataReference to understand what type of InputAdapter they need
+		for(DataReference dRef : drefs) {
+			// The case of locally serving a DataReference.
+			// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
+			DataStoreType type = dRef.getDataStore().type();
+			if(dRef.isManaged() && dRef.getServeMode().equals(ServeMode.STORE) || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+				List<Dataset> datasets = new ArrayList<>();
+				for(IBuffer iBuf : buffers){
+					if( ! (iBuf instanceof Dataset)) {
+						// TODO: throw some exception here, what other method is there to host managed data otherwise?
+					}
+					datasets.add((Dataset)iBuf);
 				}
-				datasets.add((Dataset)iBuf);
+				ias_dataset = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
 			}
-			ias = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
+			else{
+				if(type.equals(DataStoreType.NETWORK)) {
+					ias_network = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
+				}
+				else if(type.equals(DataStoreType.FILE)) {
+					ias_file = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
+				}
+				else if(type.equals(DataStoreType.KAFKA)) {
+					ias_kafka = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
+				}
+			}
 		}
-		else{
-			if(type.equals(DataStoreType.NETWORK)) {
-				ias = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
-			}
-			else if(type.equals(DataStoreType.FILE)) {
-				ias = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
-			}
-			else if(type.equals(DataStoreType.KAFKA)) {
-				ias = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
-			}
-		}
+
+		ias.addAll(ias_dataset);
+		ias.addAll(ias_network);
+		ias.addAll(ias_file);
+		ias.addAll(ias_kafka);
+		
 		return ias;
 	}
 	
 	private static List<InputAdapter> buildInputAdapterOfTypeDatasetForOps(
 			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<Dataset> datasets){
 		List<InputAdapter> ias = new ArrayList<>();
-//		DataReference dr = drefs.iterator().next();
-//		Schema expectedSchema = dr.getDataStore().getSchema();
-		// FIXME: this cannot be right, we'd need a schema per dataset, so it should not be got here
-//		Schema expectedSchema = datasets.iterator().next().getSchemaForDataset();
-//		if(expectedSchema == null) {
-//			LOG.info("SCHEMA IS NULL");
-//			System.exit(-1);
-//		}
 		for(Dataset dataset : datasets) {
 			InputAdapter ia = new DatasetInputAdapter(wc, streamId, dataset);
 			ias.add(ia);

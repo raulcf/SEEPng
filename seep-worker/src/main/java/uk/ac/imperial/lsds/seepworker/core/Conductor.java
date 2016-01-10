@@ -176,6 +176,11 @@ public class Conductor {
 			output = createOutputForTask(s, expectedSchema);
 		}
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
+		
+		// Request (possibly) remote chunks in case of scheduling a shuffled stage
+		if(s.hasPartitionedStage()) {
+			coreInput.requestInputConnections(comm, k, myIp);
+		}
 
 		SeepState state = null;
 		
@@ -191,11 +196,23 @@ public class Conductor {
 		Map<Integer, Set<DataReference>> output = new HashMap<>();
 		if(s.hasPartitionedStage()) {
 			// create a DR per partition, that are managed
-			// TODO: figure out this later, once shuffle is clear
+			// TODO: how to get the number of partitions
+			int numPartitions = 8;
+			int streamId = 0;
+			Set<DataReference> drefs = new HashSet<>();
+			// TODO: create a DR per partition and assign the partitionSeqId
+			for(int i = 0; i < numPartitions; i++) {
+				DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
+				EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
+				DataReference dr = null;
+				int partitionId = i;
+				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, endPoint, ServeMode.STORE, partitionId);
+				drefs.add(dr);
+			}
+			output.put(streamId, drefs);
 		}
 		else {
 			// create a single DR, that is managed
-			// TODO:
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
