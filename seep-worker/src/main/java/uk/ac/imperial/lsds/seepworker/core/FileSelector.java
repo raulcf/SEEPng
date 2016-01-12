@@ -95,8 +95,9 @@ public class FileSelector implements DataStoreSelector {
 		this.reader = new Reader();
 		this.readerWorker = new Thread(this.reader);
 		this.readerWorker.setName("File-Reader");
-		
+
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
+		Map<BufferedReader, Integer> textchannels = new HashMap<>();
 		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
 				FileConfig config = new FileConfig(e.getValue().getConfig());
@@ -106,8 +107,13 @@ public class FileSelector implements DataStoreSelector {
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);
 				LOG.info("Configuring file channel: {}", resource.toString());
-				SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
-				channels.put(sbc, e.getKey());
+				if (config.contains("TextSource") && config.get("TextSource").equals("true")) {
+					BufferedReader br = Files.newBufferedReader(resource, /*TODO: Character Set*/, StandardOpenOption.READ);
+					textchannels.put(br, e.getKey());
+				} else {
+					SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+					channels.put(sbc, e.getKey());
+				}
 			} 
 			catch (FileNotFoundException fnfe) {
 				fnfe.printStackTrace();
@@ -120,6 +126,7 @@ public class FileSelector implements DataStoreSelector {
 			}
 		}
 		this.reader.availableChannels(channels);
+		this.reader.availableTextChannels(textchannels);
 	}
 	
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters) {
@@ -166,6 +173,7 @@ public class FileSelector implements DataStoreSelector {
 		private boolean working = true;
 		private Selector readSelector;
 		private Map<SeekableByteChannel, Integer> channels;
+		private Map<BufferedReader, Integer> textchannels;
 		
 		public Reader() {
 			try {
@@ -180,6 +188,10 @@ public class FileSelector implements DataStoreSelector {
 			this.channels = channels;
 		}
 		
+		public void availableTextChannels(Map<BufferedReader, Integer> textchannels) {
+			this.textchannels = textchannels;
+		}
+		
 		public void stop() {
 			this.working = false;
 		}
@@ -187,6 +199,17 @@ public class FileSelector implements DataStoreSelector {
 		@Override
 		public void run() {
 			LOG.info("Started File Reader worker: {}", Thread.currentThread().getName());
+
+			for(Entry<BufferedReader, Integer> e: textchannels.entrySet()) {
+				int id = e.getValue();
+				BufferedReader rbc = e.getKey();
+				String line;
+				IBuffer ib = dataAdapters.get(id);
+				while ((line = br.readLine()) != null) {
+					ib.pushData(line.getBytes());					
+				}
+			}
+			
 			while(working){
 				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()) {
 					int id = e.getValue();
