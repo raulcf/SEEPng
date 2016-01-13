@@ -3,6 +3,8 @@ package uk.ac.imperial.lsds.seep.api.data;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
+import uk.ac.imperial.lsds.seep.errors.SchemaException;
+
 public abstract class Type {
 	
 	public final static int SIZE_OVERHEAD = Integer.BYTES;

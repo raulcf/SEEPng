@@ -1,6 +1,4 @@
-package uk.ac.imperial.lsds.seep.api;
-
-import uk.ac.imperial.lsds.seep.errors.SeepException;
+package uk.ac.imperial.lsds.seep.errors;
 
 public class InvalidQueryDefinitionException extends SeepException {
 

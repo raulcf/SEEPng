@@ -1,6 +1,4 @@
-package uk.ac.imperial.lsds.seep.comm;
-
-import uk.ac.imperial.lsds.seep.errors.SeepException;
+package uk.ac.imperial.lsds.seep.errors;
 
 public class InvalidEndPointException extends SeepException {
 

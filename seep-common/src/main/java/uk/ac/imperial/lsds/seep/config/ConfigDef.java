@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.imperial.lsds.seep.errors.ConfigException;
+
 public class ConfigDef {
 
 	private static final Object NO_DEFAULT_VALUE = new String("");

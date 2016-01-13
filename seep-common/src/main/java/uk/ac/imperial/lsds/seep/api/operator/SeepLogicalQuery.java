@@ -19,7 +19,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.InvalidQueryDefinitionException;
 import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
@@ -27,6 +26,7 @@ import uk.ac.imperial.lsds.seep.api.operator.sinks.StaticSink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.operator.sources.StaticSource;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.errors.InvalidQueryDefinitionException;
 
 
 public class SeepLogicalQuery {

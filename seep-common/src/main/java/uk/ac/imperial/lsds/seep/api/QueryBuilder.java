@@ -21,6 +21,7 @@ import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.errors.InvalidQueryDefinitionException;
 
 public class QueryBuilder implements QueryAPI {
 	
