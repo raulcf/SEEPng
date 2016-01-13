@@ -37,7 +37,8 @@ public class Schema {
 	}
 	
 	public boolean typeCheck(String fieldName, Type type){
-		return fields[mapFieldNameToFieldPosition.get(fieldName)].equals(type);
+		//Compare them as objects will be always false - compare their string representations instead ?
+		return fields[mapFieldNameToFieldPosition.get(fieldName)].toString().compareTo(type.toString()) == 0 ;
 	}
 	
 	public boolean typeCheck(String fieldName, Object o){
