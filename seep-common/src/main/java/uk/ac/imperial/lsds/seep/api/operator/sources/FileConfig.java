@@ -21,7 +21,7 @@ public class FileConfig extends Config {
 	public static final String SERDE_TYPE = "serde.type";
 	private static final String SERDE_TYPE_DOC = "The type of the serializer/deserializer. See SerializerType enum for reference";
 	
-	public static final boolean TEXT_SOURCE = "text";
+	public static final String TEXT_SOURCE = "text.source";
 	private static final String TEXT_SOURCE_DOC = "True if the source is text (one line per record). False if the input is binary.";
 	
 	public static final String CHARACTER_SET = "character.set";
