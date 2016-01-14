@@ -266,6 +266,7 @@ public class FileSelector implements DataStoreSelector {
 				IBuffer ib = dataAdapters.get(id);
 				try {
 					while ((line = br.readLine()) != null) {
+						//TODO: Match the encoding of the BufferedReader?
 						ib.pushData(line.getBytes());
 					}
 				} catch (IOException e1) {
