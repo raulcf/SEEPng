@@ -24,6 +24,8 @@ public class FileOutputBuffer implements OBuffer {
 	private DataReference dr;
 	private int id;
 	private OutputStream stream;
+	//For string output make this byte array once and reuse it between each record
+	private static final byte[] newline = "\n".getBytes();
 	
 	public FileOutputBuffer(DataReference dr, int batchSize) {
 		this.dr = dr;
@@ -69,6 +71,10 @@ public class FileOutputBuffer implements OBuffer {
 		// write that data to the output stream
 		try {
 			stream.write(data);
+			//in the case of String output we need to put an endline after each record
+			if (dr.getDataStore().getConfig().getProperty(FileConfig.TEXT_SOURCE)) {
+				stream.write(newline);
+			}
 		} 
 		catch (IOException e) {
 			e.printStackTrace();

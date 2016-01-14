@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -7,6 +8,8 @@ import java.net.URISyntaxException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.channels.Selector;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +42,8 @@ public class FileSelector implements DataStoreSelector {
 	private Thread writerWorker;
 	
 	private Map<Integer, IBuffer> dataAdapters;
+	
+	private String defaultCharacterSet = Charset.defaultCharset().name();
 	
 //	private Map<Integer, SelectionKey> writerKeys;
 	
@@ -106,11 +111,13 @@ public class FileSelector implements DataStoreSelector {
 				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);
-				LOG.info("Configuring file channel: {}", resource.toString());
-				if (config.contains("TextSource") && config.get("TextSource").equals("true")) {
-					BufferedReader br = Files.newBufferedReader(resource, /*TODO: Character Set*/, StandardOpenOption.READ);
+				defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
+				if (config.getString(FileConfig.TEXT_SOURCE)) {
+					LOG.info("Configuring file channel: {} as text input", resource.toString());
+					BufferedReader br = Files.newBufferedReader(resource, Charset.forName(defaultCharacterSet), StandardOpenOption.READ);
 					textchannels.put(br, e.getKey());
 				} else {
+					LOG.info("Configuring file channel: {} as binary input", resource.toString());
 					SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
 					channels.put(sbc, e.getKey());
 				}
@@ -124,27 +131,56 @@ public class FileSelector implements DataStoreSelector {
 			catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
+			catch (IllegalCharsetNameException icne) {
+				icne.printStackTrace();
+			}
+			catch (IllegalArgumentException iae) {
+				iae.printStackTrace();
+			}
+			catch (UnsupportedCharsetException uce) {
+				uce.printStackTrace();
+			}
 		}
 		this.reader.availableChannels(channels);
 		this.reader.availableTextChannels(textchannels);
 	}
 	
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters) {
+		//Call the new version of the function for consistency/maintainability. This function exists
+		//to default to binary input for reasons of backwards compatibility.
+		addNewAccept(resource, id, dataAdapters, false);
+	}
+	
+	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters, boolean textSource) {
+		//Call the more explicit version of the function for consistency/maintainability.
+		//Uses the character set specified in configureAccept as the default.
+		addNewAccept(resource, id, dataAdapters, false, defaultCharacterSet);
+	}
+	
+	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters, boolean textSource, String characterSet) {
 		this.dataAdapters = dataAdapters;
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		SeekableByteChannel sbc = null;
+		//SeekableByteChannel sbc = null;
 		try {
-			sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+			if (textSource) {
+				LOG.info("Configuring file channel: {} as text input", resource.toString());
+				BufferedReader br = Files.newBufferedReader(resource, Charset.forName(characterSet), StandardOpenOption.READ);
+				textchannels.put(br, e.getKey());
+			} else {
+				LOG.info("Configuring file channel: {} as binary input", resource.toString());
+				SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+				channels.put(sbc, e.getKey());
+			}
 		} 
 		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		channels.put(sbc, id);
 		this.reader = new Reader();
 		this.readerWorker = new Thread(this.reader);
 		this.readerWorker.setName("File-Reader");
 		this.reader.availableChannels(channels);
+		this.reader.availableTextChannels(textchannels);
 	}
 	
 //	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest, Set<OBuffer> obufsToStream) {
@@ -198,19 +234,8 @@ public class FileSelector implements DataStoreSelector {
 		
 		@Override
 		public void run() {
-			LOG.info("Started File Reader worker: {}", Thread.currentThread().getName());
-
-			for(Entry<BufferedReader, Integer> e: textchannels.entrySet()) {
-				int id = e.getValue();
-				BufferedReader rbc = e.getKey();
-				String line;
-				IBuffer ib = dataAdapters.get(id);
-				while ((line = br.readLine()) != null) {
-					ib.pushData(line.getBytes());					
-				}
-			}
-			
-			while(working){
+			LOG.info("Starting binary File Reader worker: {}", Thread.currentThread().getName());
+			while(working && channels.entrySet().size() > 0){
 				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()) {
 					int id = e.getValue();
 					ReadableByteChannel rbc = e.getKey();
@@ -227,7 +252,19 @@ public class FileSelector implements DataStoreSelector {
 					}
 				}
 			}
-			LOG.info("Finished File Reader worker: {}", Thread.currentThread().getName());
+			LOG.info("Finished binary File Reader worker: {}", Thread.currentThread().getName());
+			
+			LOG.info("Starting text File Reader worker: {}", Thread.currentThread().getName());
+			for(Entry<BufferedReader, Integer> e: textchannels.entrySet()) {
+				int id = e.getValue();
+				BufferedReader rbc = e.getKey();
+				String line;
+				IBuffer ib = dataAdapters.get(id);
+				while ((line = br.readLine()) != null) {
+					ib.pushData(line.getBytes());					
+				}
+			}
+			LOG.info("Finished text File Reader worker: {}", Thread.currentThread().getName());
 			this.closeReader();
 		}
 		
@@ -235,6 +272,15 @@ public class FileSelector implements DataStoreSelector {
 			for(SeekableByteChannel sbc : channels.keySet()){
 				try {
 					sbc.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			for(BufferedReader br : textchannels.keySet()){
+				try {
+					br.close();
 				} 
 				catch (IOException e) {
 					// TODO Auto-generated catch block
