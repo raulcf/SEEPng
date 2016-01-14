@@ -24,14 +24,14 @@ public class FileConfig extends Config {
 	public static final boolean TEXT_SOURCE = "text";
 	private static final String TEXT_SOURCE_DOC = "True if the source is text (one line per record). False if the input is binary.";
 	
-	public static final boolean CHARACTER_SET = "character.set";
+	public static final String CHARACTER_SET = "character.set";
 	private static final String CHARACTER_SET_DOC = "Which character set to use for text input. Defaults to Charset.defaultCharset() (JVM default).";
 	
 	static {
 		config = new ConfigDef().define(FILE_PATH, Type.STRING, Importance.HIGH, FILE_PATH_DOC)
 								.define(SERDE_TYPE, Type.INT, 0, Importance.HIGH, SERDE_TYPE_DOC)
 								.define(TEXT_SOURCE, Type.BOOLEAN, false, Importance.MEDIUM, TEXT_SOURCE_DOC)
-								.define(TEXT_SOURCE, Type.STRING, Charset.defaultCharset().name(), Importance.LOW, CHARACTER_SET_DOC);
+								.define(CHARACTER_SET, Type.STRING, Charset.defaultCharset().name(), Importance.LOW, CHARACTER_SET_DOC);
 	}
 	
 	public FileConfig(Map<? extends Object, ? extends Object> originals) {
