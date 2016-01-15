@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.channels.Selector;
@@ -267,7 +268,11 @@ public class FileSelector implements DataStoreSelector {
 				try {
 					while ((line = br.readLine()) != null) {
 						//TODO: Match the encoding of the BufferedReader?
-						ib.pushData(line.getBytes());
+						byte[] byteline = line.getBytes(defaultCharacterSet);
+						ByteBuffer b = ByteBuffer.allocate(Integer.SIZE + byteline.length);
+						b.putInt(byteline.length);
+						b.put(byteline);
+						ib.pushData(b.array());
 					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
