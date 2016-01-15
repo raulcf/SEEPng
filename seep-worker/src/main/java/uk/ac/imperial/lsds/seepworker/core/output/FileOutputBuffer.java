@@ -24,12 +24,14 @@ public class FileOutputBuffer implements OBuffer {
 	private DataReference dr;
 	private int id;
 	private OutputStream stream;
+	private FileConfig config;
 	
 	public FileOutputBuffer(DataReference dr, int batchSize) {
 		this.dr = dr;
 		this.id = dr.getId();
 		// Create output file attaching id for unique naming and output stream
 		this.stream = createOutputFile(batchSize);
+		config = new FileConfig(dr.getDataStore().getConfig());
 	}
 	
 	private BufferedOutputStream createOutputFile(int batchSize) {
@@ -67,8 +69,12 @@ public class FileOutputBuffer implements OBuffer {
 	@Override
 	public boolean write(byte[] data) {
 		// write that data to the output stream
-		try {
-			stream.write(data);
+		try {			
+			if (config.getBoolean(FileConfig.TEXT_SOURCE)) {
+				stream.write(dr.getDataStore().getSchema().getSchemaParser().stringFromBytes(data));
+			} else {
+				stream.write(data);
+			}
 		} 
 		catch (IOException e) {
 			e.printStackTrace();

@@ -105,7 +105,6 @@ public class FileSelector implements DataStoreSelector {
 		this.readerWorker.setName("File-Reader");
 
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		Map<BufferedReader, Integer> textchannels = new HashMap<>();
 		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
 				FileConfig config = new FileConfig(e.getValue().getConfig());
@@ -115,15 +114,9 @@ public class FileSelector implements DataStoreSelector {
 				LOG.info("Created URI to local resource: {}", uri.toString());
 				Path resource = Paths.get(uri);
 				defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
-				if (config.getBoolean(FileConfig.TEXT_SOURCE)) {
-					LOG.info("Configuring file channel: {} as text input", resource.toString());
-					BufferedReader br = Files.newBufferedReader(resource, Charset.forName(defaultCharacterSet));
-					textchannels.put(br, e.getKey());
-				} else {
-					LOG.info("Configuring file channel: {} as binary input", resource.toString());
-					SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
-					channels.put(sbc, e.getKey());
-				}
+				LOG.info("Configuring file channel: {} as binary input", resource.toString());
+				SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+				channels.put(sbc, e.getKey());
 			} 
 			catch (FileNotFoundException fnfe) {
 				fnfe.printStackTrace();
@@ -142,7 +135,7 @@ public class FileSelector implements DataStoreSelector {
 			}
 		}
 		this.reader.availableChannels(channels);
-		this.reader.availableTextChannels(textchannels);
+		this.reader.availableTextChannels(fileOrigins);
 	}
 	
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters) {
@@ -163,15 +156,9 @@ public class FileSelector implements DataStoreSelector {
 		Map<BufferedReader, Integer> textchannels = new HashMap<>();
 		//SeekableByteChannel sbc = null;
 		try {
-			if (textSource) {
-				LOG.info("Configuring file channel: {} as text input", resource.toString());
-				BufferedReader br = Files.newBufferedReader(resource, Charset.forName(characterSet));
-				textchannels.put(br, id);
-			} else {
-				LOG.info("Configuring file channel: {} as binary input", resource.toString());
-				SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
-				channels.put(sbc, id);
-			}
+			LOG.info("Configuring file channel: {}", resource.toString());
+			SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+			channels.put(sbc, id);
 		} 
 		catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -181,7 +168,7 @@ public class FileSelector implements DataStoreSelector {
 		this.readerWorker = new Thread(this.reader);
 		this.readerWorker.setName("File-Reader");
 		this.reader.availableChannels(channels);
-		this.reader.availableTextChannels(textchannels);
+		this.reader.availableDataStores(textchannels);
 	}
 	
 //	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest, Set<OBuffer> obufsToStream) {
@@ -210,7 +197,7 @@ public class FileSelector implements DataStoreSelector {
 		private boolean working = true;
 		private Selector readSelector;
 		private Map<SeekableByteChannel, Integer> channels;
-		private Map<BufferedReader, Integer> textchannels;
+		private Map<Integer, DataStore> channelDataStore;
 		
 		public Reader() {
 			try {
@@ -225,8 +212,8 @@ public class FileSelector implements DataStoreSelector {
 			this.channels = channels;
 		}
 		
-		public void availableTextChannels(Map<BufferedReader, Integer> textchannels) {
-			this.textchannels = textchannels;
+		public void availableDataStores(Map<Integer, DataStore> channelDataStore) {
+			this.channelDataStore = channelDataStore;
 		}
 		
 		public void stop() {
@@ -235,7 +222,7 @@ public class FileSelector implements DataStoreSelector {
 		
 		@Override
 		public void run() {
-			LOG.info("Starting binary File Reader worker: {}, {} channels",
+			LOG.info("Starting File Reader worker: {}, {} channels",
 					 Thread.currentThread().getName(),
 					 channels.entrySet().size());
 			while(working && channels.entrySet().size() > 0){
@@ -244,39 +231,25 @@ public class FileSelector implements DataStoreSelector {
 					ReadableByteChannel rbc = e.getKey();
 					IBuffer ib = dataAdapters.get(id);
 					if(rbc.isOpen()) {
-						int totalTuplesRead = ib.readFrom(rbc);
-						if(totalTuplesRead == 0) {
-							// Once the file is finished we can stop working here
+						FileConfig config = new FileConfig(channelSchema.get(e.getValue()).getValue().getConfig());
+						if (config.getBoolean(FileConfig.TEXT_SOURCE)) {
+							defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
+							BufferedReader = new BufferedReader (new Reader(rbc));
+							String line;
+							while ((line = br.readLine()) != null) {
+								ib.pushData(channelDataStore.get(e.getValue()).getSchema().getSchemaParser().bytesFromString(line));
+							}
 							working = false;
+						} else {
+							int totalTuplesRead = ib.readFrom(rbc);
+							if(totalTuplesRead == 0) {
+								// Once the file is finished we can stop working here
+								working = false;
+							}
 						}
-					}
-					else{
+					} else {
 						working = false;
 					}
-				}
-			}
-			LOG.info("Finished binary File Reader worker: {}", Thread.currentThread().getName());
-			
-			LOG.info("Starting text File Reader worker: {}, {} channels",
-					 Thread.currentThread().getName(),
-					 textchannels.size());
-			for(Entry<BufferedReader, Integer> e: textchannels.entrySet()) {
-				int id = e.getValue();
-				BufferedReader br = e.getKey();
-				String line;
-				IBuffer ib = dataAdapters.get(id);
-				try {
-					while ((line = br.readLine()) != null) {
-						//TODO: Match the encoding of the BufferedReader?
-						byte[] byteline = line.getBytes(defaultCharacterSet);
-						ByteBuffer b = ByteBuffer.allocate(Integer.SIZE + byteline.length);
-						b.putInt(byteline.length);
-						b.put(byteline);
-						ib.pushData(b.array());
-					}
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
 				}
 			}
 			LOG.info("Finished text File Reader worker: {}", Thread.currentThread().getName());
