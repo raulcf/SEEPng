@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,6 +69,18 @@ public class ProtocolCommandFactory {
 	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
+		return c;
+	}
+	
+	public static MasterWorkerCommand buildLocalSchedulerElectCommand(ArrayList<EndPoint> list){
+		LocalSchedulerElectCommand lsec = new LocalSchedulerElectCommand(list);
+		MasterWorkerCommand c = new MasterWorkerCommand(lsec);
+		return c;
+	}
+	
+	public static MasterWorkerCommand buildLocalSchedulerStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut){
+		LocalSchedulerStageCommand lssc = new LocalSchedulerStageCommand(stageId, input, ouptut);
+		MasterWorkerCommand c = new MasterWorkerCommand(lssc);
 		return c;
 	}
 	
