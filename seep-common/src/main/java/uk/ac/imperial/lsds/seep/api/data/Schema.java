@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api.data;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,7 @@ public class Schema {
 	private final boolean variableSize;
 	// Maps fieldName to fieldPosition (fields are ordered in a certain way)
 	private Map<String, Integer> mapFieldNameToFieldPosition = new HashMap<>();
-	private SchemaParser parser = new defaultParser();
+	private SchemaParser parser = defaultParser.getInstance();
 	
 	private Schema(int schemaId, Type[] fields, String[] names){
 		this.schemaId = schemaId;
@@ -185,23 +187,32 @@ public class Schema {
 		parser = newparser;
 	}
 	
-	private class defaultParser implements SchemaParser {
+	private static class defaultParser implements SchemaParser {
 		private Schema localSchema;
 		private Charset encoding = Charset.defaultCharset();
+		private static defaultParser instance = null;		
+
+		private defaultParser(){}
 		
-		public bytes[] bytesFromString(String textRecord) {
-			byte[] byteline = record.getBytes(encoding);
-			ByteBuffer b = ByteBuffer.allocate(Integer.SIZE + byteline.length);
+		public static defaultParser getInstance(){
+			if(instance == null){
+				instance = new defaultParser();
+			}
+			return instance;
+		}
+		
+		public byte[] bytesFromString(String textRecord) {
+			byte[] byteline = textRecord.getBytes(encoding);
+			ByteBuffer b = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) + byteline.length);
 			b.putInt(byteline.length);
 			b.put(byteline);
-			ib.pushData(b.array());
+			return b.array();
 		}
 		
 		public String stringFromBytes(byte[] binaryRecord) {
-			ByteBuffer wrapper = ByteBuffer.wrap(binaryRecord);
-			wrapper.position(Integer.SIZE);
-			String str = (String) Type.STRING.read(wrapper);
-			return str;
+			ByteBuffer wrapper = ByteBuffer.allocate(binaryRecord.length - (Integer.SIZE/Byte.SIZE));
+			wrapper.put(binaryRecord, (Integer.SIZE/Byte.SIZE), binaryRecord.length - (Integer.SIZE/Byte.SIZE));
+			return new String(wrapper.array());
 		}
 		
 		public Charset getCharset() {

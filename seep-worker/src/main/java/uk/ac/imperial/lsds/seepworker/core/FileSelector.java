@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.channels.Selector;
@@ -135,7 +136,7 @@ public class FileSelector implements DataStoreSelector {
 			}
 		}
 		this.reader.availableChannels(channels);
-		this.reader.availableTextChannels(fileOrigins);
+		this.reader.availableDataStores(fileOrigins);
 	}
 	
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters) {
@@ -153,7 +154,6 @@ public class FileSelector implements DataStoreSelector {
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters, boolean textSource, String characterSet) {
 		this.dataAdapters = dataAdapters;
 		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		Map<BufferedReader, Integer> textchannels = new HashMap<>();
 		//SeekableByteChannel sbc = null;
 		try {
 			LOG.info("Configuring file channel: {}", resource.toString());
@@ -168,7 +168,7 @@ public class FileSelector implements DataStoreSelector {
 		this.readerWorker = new Thread(this.reader);
 		this.readerWorker.setName("File-Reader");
 		this.reader.availableChannels(channels);
-		this.reader.availableDataStores(textchannels);
+		//TODO: set a DataStore so we can grab a Schema
 	}
 	
 //	public void configureDownstreamFiles(Map<Integer, DataStore> fileDest, Set<OBuffer> obufsToStream) {
@@ -231,13 +231,23 @@ public class FileSelector implements DataStoreSelector {
 					ReadableByteChannel rbc = e.getKey();
 					IBuffer ib = dataAdapters.get(id);
 					if(rbc.isOpen()) {
-						FileConfig config = new FileConfig(channelSchema.get(e.getValue()).getValue().getConfig());
-						if (config.getBoolean(FileConfig.TEXT_SOURCE)) {
+						boolean textsource = false;
+						if (channelDataStore.containsKey(e.getValue())) {
+							FileConfig config = new FileConfig(channelDataStore.get(e.getValue()).getConfig());
 							defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
-							BufferedReader = new BufferedReader (new Reader(rbc));
+							textsource = config.getBoolean(FileConfig.TEXT_SOURCE);
+						}
+						
+						if (textsource) {
+							BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharset().name()));
 							String line;
-							while ((line = br.readLine()) != null) {
-								ib.pushData(channelDataStore.get(e.getValue()).getSchema().getSchemaParser().bytesFromString(line));
+							try {
+								while ((line = br.readLine()) != null) {
+									ib.pushData(channelDataStore.get(e.getValue()).getSchema().getSchemaParser().bytesFromString(line));
+								}
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
 							}
 							working = false;
 						} else {
@@ -260,15 +270,6 @@ public class FileSelector implements DataStoreSelector {
 			for(SeekableByteChannel sbc : channels.keySet()){
 				try {
 					sbc.close();
-				} 
-				catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			for(BufferedReader br : textchannels.keySet()){
-				try {
-					br.close();
 				} 
 				catch (IOException e) {
 					// TODO Auto-generated catch block
