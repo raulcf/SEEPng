@@ -69,6 +69,12 @@ public class FileOutputBuffer implements OBuffer {
 		// write that data to the output stream
 		try {			
 			stream.write(data);
+			// FIXME The workers do not currently do all the necessary clean up 
+			// (like flushing buffers) when they finish. Long term it will be
+			// more efficient to let the writer flush as the buffer fills up, 
+			// then flush it one last time. For now we flush after every write
+			// to make sure everything makes it to disk.
+			stream.flush();
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
