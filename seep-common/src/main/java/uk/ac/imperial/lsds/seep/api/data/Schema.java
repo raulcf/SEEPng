@@ -188,7 +188,6 @@ public class Schema {
 	}
 	
 	private static class defaultParser implements SchemaParser {
-		private Schema localSchema;
 		private Charset encoding = Charset.defaultCharset();
 		private static defaultParser instance = null;		
 
