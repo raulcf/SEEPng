@@ -2,6 +2,8 @@ package uk.ac.imperial.lsds.seep.api.data;
 
 import java.nio.ByteBuffer;
 
+import uk.ac.imperial.lsds.seep.errors.SchemaException;
+
 public class OTuple {
 
 	private Schema schema;

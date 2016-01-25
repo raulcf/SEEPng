@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.imperial.lsds.seep.errors.SchemaException;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 public class Schema {
@@ -37,7 +38,8 @@ public class Schema {
 	}
 	
 	public boolean typeCheck(String fieldName, Type type){
-		return fields[mapFieldNameToFieldPosition.get(fieldName)].equals(type);
+		//Compare them as objects will be always false - compare their string representations instead ?
+		return fields[mapFieldNameToFieldPosition.get(fieldName)].toString().compareTo(type.toString()) == 0 ;
 	}
 	
 	public boolean typeCheck(String fieldName, Object o){
@@ -130,7 +132,7 @@ public class Schema {
 		public SchemaBuilder newField(Type type, String name){
 			// safety checks
 			if(names.contains(name)){
-				// TODO: throw error
+				throw new SchemaException("Schema already contains a field with name: "+ name);
 			}
 			this.fields.add(type);
 			this.names.add(name);
@@ -140,7 +142,7 @@ public class Schema {
 		public Schema build(){
 			// Sanity check
 			if(! (fields.size() == names.size())){
-				// TODO: throw error
+				throw new SchemaException("Name-Field Missmatch - Each Type should be mapped to exactly one Name");
 			}
 			Type[] f = new Type[fields.size()];
 			f = fields.toArray(f);

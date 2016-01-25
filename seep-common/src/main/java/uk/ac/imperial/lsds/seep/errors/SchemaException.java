@@ -1,6 +1,4 @@
-package uk.ac.imperial.lsds.seep.api.data;
-
-import uk.ac.imperial.lsds.seep.errors.SeepException;
+package uk.ac.imperial.lsds.seep.errors;
 
 public class SchemaException extends SeepException {
 

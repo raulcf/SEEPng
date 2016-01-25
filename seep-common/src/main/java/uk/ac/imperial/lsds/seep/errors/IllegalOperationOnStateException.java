@@ -1,6 +1,4 @@
-package uk.ac.imperial.lsds.seep.api.state.stateimpl;
-
-import uk.ac.imperial.lsds.seep.errors.SeepException;
+package uk.ac.imperial.lsds.seep.errors;
 
 public class IllegalOperationOnStateException extends SeepException {
 

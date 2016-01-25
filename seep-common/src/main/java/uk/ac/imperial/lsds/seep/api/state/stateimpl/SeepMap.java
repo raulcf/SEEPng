@@ -18,6 +18,9 @@ import uk.ac.imperial.lsds.seep.api.state.Partitionable;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.api.state.Streamable;
 import uk.ac.imperial.lsds.seep.api.state.Versionable;
+import uk.ac.imperial.lsds.seep.errors.AttemptToReconcileStateNotInSnapshotModeException;
+import uk.ac.imperial.lsds.seep.errors.IllegalOperationOnStateException;
+import uk.ac.imperial.lsds.seep.errors.IncompatibleStateException;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 
 public class SeepMap<K,V> implements Map<K,V>, Checkpoint, Partitionable, Mergeable, Streamable, Versionable, SeepState {

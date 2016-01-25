@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import uk.ac.imperial.lsds.seep.errors.SchemaException;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
@@ -70,10 +71,10 @@ public class ITuple {
 	
 	public byte getByte(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
 		if(! schema.typeCheck(fieldName, Type.BYTE)) {
-			// TODO: does not type check
+			throw new SchemaException("Current Schema cannot typeCheck a field type '"+ Type.BYTE +"' with name '"+fieldName+"'");
 		}
 		
 		int offset = mapFieldToOffset.get(fieldName);
@@ -83,10 +84,10 @@ public class ITuple {
 	
 	public short getShort(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
-		if(! schema.typeCheck(fieldName, Type.BYTE)) {
-			// TODO: does not type check
+		if(! schema.typeCheck(fieldName, Type.SHORT)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '"+ Type.SHORT +"' with name '"+fieldName+"'");
 		}
 		
 		int offset = mapFieldToOffset.get(fieldName);
@@ -96,10 +97,10 @@ public class ITuple {
 	
 	public int getInt(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
-		if(! schema.typeCheck(fieldName, Type.BYTE)) {
-			// TODO: does not type check
+		if(! schema.typeCheck(fieldName, Type.INT)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '"+ Type.INT+"' with name '"+fieldName+"'");
 		}
 		
 		int offset = mapFieldToOffset.get(fieldName);
@@ -109,10 +110,10 @@ public class ITuple {
 	
 	public long getLong(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
-		if(! schema.typeCheck(fieldName, Type.BYTE)) {
-			// TODO: does not type check
+		if(! schema.typeCheck(fieldName, Type.LONG)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '"+ Type.LONG +"' with name '"+fieldName+"'");
 		}
 		
 		int offset = mapFieldToOffset.get(fieldName);
@@ -122,10 +123,10 @@ public class ITuple {
 	
 	public String getString(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
-		else if(! schema.typeCheck(fieldName, Type.BYTE)) {
-			// TODO: does not type check
+		else if(! schema.typeCheck(fieldName, Type.STRING)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '"+ Type.STRING +"' with name '"+fieldName+"'");
 		}
 
 		int offset = mapFieldToOffset.get(fieldName);
@@ -136,7 +137,7 @@ public class ITuple {
 	
 	public Object get(String fieldName){
 		if(! schema.hasField(fieldName)){
-			// TODO: error no field
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
 		}
 		int offset = mapFieldToOffset.get(fieldName);
 		wrapper.position(offset);
