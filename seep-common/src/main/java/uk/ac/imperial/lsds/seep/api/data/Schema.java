@@ -17,7 +17,7 @@ public class Schema {
 	private final boolean variableSize;
 	// Maps fieldName to fieldPosition (fields are ordered in a certain way)
 	private Map<String, Integer> mapFieldNameToFieldPosition = new HashMap<>();
-	private SchemaParser parser = defaultParser.getInstance();
+	private SchemaParser parser = DefaultParser.getInstance();
 	
 	private Schema(int schemaId, Type[] fields, String[] names){
 		this.schemaId = schemaId;
@@ -187,15 +187,15 @@ public class Schema {
 		parser = newparser;
 	}
 	
-	private static class defaultParser implements SchemaParser {
+	private static class DefaultParser implements SchemaParser {
 		private Charset encoding = Charset.defaultCharset();
-		private static defaultParser instance = null;		
+		private static DefaultParser instance = null;		
 
-		private defaultParser(){}
+		private DefaultParser(){}
 		
-		public static defaultParser getInstance(){
+		public static DefaultParser getInstance(){
 			if(instance == null){
-				instance = new defaultParser();
+				instance = new DefaultParser();
 			}
 			return instance;
 		}

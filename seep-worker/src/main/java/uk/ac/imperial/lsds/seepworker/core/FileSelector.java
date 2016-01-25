@@ -231,24 +231,8 @@ public class FileSelector implements DataStoreSelector {
 					ReadableByteChannel rbc = e.getKey();
 					IBuffer ib = dataAdapters.get(id);
 					if(rbc.isOpen()) {
-						boolean textsource = false;
-						if (channelDataStore.containsKey(e.getValue())) {
-							FileConfig config = new FileConfig(channelDataStore.get(e.getValue()).getConfig());
-							defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
-							textsource = config.getBoolean(FileConfig.TEXT_SOURCE);
-						}
-						
-						if (textsource) {
-							BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharset().name()));
-							String line;
-							try {
-								while ((line = br.readLine()) != null) {
-									ib.pushData(channelDataStore.get(e.getValue()).getSchema().getSchemaParser().bytesFromString(line));
-								}
-							} catch (IOException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
+						if (isTextSource(e)) {
+							readFromText(e, ib, rbc);
 							working = false;
 						} else {
 							int totalTuplesRead = ib.readFrom(rbc);
@@ -264,6 +248,29 @@ public class FileSelector implements DataStoreSelector {
 			}
 			LOG.info("Finished text File Reader worker: {}", Thread.currentThread().getName());
 			this.closeReader();
+		}
+		
+		private boolean isTextSource(Entry<SeekableByteChannel, Integer> e) {
+			if (channelDataStore.containsKey(e.getValue())) {
+				FileConfig config = new FileConfig(channelDataStore.get(e.getValue()).getConfig());
+				defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
+				return config.getBoolean(FileConfig.TEXT_SOURCE);
+			}
+			return false;
+		}
+		
+		private void readFromText(Entry<SeekableByteChannel, Integer> e, IBuffer ib, ReadableByteChannel rbc) {
+			BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharset().name()));
+			String line;
+			try {
+				while ((line = br.readLine()) != null) {
+					ib.pushData(channelDataStore.get(e.getValue()).getSchema().getSchemaParser().bytesFromString(line));
+				}
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 		}
 		
 		private void closeReader(){
