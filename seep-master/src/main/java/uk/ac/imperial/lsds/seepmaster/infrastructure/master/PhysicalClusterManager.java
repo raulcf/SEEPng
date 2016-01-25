@@ -61,7 +61,7 @@ public class PhysicalClusterManager implements InfrastructureManager {
 			if(eu.getId() == id){
 				boolean success = usedPhysicalNodes.remove(eu);
 				if(success){
-					LOG.info("ExecutionUnit id: {} was removed from usedPhysicalNodes");
+					LOG.info("ExecutionUnit id: {} was removed from usedPhysicalNodes", id);
 				}
 			}
 		}
@@ -69,7 +69,7 @@ public class PhysicalClusterManager implements InfrastructureManager {
 			if(eu.getId() == id){
 				boolean success = availablePhysicalNodes.remove(eu);
 				if(success){
-					LOG.info("ExecutionUnit id: {} was removed from availablePhysicalNodes");
+					LOG.info("ExecutionUnit id: {} was removed from availablePhysicalNodes", id);
 					return true;
 				}
 			}

@@ -32,7 +32,7 @@ public class Base implements QueryComposer {
 		branchtwo.connectTo(snk, 5, new DataStore(schema, DataStoreType.NETWORK));
 		
 		SeepLogicalQuery slq = queryAPI.build();
-		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);
+		slq.setExecutionModeHint(QueryExecutionMode.TWO_LEVEL_SCHELUDED);
 		
 		return slq;
 	}
