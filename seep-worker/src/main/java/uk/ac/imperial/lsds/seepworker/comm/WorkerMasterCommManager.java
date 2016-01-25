@@ -163,11 +163,10 @@ public class WorkerMasterCommManager {
 							connections.add(new Connection(new WorkerControlEndPoint(e.getId(), e.getIpString(), e.getPort())));
 						}
 						//Everything will move to a separate Local Scheduler Class!!!
-						LOG.debug("PGAREF: Trying the imposible!");
-						MasterWorkerCommand testCommand = ProtocolCommandFactory.buildStopQueryCommand();
-						boolean success = comm.send_object_sync(testCommand, connections, KryoFactory.buildKryoForMasterWorkerProtocol());
-						LOG.debug("SEND COMMAND OK: {} ",success);
-						
+//						LOG.debug("PGAREF: Trying the imposible!");
+//						MasterWorkerCommand testCommand = ProtocolCommandFactory.buildStopQueryCommand();
+//						boolean success = comm.send_object_sync(testCommand, connections, KryoFactory.buildKryoForMasterWorkerProtocol());
+//						LOG.debug("SEND COMMAND OK: {} ",success);						
 					}
 					
 					/**
