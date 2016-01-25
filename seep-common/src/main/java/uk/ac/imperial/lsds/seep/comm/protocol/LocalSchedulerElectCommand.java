@@ -1,15 +1,16 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import java.util.ArrayList;
+import java.util.Set;
+
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 
 public class LocalSchedulerElectCommand implements CommandType {
 
-	private ArrayList<EndPoint> workerNodes;
+	private Set<EndPoint> workerNodes;
 
 	public LocalSchedulerElectCommand() {}
 
-	public LocalSchedulerElectCommand(ArrayList<EndPoint> workers) {
+	public LocalSchedulerElectCommand(Set<EndPoint> workers) {
 		this.workerNodes = workers;
 	}
 
@@ -21,7 +22,7 @@ public class LocalSchedulerElectCommand implements CommandType {
 	/**
 	 * @return the workerNodes
 	 */
-	public ArrayList<EndPoint> getWorkerNodes() {
+	public Set<EndPoint> getWorkerNodes() {
 		return workerNodes;
 	}
 

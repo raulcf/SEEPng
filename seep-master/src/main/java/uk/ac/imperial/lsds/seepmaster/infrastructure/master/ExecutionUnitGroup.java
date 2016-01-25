@@ -1,7 +1,9 @@
 package uk.ac.imperial.lsds.seepmaster.infrastructure.master;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.errors.TwoLevelSchedulerException;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
@@ -52,8 +54,8 @@ public class ExecutionUnitGroup {
 		return workers;
 	}
 	
-	public ArrayList<EndPoint> getWorkerEndpoints() {
-		ArrayList<EndPoint> toret = new ArrayList<EndPoint>();
+	public Set<EndPoint> getWorkerEndpoints() {
+		Set<EndPoint> toret = new HashSet<EndPoint>();
 		for (ExecutionUnit eu : this.workers)
 			toret.add(eu.getEndPoint());
 		return toret;
