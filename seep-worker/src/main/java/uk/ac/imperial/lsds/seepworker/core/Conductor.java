@@ -29,6 +29,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -226,6 +227,9 @@ public class Conductor {
 	public void stopProcessing(){
 		LOG.info("Stopping processing engine...");
 		engine.stop();
+		for(OBuffer output: coreOutput.getBuffers().values()) {
+			output.flush();
+		}
 		for(DataStoreSelector dss : dataStoreSelectors) {
 			dss.stopSelector();
 		}

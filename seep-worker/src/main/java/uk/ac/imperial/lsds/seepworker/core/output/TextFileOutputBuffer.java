@@ -68,17 +68,21 @@ public class TextFileOutputBuffer implements OBuffer {
 		try {
 			fstream.write(dr.getDataStore().getSchema().getSchemaParser().stringFromBytes(data));
 			fstream.newLine();
-			// FIXME The workers do not currently do all the necessary clean up 
-			// (like flushing buffers) when they finish. Long term it will be
-			// more efficient to let the writer flush as the buffer fills up, 
-			// then flush it one last time. For now we flush after every write
-			// to make sure everything makes it to disk.
-			fstream.flush();
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 		return true;
+	}
+	
+	@Override
+	public void flush() {
+		try {
+			fstream.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
