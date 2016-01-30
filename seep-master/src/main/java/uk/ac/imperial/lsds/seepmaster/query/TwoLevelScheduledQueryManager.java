@@ -31,7 +31,7 @@ import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnitGroup;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
+import uk.ac.imperial.lsds.seepmaster.scheduler.GlobalSchedulerEngineWorker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
 
 public class TwoLevelScheduledQueryManager implements QueryManager{
@@ -55,7 +55,7 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 	// Global Scheduler variables
 	private ScheduleDescription scheduleDescription;
 	private Thread globalscheduledEngineWorkerThread;
-	private SchedulerEngineWorker seWorker;
+	private GlobalSchedulerEngineWorker seWorker;
 	
 	// Local Scheduler variables 
 	private Set<ExecutionUnitGroup> workerGroups;
@@ -100,16 +100,12 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 		LOG.debug("Logical query loaded: {}", slq.toString());
 		
 		// Create Scheduler Engine and build scheduling plan for the given query
-		// TODO Refactor: Some duplicate methods with plain ScheduledQueryManager 
+		// TODO: Refactor => Some duplicate methods with plain ScheduledQueryManager 
 		this.scheduleDescription = this.buildSchedulingPlanForQuery(slq);
 		
 		// Initialize the Global SchedulerThread
-		seWorker = new SchedulerEngineWorker(
-				this.scheduleDescription, 
-				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), 
-				this.inf, 
-				this.comm, 
-				this.k);
+		seWorker = new GlobalSchedulerEngineWorker(this.scheduleDescription,
+				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), this.comm, this.k);
 		this.globalscheduledEngineWorkerThread = new Thread(seWorker);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
@@ -154,15 +150,14 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 		connections = this.getLocalSchedulersConnections();
 		LOG.info("Sending schedule to {} nodes", connections.size());
 		sendScheduleToNodes(connections);
-		LOG.info("Sending schedule to nodes...OK");
+		LOG.info("Sending schedule to {} nodes...OK", connections.size() );
 		
 		// TODO: Prepare scheduling engine - define Group-Tasks
 		LOG.info("Prepare scheduler engine...");
-		
+		seWorker.prepareForStart(connections, slq);
+		LOG.info("Prepare scheduler engine...OK");
 		
 		// For now just forward all stages to local scheduler
-		
-		
 		
 		this.lifecycleManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		return true;
