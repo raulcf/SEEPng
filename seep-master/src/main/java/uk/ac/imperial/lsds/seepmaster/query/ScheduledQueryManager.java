@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,15 +26,15 @@ import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
+import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategyType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
 
 import com.esotericsoftware.kryo.Kryo;
 
@@ -108,6 +109,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		worker = new Thread(seWorker);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
+		Set<Stage> stages  = scheduleDescription.getStages();
+		for(Iterator<Stage> i = stages.iterator(); i.hasNext(); ) {
+		    Stage s = i.next();
+		    LOG.info("Stage: "+ s.toString());
+		}
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		return true;
@@ -139,10 +145,10 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			involvedEUId.add(eu.getId());
 		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
-		LOG.info("Sending query and schedule to nodes");
+		LOG.info("Sending query and schedule to {} nodes", totalEUAvailable);
 		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
 		sendScheduleToNodes(connections);
-		LOG.info("Sending query and schedule to nodes...OK {}");
+		LOG.info("Sending query and schedule to nodes...OK");
 		
 		LOG.info("Prepare scheduler engine...");
 		// Get the input info for the first stages

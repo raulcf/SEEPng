@@ -15,7 +15,7 @@ public enum MasterWorkerProtocolAPI {
 	SCHEDULE_STAGE((short)9, new ScheduleStageCommand()),
 	STAGE_STATUS((short)10, new StageStatusCommand()),
 	MATERIALIZE_TASK((short)11, new MaterializeTaskCommand()),
-	LOCAL_SCHEDULE((short)12, new LocalSchedulerStageCommand());
+	LOCAL_SCHEDULE((short)12, new LocalSchedulerStagesCommand());
 	
 	private short type;
 	private CommandType c;

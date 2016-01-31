@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seep.comm.protocol;
 
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 
 public class LocalSchedulerElectCommand implements CommandType {
@@ -25,5 +26,6 @@ public class LocalSchedulerElectCommand implements CommandType {
 	public Set<EndPoint> getWorkerNodes() {
 		return workerNodes;
 	}
+	
 
 }

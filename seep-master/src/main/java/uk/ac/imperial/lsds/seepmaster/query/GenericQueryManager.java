@@ -98,7 +98,7 @@ public class GenericQueryManager implements QueryManager {
 			break;
 		case TWO_LEVEL_SCHELUDED:
 			LOG.info("Creating TwoLevelScheduledQueryManager...");
-			qm = TwoLevelScheduledQueryManager.getInstance(inf, comm, lifeManager, mc);
+			qm = GlobalScheduledQueryManager.getInstance(inf, comm, lifeManager, mc);
 			break;
 		case AUTOMATIC_HYBRID:
 			throw new NotImplementedException("Not implemented (?)");

@@ -24,6 +24,8 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
+import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
@@ -67,7 +69,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	
 	@Override
 	public void run() {
-		LOG.info("[START JOB]");
+		LOG.info("[START GLOBAL JOB]");
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
@@ -83,7 +85,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			Set<Connection> euInvolved = this.getLocalSchedulersInvolvedInStage(nextStage);
 			trackStageCompletionAsync(nextStage, euInvolved);
 			
-			List<CommandToNode> commands = this.assignWorkToWorkers(nextStage, euInvolved);
+			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved);
 			LOG.info("[START] GLOBAL SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
@@ -104,10 +106,8 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	
 	
 	// TODO: SHOULD BE PROBABLY MOVED TO LOCAL SCHEDULER SPACE!
-	
-	// TODO: straw-man solution
 	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
-	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
+	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns) {
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();
 		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
@@ -137,9 +137,9 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 					}
 				}
 			}
-			// FIXME: what is outputdatareferences
-			esc = ProtocolCommandFactory.buildLocalSchedulerStageCommand(nextStageId, 
-					perWorker, nextStage.getOutputDataReferences());
+			Set<Stage> toSend = new HashSet<>();
+			toSend.add(nextStage);
+			esc = ProtocolCommandFactory.buildLocalSchedulerStageCommand(nextStageId, toSend);
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
 		}
@@ -148,19 +148,20 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	
 	private Set<Connection> getLocalSchedulersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
+		cons.addAll(this.localSchedulerConnections);
 		// In this case DataReference do not necessarily contain EndPoint information
-		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
-			//TODO: probably this won't work later => Simply report all nodes
-			cons.addAll(this.localSchedulerConnections);
-		}
-		// If not first stages, then DataReferences contain the right EndPoint information
-		else {
-			Set<EndPoint> eps = stage.getInvolvedNodes();
-			for(EndPoint ep : eps) {
-				Connection c = new Connection(ep.extractMasterControlEndPoint());
-				cons.add(c);
-			}
-		}
+//		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
+//			//TODO: probably this won't work later => Simply report all nodes
+//			cons.addAll(this.localSchedulerConnections);
+//		}
+//		// If not first stages, then DataReferences contain the right EndPoint information
+//		else {
+//			Set<EndPoint> eps = stage.getInvolvedNodes();
+//			for(EndPoint ep : eps) {
+//				Connection c = new Connection(ep.extractMasterControlEndPoint());
+//				cons.add(c);
+//			}
+//		}
 		return cons;
 	}
 	

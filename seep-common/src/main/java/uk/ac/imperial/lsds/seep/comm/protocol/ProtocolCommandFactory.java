@@ -9,6 +9,7 @@ import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
 public class ProtocolCommandFactory {
 	
@@ -77,8 +78,8 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 	
-	public static MasterWorkerCommand buildLocalSchedulerStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut){
-		LocalSchedulerStageCommand lssc = new LocalSchedulerStageCommand(stageId, input, ouptut);
+	public static MasterWorkerCommand buildLocalSchedulerStageCommand(int stageId,  Set<Stage> stages){
+		LocalSchedulerStagesCommand lssc = new LocalSchedulerStagesCommand(stageId, stages);
 		MasterWorkerCommand c = new MasterWorkerCommand(lssc);
 		return c;
 	}

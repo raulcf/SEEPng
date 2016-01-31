@@ -24,6 +24,8 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
+import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
@@ -39,6 +41,7 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private InfrastructureManager inf;
 	private Set<Connection> connections;
+
 	private Comm comm;
 	private Kryo k;
 	
@@ -63,6 +66,7 @@ public class SchedulerEngineWorker implements Runnable {
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
+			LOG.debug("NEXT STAGE IS: {}", nextStage);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
 				if(tracker.isScheduledFinished()) {
@@ -82,7 +86,6 @@ public class SchedulerEngineWorker implements Runnable {
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
-			
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 		}
 	}
@@ -140,10 +143,10 @@ public class SchedulerEngineWorker implements Runnable {
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
 		// In this case DataReference do not necessarily contain EndPoint information
-		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
-			//TODO: probably this won't work later
-			// Simply report all nodes
-			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
+		if (stage.getStageType().equals(StageType.SOURCE_STAGE)
+				|| stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
+			// TODO: probably this won't work later => Simply report all nodes
+			for (ExecutionUnit eu : inf.executionUnitsInUse()) {
 				Connection conn = new Connection(eu.getEndPoint().extractMasterControlEndPoint());
 				cons.add(conn);
 			}
@@ -187,6 +190,21 @@ public class SchedulerEngineWorker implements Runnable {
 		}
 		return success;
 	}
+	
+	public boolean prepareForStartLocal(Set<Connection> connections, Set<Stage> stages, SeepLogicalQuery slq) {
+		// Set initial connections in worker
+		this.connections = connections;
+		// Basically change stage status so that SOURCE tasks are ready to run
+		boolean success = true;
+		for(Stage stage : stages) {
+			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
+				configureInputForInitialStage(connections, stage, slq);
+				boolean changed = tracker.setReady(stage);
+				success = success && changed;
+			}
+		}
+		return success;
+	}
 
 	private void configureInputForInitialStage(Set<Connection> connections, Stage s, SeepLogicalQuery slq) {
 		// Get input type from first operator
@@ -217,6 +235,7 @@ public class SchedulerEngineWorker implements Runnable {
 			LOG.error("Unrecognized STATUS in StageStatusCommand");
 		}
 	}
+
 	
 	/** Methods to facilitate testing **/
 	

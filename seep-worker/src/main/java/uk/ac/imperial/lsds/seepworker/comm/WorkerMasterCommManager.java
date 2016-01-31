@@ -22,7 +22,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerElectCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerStageCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerStagesCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
@@ -37,7 +37,7 @@ import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
-import uk.ac.imperial.lsds.seepworker.scheduler.LocalSchedulerEngineWorker;
+import uk.ac.imperial.lsds.seepworker.scheduler.LocalScheduleManager;
 
 public class WorkerMasterCommManager {
 
@@ -50,7 +50,6 @@ public class WorkerMasterCommManager {
 	private RuntimeClassLoader rcl;
 	
 	private Conductor c;
-	
 	private InetAddress myIp;
 	
 	private int myPort;
@@ -61,8 +60,7 @@ public class WorkerMasterCommManager {
 	private String methodName;
 	
 	//Local Scheduler instance
-	private Thread localGroupScheduler;
-	private LocalSchedulerEngineWorker lsew;
+	private LocalScheduleManager lsew;
 	
 	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c) {
 		this.c = c;
@@ -156,15 +154,14 @@ public class WorkerMasterCommManager {
 						LOG.info("LOCAL SCHEDULER_ELECT command");
 						LocalSchedulerElectCommand lsec = c.getLocalSchedulerElectCommand();
 						out.println("ack");
-						lsew = new LocalSchedulerEngineWorker(lsec.getWorkerNodes());
+						lsew = new LocalScheduleManager(lsec.getWorkerNodes());
 //						localGroupScheduler = new Thread(lsew);
 //						localGroupScheduler.setName("LocaLGroupScheduler");
-						
 					}
 					// LOCAL SCHEDULER STAGE command
 					else if(cType == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
 						LOG.info("LOCAL SCHEDULER STAGE command");
-						LocalSchedulerStageCommand lssc = c.getLocalSchedulerStageCommand();
+						LocalSchedulerStagesCommand lssc = c.getLocalSchedulerStageCommand();
 						out.println("ack");
 						lsew.handleLocalStageCommand(lssc);
 					}
@@ -176,7 +173,7 @@ public class WorkerMasterCommManager {
 						if( lsew == null)
 							handleStartQuery(sqc);
 						else 
-							lsew.handleStartQuery(sqc);
+							lsew.handleStartQuery();
 					}
 					// STOPQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()) {

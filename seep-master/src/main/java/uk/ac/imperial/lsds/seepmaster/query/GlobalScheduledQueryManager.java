@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.kryo.Kryo;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
@@ -20,11 +22,13 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategyType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
@@ -32,14 +36,14 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnitGroup;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.GlobalSchedulerEngineWorker;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 
-public class TwoLevelScheduledQueryManager implements QueryManager{
+public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManager{
 	
-	final private Logger LOG = LoggerFactory.getLogger(TwoLevelScheduledQueryManager.class);
+	final private Logger LOG = LoggerFactory.getLogger(GlobalScheduledQueryManager.class);
 	
 	private MasterConfig mc;
-	private static TwoLevelScheduledQueryManager tlsqm;
+	private static GlobalScheduledQueryManager tlsqm;
 	private SeepLogicalQuery slq;
 	
 	private String pathToQueryJar;
@@ -63,7 +67,7 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 	// Group of tasks ? possibly
 	
 	
-	public TwoLevelScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+	public GlobalScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc){
 		LOG.info("Initialising TwoLevelScheduled QueryManager");
 		this.mc = mc;
 		this.inf = inf;
@@ -74,10 +78,10 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 	}
 	
 	// Static Singleton Access
-	public static TwoLevelScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm, 
+	public static GlobalScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm, 
 			LifecycleManager lifeManager, MasterConfig mc){
 		if(tlsqm == null)
-			return new TwoLevelScheduledQueryManager(inf, comm, lifeManager, mc);
+			return new GlobalScheduledQueryManager(inf, comm, lifeManager, mc);
 		else 
 			return tlsqm;
 	}
@@ -408,5 +412,13 @@ public class TwoLevelScheduledQueryManager implements QueryManager{
 	}
 	
 	/** ScheduleManager interface Implementation **/
-
+	
+	@Override
+	public void notifyStageStatus(StageStatusCommand ssc) {
+		int stageId = ssc.getStageId();
+		int euId = ssc.getEuId();
+		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
+		StageStatusCommand.Status status = ssc.getStatus();
+		seWorker.newStageStatus(stageId, euId, results, status);
+	}
 }

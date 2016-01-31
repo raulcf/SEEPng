@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
 import uk.ac.imperial.lsds.seepmaster.query.ScheduledQueryManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 
 
 public class MasterWorkerAPIImplementation {
@@ -53,7 +54,7 @@ public class MasterWorkerAPIImplementation {
 	}
 	
 	public void stageStatusCommand(StageStatusCommand ssc) {
-		((ScheduledQueryManager)qm.getQueryManager()).notifyStageStatus(ssc);
+		((ScheduleManager)qm.getQueryManager()).notifyStageStatus(ssc);
 	}
 	
 }
