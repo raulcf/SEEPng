@@ -44,6 +44,12 @@ public class ProtocolCommandFactory {
 		MasterWorkerCommand c = new MasterWorkerCommand(dwc);
 		return c;
 	}
+	
+	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription, int notificationPort) {
+		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription, notificationPort);
+		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
+		return c;
+	}
 
 	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
 		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription);

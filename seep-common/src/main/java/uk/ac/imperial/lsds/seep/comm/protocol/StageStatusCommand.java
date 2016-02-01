@@ -25,7 +25,11 @@ public class StageStatusCommand implements CommandType {
 	public short type() {
 		return MasterWorkerProtocolAPI.STAGE_STATUS.type();
 	}
-	
+
+	public void setStageId(int stageId) {
+		this.stageId = stageId;
+	}
+
 	public int getStageId() {
 		return stageId;
 	}
@@ -34,8 +38,21 @@ public class StageStatusCommand implements CommandType {
 		return euId;
 	}
 	
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
 	public Status getStatus() {
 		return status;
+	}
+	
+
+	public void setEuId(int euId) {
+		this.euId = euId;
+	}
+	
+	public void setResultDataReference(Map<Integer, Set<DataReference>> resultDataReference) {
+		this.resultDataReference = resultDataReference;
 	}
 	
 	public Map<Integer, Set<DataReference>> getResultDataReference() {
