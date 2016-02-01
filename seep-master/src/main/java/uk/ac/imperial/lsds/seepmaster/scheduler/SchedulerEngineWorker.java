@@ -141,6 +141,7 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
+		LOG.debug(" Stage {} : Involved Nodes: {} ", stage.getStageId(), stage.getInvolvedNodes());;
 		Set<Connection> cons = new HashSet<>();
 		// In this case DataReference do not necessarily contain EndPoint information
 		if (stage.getStageType().equals(StageType.SOURCE_STAGE)
@@ -182,21 +183,6 @@ public class SchedulerEngineWorker implements Runnable {
 		// Basically change stage status so that SOURCE tasks are ready to run
 		boolean success = true;
 		for(Stage stage : scheduleDescription.getStages()) {
-			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
-				configureInputForInitialStage(connections, stage, slq);
-				boolean changed = tracker.setReady(stage);
-				success = success && changed;
-			}
-		}
-		return success;
-	}
-	
-	public boolean prepareForStartLocal(Set<Connection> connections, Set<Stage> stages, SeepLogicalQuery slq) {
-		// Set initial connections in worker
-		this.connections = connections;
-		// Basically change stage status so that SOURCE tasks are ready to run
-		boolean success = true;
-		for(Stage stage : stages) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
 				configureInputForInitialStage(connections, stage, slq);
 				boolean changed = tracker.setReady(stage);

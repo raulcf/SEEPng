@@ -30,6 +30,10 @@ import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
 
+/**
+ * @author pg1712@ic.ac.uk
+ *
+ */
 public class LocalSchedulerEngineWorker implements Runnable {
 
 	final private Logger LOG = LoggerFactory.getLogger(LocalSchedulerEngineWorker.class);
@@ -93,8 +97,9 @@ public class LocalSchedulerEngineWorker implements Runnable {
 				for (CommandToNode ctn : commands) {
 					boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 				}
-				LOG.info("TODO: Add local status tracking!!");
-				//tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+				
+				tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+				
 			} catch (InterruptedException e) {
 				LOG.error(e.getMessage());
 			}
@@ -153,6 +158,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
+		LOG.debug("Stage {} : Involved Nodes: {} ", stage.getStageId(), stage.getInvolvedNodes());
 		// In this case DataReference do not necessarily contain EndPoint
 		// information
 		if (stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
@@ -186,22 +192,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 		}).start();
 	}
 	
-//	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {
-//		// Set initial connections in worker
-//		this.connections = connections;
-//		// Basically change stage status so that SOURCE tasks are ready to run
-//		boolean success = true;
-//		for(Stage stage : scheduleDescription.getStages()) {
-//			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
-//				configureInputForInitialStage(connections, stage, slq);
-//				boolean changed = tracker.setReady(stage);
-//				success = success && changed;
-//			}
-//		}
-//		return success;
-//	}
-	
-	public boolean prepareForStartLocal(Set<Connection> connections, Set<Stage> stages, SeepLogicalQuery slq) {
+	public boolean prepareForNewStageLocal(Set<Connection> connections, Set<Stage> stages, SeepLogicalQuery slq) {
 		// Set initial connections in worker
 		this.connections = connections;
 		// Basically change stage status so that SOURCE tasks are ready to run
@@ -214,6 +205,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 			}
 			//configure and then add to queue
 			this.queue.add(stage);
+			this.tracker.addNewStage(stage);
 		}
 		return success;
 	}
@@ -240,10 +232,8 @@ public class LocalSchedulerEngineWorker implements Runnable {
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);
-			
 			break;
 		default:
-			
 			LOG.error("Unrecognized STATUS in StageStatusCommand");
 		}
 	}

@@ -67,8 +67,7 @@ public class StageTracker {
 	}
 
 	public boolean finishedSuccessfully() {
-		return true;
-		//return completed.containsAll(euInvolved);
+		return completed.containsAll(euInvolved);
 	}
 
 }

@@ -26,6 +26,7 @@ import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
@@ -301,5 +302,19 @@ public class Conductor {
 		}
 		drm.serveDataSet(coreOutput, dr, ep);
 	}
+
+	/**
+	 * Local Scheduler functionality
+	 */
+	
+	public void setMasterConn(Connection masterConn) {
+		LOG.debug("SETTING NEW MASTER {} ", masterConn.toString());
+		this.masterConn = masterConn;
+	}
+	
+	public void propagateStageStatus(StageStatusCommand s){
+		masterApi.scheduleTaskStatus(masterConn,s.getStageId(), s.getEuId(), s.getStatus(), s.getResultDataReference());
+	}
+
 		
 }

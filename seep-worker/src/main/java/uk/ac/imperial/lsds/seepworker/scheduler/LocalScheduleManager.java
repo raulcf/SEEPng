@@ -2,12 +2,13 @@ package uk.ac.imperial.lsds.seepworker.scheduler;
 
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
@@ -16,8 +17,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerStagesCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
@@ -26,36 +26,38 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategyType;
 
 /**
- * @author pg1712
+ * @author pg1712@ic.ac.uk
  *
  */
 public class LocalScheduleManager {
 	
 	final private Logger LOG = LoggerFactory.getLogger(LocalScheduleManager.class);
-	private Set<EndPoint> workers;
-	private Comm comm;
 	
-	SeepLogicalQuery slq;
+	private Set<EndPoint> workers;
+	private SeepLogicalQuery slq;
+	private Comm comm;
 	
 	// Local Scheduler machinery
 	private ScheduleDescription scheduleDescription;
 	private LocalSchedulerEngineWorker seWorker;
 	private Thread worker;
+	private int myPort;
 
 
-	public LocalScheduleManager(Set<EndPoint> groupWorkers) {
+	public LocalScheduleManager(Set<EndPoint> groupWorkers, int myPort) {
 		this.workers = groupWorkers;
 		this.comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
+		this.myPort = myPort;
 	}
 	
 	
 	public void handleStartQuery() {
-		LOG.info("Staring Local Scheduler");
+		LOG.info("Starting Local Scheduler...");
 		worker.start();
 	}
 	
 	public void handleStopQuery(){
-		LOG.info("Stop Local scheduling..");
+		LOG.info("Stoping Local Scheduler...");
 		try {
 			worker.join();
 			this.seWorker.stop();
@@ -67,32 +69,29 @@ public class LocalScheduleManager {
 
 	public void handleLocalStageCommand(LocalSchedulerStagesCommand lssc){
 		int stageId = lssc.getStageId();
-		LOG.info("Local Scheduler Received Stage: {} ", stageId);
-		seWorker.prepareForStartLocal(this.getWorkerConnection(), lssc.getStages(), slq);
+		LOG.debug("Local Scheduler Received Stage: {} ", stageId);
+		seWorker.prepareForNewStageLocal(this.getWorkerConnection(), lssc.getStages(), slq);
 		if(!worker.isAlive())
 			this.handleStartQuery();
-		LOG.info("Prepare Local scheduler engine...OK");
 	}
 	
 	public void groupScheduleDeploy(ScheduleDeployCommand sdc,  SeepLogicalQuery slq){
 		this.slq = slq;
 		this.scheduleDescription = sdc.getSchedule();
 		boolean suc = this.sendScheduleToGroupNodes(this.getWorkerConnection(), slq);
-		LOG.info("Group Scheduled deploy done: {}. Waiting for master commands...", suc);
+		LOG.info("Group Scheduled deploy done: {}. Waiting for Global scheduler Stages...", suc);
 		
 		// Initialize the schedulerThread
 		seWorker = new LocalSchedulerEngineWorker(scheduleDescription,
 				SchedulingStrategyType.clazz(0), comm, KryoFactory.buildKryoForMasterWorkerProtocol(), this.getWorkerConnection());
 		worker = new Thread(seWorker);
-		worker.setName("LocalScheduler");
-		LOG.info("Local Scheduler thread Init... DONE");
-		
+		worker.setName("LocalScheduleManager");
 	}
 	
 	private boolean sendScheduleToGroupNodes(Set<Connection> connections, SeepLogicalQuery slq){
-		LOG.info("Sending Group Schedule Deploy Command");
+		LOG.info("Sending Group Schedule Deploy Command...");
 		// Send physical query to all Group Worker nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
+		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription, myPort);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, KryoFactory.buildKryoForMasterWorkerProtocol());
 		return success;
 	}
@@ -131,6 +130,15 @@ public class LocalScheduleManager {
 	public void setScheduleDescription(ScheduleDescription scheduleDescription) {
 		this.scheduleDescription = scheduleDescription;
 	}
-	
+	/*
+	 * Similar to QueryManager Schedule notification
+	 */
+	public void notifyStageStatus(StageStatusCommand ssc) {
+		int stageId = ssc.getStageId();
+		int euId = ssc.getEuId();
+		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
+		StageStatusCommand.Status status = ssc.getStatus();
+		seWorker.newStageStatus(stageId, euId, results, status);
+	}
 
 }

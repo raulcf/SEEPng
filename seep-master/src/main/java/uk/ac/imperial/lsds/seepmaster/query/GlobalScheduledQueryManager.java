@@ -158,7 +158,7 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		
 		// TODO: Prepare scheduling engine - define Group-Tasks
 		LOG.info("Prepare scheduler engine...");
-		seWorker.prepareForStart(connections, slq);
+		seWorker.prepareForStart(connections);
 		LOG.info("Prepare scheduler engine...OK");
 		
 		// For now just forward all stages to local scheduler
@@ -315,13 +315,11 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 					finishesStage = true;
 				}
 			}
-			
 			// has multiple inputs?
 			if(slo.upstreamConnections().size() > 1) {
 				stage.setRequiresMultipleInput();
 				finishesStage = true;
 			}
-			
 			// is source operator?
 			if(containsSourceOperator) {
 				finishesStage = true;
@@ -412,7 +410,6 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 	}
 	
 	/** ScheduleManager interface Implementation **/
-	
 	@Override
 	public void notifyStageStatus(StageStatusCommand ssc) {
 		int stageId = ssc.getStageId();

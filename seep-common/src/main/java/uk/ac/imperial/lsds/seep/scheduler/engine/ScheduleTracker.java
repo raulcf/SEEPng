@@ -42,6 +42,10 @@ public class ScheduleTracker {
 		}
 	}
 	
+	public void addNewStage(Stage stage){
+		this.scheduleStatus.put(stage, StageStatus.WAITING);
+	}
+	
 	public boolean isScheduledFinished() {
 		return this.status == ScheduleStatus.FINISHED;
 	}
@@ -107,12 +111,13 @@ public class ScheduleTracker {
 		for(Stage st : this.scheduleStatus.keySet()) {
 			this.scheduleStatus.put(st, newStatus);
 		}
+		this.status = ScheduleStatus.READY;
 		return true;
 	}
 	
 	private boolean isStageReadyToRun(Stage stage) {
 		for(Stage st : stage.getDependencies()) {
-			if(! scheduleStatus.get(st).equals(StageStatus.FINISHED)) {
+			if( (scheduleStatus.get(st) == null) || (!scheduleStatus.get(st).equals(StageStatus.FINISHED))) {
 				return false;
 			}
 		}

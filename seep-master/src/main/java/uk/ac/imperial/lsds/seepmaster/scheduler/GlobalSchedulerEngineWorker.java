@@ -1,36 +1,31 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.esotericsoftware.kryo.Kryo;
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
-import com.esotericsoftware.kryo.Kryo;
-
+/**
+ * @author pg1712@ic.ac.uk
+ *
+ */
 public class GlobalSchedulerEngineWorker implements Runnable {
 
 	final private Logger LOG = LoggerFactory.getLogger(GlobalSchedulerEngineWorker.class);
@@ -48,7 +43,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	private boolean work = true;
 	
 	/*
-	 * TODO: Create a generic abstract class for SchedulerEngineWorker and GlobalSchedulerEngineWorker
+	 * TODO: Create a generic abstract class for SchedulerEngineWorkers in general??  LocalEngineWorker and GlobalSchedulerEngineWorker could use this abstraction
 	 */
 	
 	public GlobalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k) {
@@ -104,39 +99,13 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 		public Connection c;
 	}
 	
-	
-	// TODO: SHOULD BE PROBABLY MOVED TO LOCAL SCHEDULER SPACE!
-	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
 	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns) {
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();
-		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
 		
-		// Split input DataReference per worker to maximize locality (not load balancing)
 		List<CommandToNode> commands = new ArrayList<>();
 		for(Connection c : conns) {
 			MasterWorkerCommand esc = null;
-			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
-			for(Integer streamId : drefs.keySet()) {
-				for(DataReference dr : drefs.get(streamId)) {
-					// EXTERNAL. assign one and continue
-					if(! dr.isManaged()) {
-						if(! perWorker.containsKey(streamId)) {
-							perWorker.put(streamId, new HashSet<>());
-						}
-						perWorker.get(streamId).add(dr);
-						break;
-					}
-					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
-					else if(dr.isPartitioned() || dr.getEndPoint().getId() == c.getId()) {
-						// assign
-						if(! perWorker.containsKey(streamId)) {
-							perWorker.put(streamId, new HashSet<>());
-						}
-						perWorker.get(streamId).add(dr);
-					}
-				}
-			}
 			Set<Stage> toSend = new HashSet<>();
 			toSend.add(nextStage);
 			esc = ProtocolCommandFactory.buildLocalSchedulerStageCommand(nextStageId, toSend);
@@ -149,19 +118,6 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	private Set<Connection> getLocalSchedulersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
 		cons.addAll(this.localSchedulerConnections);
-		// In this case DataReference do not necessarily contain EndPoint information
-//		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
-//			//TODO: probably this won't work later => Simply report all nodes
-//			cons.addAll(this.localSchedulerConnections);
-//		}
-//		// If not first stages, then DataReferences contain the right EndPoint information
-//		else {
-//			Set<EndPoint> eps = stage.getInvolvedNodes();
-//			for(EndPoint ep : eps) {
-//				Connection c = new Connection(ep.extractMasterControlEndPoint());
-//				cons.add(c);
-//			}
-//		}
 		return cons;
 	}
 	
@@ -179,34 +135,21 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 		}).start();
 	}
 	
-	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {
+	public boolean prepareForStart(Set<Connection> connections) {
 		// Set initial connections in worker
 		this.localSchedulerConnections = connections;
 		// Basically change stage status so that SOURCE tasks are ready to run
 		boolean success = true;
 		for(Stage stage : scheduleDescription.getStages()) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
-				configureInputForInitialStage(connections, stage, slq);
+				//configureInputForInitialStage(connections, stage, slq);
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}
 		}
 		return success;
 	}
-
-	private void configureInputForInitialStage(Set<Connection> connections, Stage s, SeepLogicalQuery slq) {
-		// Get input type from first operator
-		int srcOpId = s.getWrappedOperators().getLast();
-		LogicalOperator src = slq.getOperatorWithId(srcOpId);
-		Set<DataReference> refs = new HashSet<>();
-		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
-		// make a data reference, considering the datastore that describes the source, in each of the endpoint
-		// these will request to the DRM to get the data.
-		DataReference dr = DataReference.makeExternalDataReference(dataStore);
-		int streamId = 0; // only one streamId for sources in scheduled mode
-		refs.add(dr);
-		s.addInputDataReference(streamId, refs);
-	}
+	
 	
 	public void newStageStatus(int stageId, int euId, Map<Integer, Set<DataReference>> results, StageStatusCommand.Status status) {
 		switch(status) {
@@ -216,33 +159,24 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);
-			
 			break;
 		default:
-			
 			LOG.error("Unrecognized STATUS in StageStatusCommand");
 		}
 	}
 	
-
-	/**
-	 * @param localSchedulerConnections the localSchedulerConnections to set
-	 */
-	public void setLocalSchedulerConnections(Set<Connection> localSchedulerConnections) {
-		this.localSchedulerConnections = localSchedulerConnections;
-	}
 	
-	/** Methods to facilitate testing **/
-	
-	public ScheduleTracker __tracker_for_testing(){
-		return tracker;
-	}
-	
-	public Stage __next_stage_scheduler(){
-		return schedulingStrategy.next(tracker);
-	}
-	
-	public void __reset_schedule() {
-		tracker.resetAllStagesTo(StageStatus.WAITING);
-	}
+//	/** Methods to facilitate testing **/
+//	
+//	public ScheduleTracker __tracker_for_testing(){
+//		return tracker;
+//	}
+//	
+//	public Stage __next_stage_scheduler(){
+//		return schedulingStrategy.next(tracker);
+//	}
+//	
+//	public void __reset_schedule() {
+//		tracker.resetAllStagesTo(StageStatus.WAITING);
+//	}
 }

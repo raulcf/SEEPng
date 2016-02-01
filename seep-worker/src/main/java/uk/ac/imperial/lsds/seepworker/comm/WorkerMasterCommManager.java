@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerElectCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerStagesCommand;
@@ -28,6 +29,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -60,7 +62,7 @@ public class WorkerMasterCommManager {
 	private String methodName;
 	
 	//Local Scheduler instance
-	private LocalScheduleManager lsew;
+	private LocalScheduleManager lsm;
 	
 	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c) {
 		this.c = c;
@@ -137,6 +139,11 @@ public class WorkerMasterCommManager {
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
 						handleScheduleDeploy(sdc);
+						//set new master for proper notification => Two Level Scheduling case
+						if(sdc.getStageNotificationPort() != -1){
+							WorkerMasterCommManager.this.c.setMasterConn(new Connection(new EndPoint(0,
+								incomingSocket.getInetAddress(), sdc.getStageNotificationPort()).extractMasterControlEndPoint()));
+						}
 
 					}
 					// SCHEDULE_STAGE command
@@ -154,26 +161,40 @@ public class WorkerMasterCommManager {
 						LOG.info("LOCAL SCHEDULER_ELECT command");
 						LocalSchedulerElectCommand lsec = c.getLocalSchedulerElectCommand();
 						out.println("ack");
-						lsew = new LocalScheduleManager(lsec.getWorkerNodes());
-//						localGroupScheduler = new Thread(lsew);
-//						localGroupScheduler.setName("LocaLGroupScheduler");
+						lsm = new LocalScheduleManager(lsec.getWorkerNodes(), myPort);
 					}
 					// LOCAL SCHEDULER STAGE command
 					else if(cType == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
 						LOG.info("LOCAL SCHEDULER STAGE command");
 						LocalSchedulerStagesCommand lssc = c.getLocalSchedulerStageCommand();
 						out.println("ack");
-						lsew.handleLocalStageCommand(lssc);
+						lsm.handleLocalStageCommand(lssc);
 					}
+					// LOCAL SCHEDULER GOT STAGE STATUS UPDATE
+					else if(cType == MasterWorkerProtocolAPI.STAGE_STATUS.type()){
+						LOG.info("RX -> LOCAL SCHEDULER STAGE Status command");
+						StageStatusCommand ssc = c.getStageStatusCommand();
+						LOG.debug("Local StageID {} Status {} euid {} ",ssc.getStageId(), ssc.getStatus(), ssc.getEuId());
+						out.println("ack");
+						//update local status tracker
+						lsm.notifyStageStatus(ssc);
+						//And then Notify Global scheduler
+						ssc.setEuId(Utils.computeIdFromIpAndPort(myIp, myPort));
+						WorkerMasterCommManager.this.c.propagateStageStatus(ssc);
+					}
+					/**
+					 * UP TO HERE - TWO LEVEL SCHEDULING SPECIFIC 
+					 */
+					
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()) {
 						LOG.info("RX STARTQUERY command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
-						if( lsew == null)
+						if( lsm == null)
 							handleStartQuery(sqc);
 						else 
-							lsew.handleStartQuery();
+							lsm.handleStartQuery();
 					}
 					// STOPQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()) {
@@ -228,8 +249,8 @@ public class WorkerMasterCommManager {
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		
 		// If I am a Local Scheduler
-		if (lsew != null) {
-			lsew.groupScheduleDeploy(sdc, slq);
+		if (lsm != null) {
+			lsm.groupScheduleDeploy(sdc, slq);
 		}
 		// If I am just a worker
 		else {
