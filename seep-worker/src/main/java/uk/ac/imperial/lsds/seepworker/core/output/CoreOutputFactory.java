@@ -26,6 +26,7 @@ public class CoreOutputFactory {
 		LOG.info("Building coreOutput...");
 		Map<Integer, OBuffer> oBuffers = new HashMap<>();
 		Map<Integer, List<OBuffer>> streamId_To_OBuffers = new HashMap<>();
+		// Iterate per streamId
 		for(Entry<Integer, Set<DataReference>> entry : output.entrySet()) {
 			int streamId = entry.getKey();
 			List<OBuffer> buffers = new ArrayList<>();

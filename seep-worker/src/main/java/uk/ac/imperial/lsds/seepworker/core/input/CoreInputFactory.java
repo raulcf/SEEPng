@@ -27,6 +27,7 @@ public class CoreInputFactory {
 		LOG.info("Building Core Input...");
 		List<InputAdapter> inputAdapters = new LinkedList<>();
 		Map<Integer, IBuffer> iBuffers = new HashMap<>();
+		// Iterate through streamId
 		for(Entry<Integer, Set<DataReference>> entry : input.entrySet()) {
 			int streamId = entry.getKey();
 			Set<DataReference> drefs = entry.getValue();

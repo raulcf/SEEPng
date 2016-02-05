@@ -203,7 +203,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		return sd;
 	}
 	
-	private void buildScheduleFromStage(Stage parent, SeepLogicalOperator slo,  
+	private void buildScheduleFromStage(Stage parent, SeepLogicalOperator slo,
 			Set<Integer> opsAlreadyInSchedule, SeepLogicalQuery slq, Set<Stage> stages, int stageId) {
 		// Check whether this op has already been incorporated to a stage and abort if so
 		int opId = slo.getOperatorId();
@@ -215,7 +215,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 		// Create new stage and dependency with parent
 		Stage stage = new Stage(stageId);
-		if(parent != null){
+		if(parent != null) {
 			parent.dependsOn(stage);
 		}
 		stage = createStageFromLogicalOperator(stage, opsAlreadyInSchedule, slo);
@@ -231,8 +231,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		slo = (SeepLogicalOperator) slq.getOperatorWithId(stage.getIdOfOperatorBoundingStage());
 		
 		// If multiple input explore for each
-		if(stage.hasMultipleInput()){
-			for(UpstreamConnection uc : slo.upstreamConnections()){
+		if(stage.hasMultipleInput()) {
+			for(UpstreamConnection uc : slo.upstreamConnections()) {
 				SeepLogicalOperator upstreamOp = (SeepLogicalOperator) uc.getUpstreamOperator();
 				stageId++;
 				buildScheduleFromStage(stage, upstreamOp, opsAlreadyInSchedule, slq, stages, stageId);
@@ -269,6 +269,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			opsAlreadyInSchedule.add(opId);
 			if (isSink(slo)) containsSinkOperator = true;
 			if (isSource(slo)) containsSourceOperator = true;
+			
+			// FIXME: no need to reason about stateful ops here. only whether they need or not shuffle
 			// Check if it terminates stage
 			// has partitioned state?
 			if(slo.isStateful()) {

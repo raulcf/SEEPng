@@ -29,6 +29,11 @@ public final class DataReference {
 	 */
 	private final boolean partitioned;
 	/**
+	 * When a DataReference is partitioned, this indicates the partitionId
+	 * FIXME: make it final and see where to assign the id
+	 */
+	private int partitionId = -1;
+	/**
 	 * Info necessary for the DRM to serve this DR
 	 */
 	private final DataStore dataStore;
@@ -46,13 +51,14 @@ public final class DataReference {
 		this.serveMode = serveMode;
 	}
 	
-	private DataReference(DataStore dataStore, EndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode) {
+	private DataReference(DataStore dataStore, EndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode, int partitionId) {
 		this.ownerId = new UID().hashCode();
 		this.dataStore = dataStore;
 		this.endPoint = endPoint;
 		this.managed = managed;
 		this.partitioned = partitioned;
 		this.serveMode = serveMode;
+		this.partitionId = partitionId;
 	}
 	
 	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
@@ -64,20 +70,21 @@ public final class DataReference {
 	}
 	
 	public static DataReference makeManagedDataReference(DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
-		return new DataReference(dataStore, endPoint, true, false, serveMode);
+		return new DataReference(dataStore, endPoint, true, false, serveMode, -1);
 	}
 	
-	public static DataReference makeManagedAndPartitionedDataReference(DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
-		return new DataReference(dataStore, endPoint, true, true, serveMode);
+	public static DataReference makeManagedAndPartitionedDataReference(DataStore dataStore, EndPoint endPoint, ServeMode serveMode, int partitionId) {
+		return new DataReference(dataStore, endPoint, true, true, serveMode, partitionId);
 	}
 	
 	//TODO: consider refactoring name to makeSourceExternalDataReference, is there any other type of external dref?
+	// TODO: not sure if hte previous comment still applies
 	public static DataReference makeExternalDataReference(DataStore dataStore) {
-		return new DataReference(dataStore, null, false, false, null);
+		return new DataReference(dataStore, null, false, false, null, -1);
 	}
 	
 	public static DataReference makeSinkExternalDataReference(DataStore dataStore) {
-		return new DataReference(dataStore, null, false, false, ServeMode.SINK);
+		return new DataReference(dataStore, null, false, false, ServeMode.SINK, -1);
 	}
 	
 	public int getId() {
@@ -102,6 +109,10 @@ public final class DataReference {
 	
 	public boolean isPartitioned() {
 		return partitioned;
+	}
+	
+	public int getPartitionId() {
+		return partitionId;
 	}
 	
 	/**
