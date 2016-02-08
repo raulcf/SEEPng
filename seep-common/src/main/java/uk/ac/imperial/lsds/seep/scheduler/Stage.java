@@ -12,7 +12,7 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
-public class Stage {
+public class Stage implements Comparable<Stage>{
 
 	private final int stageId;
 	
@@ -44,6 +44,12 @@ public class Stage {
 	private boolean hasPartitionedState = false;
 	private boolean hasMultipleInput = false;
 	
+	/**
+	 * Optional Stage priority used for Two-level Scheduling
+	 */
+	int priority = -1;
+	
+
 	public Stage(int stageId){
 		this.stageId = stageId;
 		this.upstream = new HashSet<>();
@@ -52,6 +58,33 @@ public class Stage {
 		this.outputDataReferences = new HashMap<>();
 		this.wrapping = new ArrayDeque<>();
 	}
+	
+	public Stage(int stageId, int priority){
+		this.stageId = stageId;
+		this.upstream = new HashSet<>();
+		this.downstream = new HashSet<>();
+		this.inputDataReferences = new HashMap<>();
+		this.outputDataReferences = new HashMap<>();
+		this.wrapping = new ArrayDeque<>();
+		this.priority = priority;
+	}
+	
+	/**
+	 * Priority Stage copy Constructor
+	 */
+	public Stage(Stage s, int priority){
+		this.stageId = s.getStageId();
+		this.upstream = s.getDependencies();
+		this.downstream = s.getDependants();
+		this.inputDataReferences = s.getInputDataReferences();
+		this.outputDataReferences = s.getOutputDataReferences();
+		this.wrapping = s.getWrappedOperators();
+		this.type = s.type;
+		this.hasPartitionedState = s.hasPartitionedState;
+		this.hasMultipleInput = s.hasMultipleInput;
+		this.priority = priority;
+	}
+	
 	
 	public Stage() { 
 		this.stageId = 0;
@@ -140,6 +173,20 @@ public class Stage {
 		return downstream;
 	}
 	
+	/**
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority the priority to set
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+	
 	@Override
 	public int hashCode(){
 		return stageId;
@@ -171,7 +218,22 @@ public class Stage {
 			sb.append("  st -> "+s.stageId);
 			sb.append(Utils.NL);
 		}
+		if(this.priority != -1){
+			sb.append("Priotity: ");
+			sb.append(Utils.NL);
+			sb.append(this.getPriority());
+			sb.append(Utils.NL);
+		}
 		return sb.toString();
+	}
+
+	/** 
+	 * Compare stages by their priorities for priority scheduling
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Stage o) {
+		return o.getPriority()- this.getPriority();
 	}
 	
 }

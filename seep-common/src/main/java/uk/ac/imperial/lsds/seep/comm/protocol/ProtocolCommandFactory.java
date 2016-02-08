@@ -9,6 +9,7 @@ import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
 public class ProtocolCommandFactory {
 	
@@ -43,6 +44,12 @@ public class ProtocolCommandFactory {
 		MasterWorkerCommand c = new MasterWorkerCommand(dwc);
 		return c;
 	}
+	
+	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription, int notificationPort) {
+		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription, notificationPort);
+		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
+		return c;
+	}
 
 	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
 		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription);
@@ -68,6 +75,18 @@ public class ProtocolCommandFactory {
 	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
+		return c;
+	}
+	
+	public static MasterWorkerCommand buildLocalSchedulerElectCommand(Set<EndPoint> endpoints){
+		LocalSchedulerElectCommand lsec = new LocalSchedulerElectCommand(endpoints);
+		MasterWorkerCommand c = new MasterWorkerCommand(lsec);
+		return c;
+	}
+	
+	public static MasterWorkerCommand buildLocalSchedulerStageCommand(int stageId,  Set<Stage> stages){
+		LocalSchedulerStagesCommand lssc = new LocalSchedulerStagesCommand(stageId, stages);
+		MasterWorkerCommand c = new MasterWorkerCommand(lssc);
 		return c;
 	}
 	

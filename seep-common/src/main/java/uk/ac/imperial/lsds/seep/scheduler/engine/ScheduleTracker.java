@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seep.scheduler.engine;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +40,10 @@ public class ScheduleTracker {
 			}
 			scheduleStatus.put(stage, StageStatus.WAITING);
 		}
+	}
+	
+	public void addNewStage(Stage stage){
+		this.scheduleStatus.put(stage, StageStatus.WAITING);
 	}
 	
 	public boolean isScheduledFinished() {
@@ -107,12 +111,13 @@ public class ScheduleTracker {
 		for(Stage st : this.scheduleStatus.keySet()) {
 			this.scheduleStatus.put(st, newStatus);
 		}
+		this.status = ScheduleStatus.READY;
 		return true;
 	}
 	
 	private boolean isStageReadyToRun(Stage stage) {
 		for(Stage st : stage.getDependencies()) {
-			if(! scheduleStatus.get(st).equals(StageStatus.FINISHED)) {
+			if( (scheduleStatus.get(st) == null) || (!scheduleStatus.get(st).equals(StageStatus.FINISHED))) {
 				return false;
 			}
 		}

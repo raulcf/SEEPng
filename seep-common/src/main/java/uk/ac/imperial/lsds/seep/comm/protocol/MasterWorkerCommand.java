@@ -15,6 +15,8 @@ public class MasterWorkerCommand implements SeepCommand {
 	private ScheduleStageCommand esc;
 	private StageStatusCommand ssc;
 	private MaterializeTaskCommand mtc;
+	private LocalSchedulerElectCommand lsec;
+	private LocalSchedulerStagesCommand lssc;
 	
 	public MasterWorkerCommand(){}
 	
@@ -47,6 +49,12 @@ public class MasterWorkerCommand implements SeepCommand {
 		}
 		else if(type == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
 			this.esc = (ScheduleStageCommand)ct;
+		}
+		else if(type == MasterWorkerProtocolAPI.LOCAL_ELECT.type()){
+			this.lsec = (LocalSchedulerElectCommand)ct;
+		}
+		else if (type == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
+			this.lssc = (LocalSchedulerStagesCommand)ct;
 		}
 		else if(type == MasterWorkerProtocolAPI.STAGE_STATUS.type()) {
 			this.ssc = (StageStatusCommand)ct;
@@ -102,6 +110,14 @@ public class MasterWorkerCommand implements SeepCommand {
 	
 	public ScheduleStageCommand getScheduleStageCommand() {
 		return esc;
+	}
+	
+	public LocalSchedulerElectCommand getLocalSchedulerElectCommand(){
+		return lsec;
+	}
+	
+	public LocalSchedulerStagesCommand getLocalSchedulerStageCommand(){
+		return lssc;
 	}
 	
 	public StageStatusCommand getStageStatusCommand() {

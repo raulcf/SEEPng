@@ -8,6 +8,7 @@ import org.junit.Test;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.query.ScheduledQueryManager;
 

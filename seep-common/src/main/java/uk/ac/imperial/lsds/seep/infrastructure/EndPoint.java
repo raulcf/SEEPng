@@ -51,6 +51,10 @@ public final class EndPoint {
 		return id;
 	}
 
+	public String getIpString(){
+		return this.ip;
+	}
+	
 	public InetAddress getIp() {
 		try {
 			return InetAddress.getByName(ip);

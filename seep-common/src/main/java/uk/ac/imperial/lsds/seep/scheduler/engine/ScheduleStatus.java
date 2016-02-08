@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seep.scheduler.engine;
 
 public enum ScheduleStatus {
 	NON_INITIALIZED,

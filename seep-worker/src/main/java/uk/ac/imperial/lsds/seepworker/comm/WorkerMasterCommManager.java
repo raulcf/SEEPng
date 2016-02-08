@@ -15,14 +15,21 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerElectCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.LocalSchedulerStagesCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleDeployCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ScheduleStageCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StartQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
@@ -32,9 +39,7 @@ import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
+import uk.ac.imperial.lsds.seepworker.scheduler.LocalScheduleManager;
 
 public class WorkerMasterCommManager {
 
@@ -47,7 +52,6 @@ public class WorkerMasterCommManager {
 	private RuntimeClassLoader rcl;
 	
 	private Conductor c;
-	
 	private InetAddress myIp;
 	
 	private int myPort;
@@ -56,6 +60,9 @@ public class WorkerMasterCommManager {
 	private String definitionClass;
 	private String[] queryArgs;
 	private String methodName;
+	
+	//Local Scheduler instance
+	private LocalScheduleManager lsm;
 	
 	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c) {
 		this.c = c;
@@ -132,6 +139,12 @@ public class WorkerMasterCommManager {
 						ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 						out.println("ack");
 						handleScheduleDeploy(sdc);
+						//set new master for proper notification => Two Level Scheduling case
+						if(sdc.getStageNotificationPort() != -1){
+							WorkerMasterCommManager.this.c.setMasterConn(new Connection(new EndPoint(0,
+								incomingSocket.getInetAddress(), sdc.getStageNotificationPort()).extractMasterControlEndPoint()));
+						}
+
 					}
 					// SCHEDULE_STAGE command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
@@ -140,12 +153,48 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						handleScheduleStage(esc);
 					}
+					/**
+					 * TWO LEVEL SCHEDULING SPECIFIC 
+					 */
+					// LOCAL SCHEDULER ELECT command
+					else if(cType == MasterWorkerProtocolAPI.LOCAL_ELECT.type()) {
+						LOG.info("RX LOCAL SCHEDULER_ELECT command");
+						LocalSchedulerElectCommand lsec = c.getLocalSchedulerElectCommand();
+						out.println("ack");
+						lsm = new LocalScheduleManager(lsec.getWorkerNodes(), myPort);
+					}
+					// LOCAL SCHEDULER STAGE command
+					else if(cType == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
+						LOG.info("RX LOCAL SCHEDULER STAGE command");
+						LocalSchedulerStagesCommand lssc = c.getLocalSchedulerStageCommand();
+						out.println("ack");
+						lsm.handleLocalStageCommand(lssc);
+					}
+					// LOCAL SCHEDULER GOT STAGE STATUS UPDATE
+					else if(cType == MasterWorkerProtocolAPI.STAGE_STATUS.type()){
+						LOG.info("RX LOCAL SCHEDULER STAGE Status command");
+						StageStatusCommand ssc = c.getStageStatusCommand();
+						LOG.debug("Local StageID {} Status {} euid {} ",ssc.getStageId(), ssc.getStatus(), ssc.getEuId());
+						out.println("ack");
+						//update local status tracker
+						lsm.notifyStageStatus(ssc);
+						//And then Notify Global scheduler
+						ssc.setEuId(Utils.computeIdFromIpAndPort(myIp, myPort));
+						WorkerMasterCommManager.this.c.propagateStageStatus(ssc);
+					}
+					/**
+					 * UP TO HERE - TWO LEVEL SCHEDULING SPECIFIC 
+					 */
+					
 					// STARTQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STARTQUERY.type()) {
 						LOG.info("RX STARTQUERY command");
 						StartQueryCommand sqc = c.getStartQueryCommand();
 						out.println("ack");
-						handleStartQuery(sqc);
+						if( lsm == null)
+							handleStartQuery(sqc);
+						else 
+							lsm.handleStartQuery();
 					}
 					// STOPQUERY command
 					else if(cType == MasterWorkerProtocolAPI.STOPQUERY.type()) {
@@ -198,11 +247,19 @@ public class WorkerMasterCommManager {
 	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
 		// Instantiate logical query
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
-		// Get schedule description
-		ScheduleDescription sd = sdc.getSchedule();
-		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
-		c.configureScheduleTasks(myOwnId, sd, slq);
-		LOG.info("Scheduled deploy is done. Waiting for master commands...");
+		
+		// If I am a Local Scheduler
+		if (lsm != null) {
+			lsm.groupScheduleDeploy(sdc, slq);
+		}
+		// If I am just a worker
+		else {
+			// Get schedule description
+			ScheduleDescription sd = sdc.getSchedule();
+			int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
+			c.configureScheduleTasks(myOwnId, sd, slq);
+			LOG.info("Scheduled deploy is done. Waiting for master commands...");
+		}
 	}
 
 	public void handleStartQuery(StartQueryCommand sqc) {

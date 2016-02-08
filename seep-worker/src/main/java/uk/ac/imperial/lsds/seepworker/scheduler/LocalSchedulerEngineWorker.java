@@ -1,14 +1,19 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepworker.scheduler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
@@ -22,40 +27,46 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
-import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
-import com.esotericsoftware.kryo.Kryo;
+/**
+ * @author pg1712@ic.ac.uk
+ *
+ */
+public class LocalSchedulerEngineWorker implements Runnable {
 
-public class SchedulerEngineWorker implements Runnable {
-
-	final private Logger LOG = LoggerFactory.getLogger(SchedulerEngineWorker.class);
+	final private Logger LOG = LoggerFactory.getLogger(LocalSchedulerEngineWorker.class);
 	
 	private ScheduleDescription scheduleDescription;
-	private SchedulingStrategy schedulingStrategy;
+//	private SchedulingStrategy schedulingStrategy;
 	private ScheduleTracker tracker;
 	
-	private InfrastructureManager inf;
 	private Set<Connection> connections;
-
+	
+	//Local Scheduling Stuff
+	private Set<Connection> workerConnections;
+	private PriorityQueue<Stage> queue = new PriorityQueue<>();
+	
 	private Comm comm;
 	private Kryo k;
 	
 	private boolean work = true;
 	
-	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
+	public LocalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, Set<Connection> workerConnections) {
 		this.scheduleDescription = sdesc;
-		this.schedulingStrategy = schedulingStrategy;
+//		this.schedulingStrategy = schedulingStrategy;
 		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
-		this.inf = inf;
 		this.comm = comm;
 		this.k = k;
+		this.workerConnections = workerConnections;
 	}
 
+	public void addQueueStages(Set<Stage> stages){
+		this.queue.addAll(stages);
+	}
+	
 	public void stop() {
 		this.work = false;
 	}
@@ -63,30 +74,36 @@ public class SchedulerEngineWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("[START JOB]");
-		while(work) {
+		while (work) {
+			System.out.println("=> LOCAL QUEUE SIZE "+ this.queue.size());
 			// Get next stage
-			Stage nextStage = schedulingStrategy.next(tracker);
-			LOG.debug("NEXT STAGE IS: {}", nextStage);
-			if(nextStage == null) {
-				// TODO: means the computation finished, do something
-				if(tracker.isScheduledFinished()) {
-					LOG.info("TODO: 1-Schedule has finished at this point");
-					work = false;
-					continue;
+			try {
+				Stage nextStage = queue.poll();
+				LOG.debug("NEXT STAGE IS: {}", nextStage);
+				
+				if (nextStage == null) {
+					// TODO: means the computation finished, do something
+					if (tracker.isScheduledFinished()) {
+						LOG.info("TODO: 1-Schedule has finished at this point");
+						work = false;
+						continue;
+					}
 				}
+
+				Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
+				trackStageCompletionAsync(nextStage, euInvolved);
+				List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
+
+				LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
+				for (CommandToNode ctn : commands) {
+					boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
+				}
+				
+				tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+				
+			} catch (Exception e) {
+				LOG.error(e.getMessage());
 			}
-			
-			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
-			
-			trackStageCompletionAsync(nextStage, euInvolved);
-			
-			List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
-			
-			LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
-			for(CommandToNode ctn : commands) {
-				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
-			}
-			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 		}
 	}
 	
@@ -141,21 +158,20 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
-		LOG.debug(" Stage {} : Involved Nodes: {} ", stage.getStageId(), stage.getInvolvedNodes());;
 		Set<Connection> cons = new HashSet<>();
-		// In this case DataReference do not necessarily contain EndPoint information
-		if (stage.getStageType().equals(StageType.SOURCE_STAGE)
-				|| stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
+		LOG.debug("Stage {} : Involved Nodes: {} ", stage.getStageId(), stage.getInvolvedNodes());
+		// In this case DataReference do not necessarily contain EndPoint
+		// information
+		if (stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
 			// TODO: probably this won't work later => Simply report all nodes
-			for (ExecutionUnit eu : inf.executionUnitsInUse()) {
-				Connection conn = new Connection(eu.getEndPoint().extractMasterControlEndPoint());
-				cons.add(conn);
-			}
+			// Two Level Scheduler case
+			cons.addAll(this.workerConnections);
 		}
-		// If not first stages, then DataReferences contain the right EndPoint information
+		// If not first stages, then DataReferences contain the right EndPoint
+		// information
 		else {
 			Set<EndPoint> eps = stage.getInvolvedNodes();
-			for(EndPoint ep : eps) {
+			for (EndPoint ep : eps) {
 				Connection c = new Connection(ep.extractMasterControlEndPoint());
 				cons.add(c);
 			}
@@ -177,17 +193,20 @@ public class SchedulerEngineWorker implements Runnable {
 		}).start();
 	}
 	
-	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {
+	public boolean prepareForNewStageLocal(Set<Connection> connections, Set<Stage> stages, SeepLogicalQuery slq) {
 		// Set initial connections in worker
 		this.connections = connections;
 		// Basically change stage status so that SOURCE tasks are ready to run
 		boolean success = true;
-		for(Stage stage : scheduleDescription.getStages()) {
+		for(Stage stage : stages) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
 				configureInputForInitialStage(connections, stage, slq);
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}
+			//configure and then add to queue
+			this.queue.add(stage);
+			this.tracker.addNewStage(stage);
 		}
 		return success;
 	}
@@ -214,10 +233,8 @@ public class SchedulerEngineWorker implements Runnable {
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);
-			
 			break;
 		default:
-			
 			LOG.error("Unrecognized STATUS in StageStatusCommand");
 		}
 	}
@@ -225,15 +242,15 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	/** Methods to facilitate testing **/
 	
-	public ScheduleTracker __tracker_for_testing(){
-		return tracker;
-	}
-	
-	public Stage __next_stage_scheduler(){
-		return schedulingStrategy.next(tracker);
-	}
-	
-	public void __reset_schedule() {
-		tracker.resetAllStagesTo(StageStatus.WAITING);
-	}
+//	public ScheduleTracker __tracker_for_testing(){
+//		return tracker;
+//	}
+//	
+//	public Stage __next_stage_scheduler(){
+//		return schedulingStrategy.next(tracker);
+//	}
+//	
+//	public void __reset_schedule() {
+//		tracker.resetAllStagesTo(StageStatus.WAITING);
+//	}
 }

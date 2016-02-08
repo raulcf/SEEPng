@@ -6,6 +6,7 @@ public enum MasterWorkerProtocolAPI {
 	BOOTSTRAP((short)0, new BootstrapCommand()), 
 	CRASH((short)1, new CrashCommand()), 
 	CODE((short)2, new CodeCommand()), 
+	LOCAL_ELECT((short)3, new LocalSchedulerElectCommand()),
 //	QUERYDEPLOY((short)3, new QueryDeployCommand()),
 	STARTQUERY((short)5, new StartQueryCommand()),
 	STOPQUERY((short)6, new StopQueryCommand()),
@@ -13,8 +14,8 @@ public enum MasterWorkerProtocolAPI {
 	SCHEDULE_TASKS((short)8, new ScheduleDeployCommand()),
 	SCHEDULE_STAGE((short)9, new ScheduleStageCommand()),
 	STAGE_STATUS((short)10, new StageStatusCommand()),
-	MATERIALIZE_TASK((short)11, new MaterializeTaskCommand());
-	// 3 is free
+	MATERIALIZE_TASK((short)11, new MaterializeTaskCommand()),
+	LOCAL_SCHEDULE((short)12, new LocalSchedulerStagesCommand());
 	
 	private short type;
 	private CommandType c;
