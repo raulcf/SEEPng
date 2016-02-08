@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -46,7 +47,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 	
 	//Local Scheduling Stuff
 	private Set<Connection> workerConnections;
-	private BlockingQueue<Stage> queue = new ArrayBlockingQueue<>(1024);
+	private PriorityQueue<Stage> queue = new PriorityQueue<>();
 	
 	private Comm comm;
 	private Kryo k;
@@ -62,8 +63,8 @@ public class LocalSchedulerEngineWorker implements Runnable {
 		this.workerConnections = workerConnections;
 	}
 
-	public void addQueueStages(Set<Stage> q){
-		this.queue.addAll(q);
+	public void addQueueStages(Set<Stage> stages){
+		this.queue.addAll(stages);
 	}
 	
 	public void stop() {
@@ -77,7 +78,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 			System.out.println("=> LOCAL QUEUE SIZE "+ this.queue.size());
 			// Get next stage
 			try {
-				Stage nextStage = queue.take();
+				Stage nextStage = queue.poll();
 				LOG.debug("NEXT STAGE IS: {}", nextStage);
 				
 				if (nextStage == null) {
@@ -100,7 +101,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 				
 				tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 				
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				LOG.error(e.getMessage());
 			}
 		}

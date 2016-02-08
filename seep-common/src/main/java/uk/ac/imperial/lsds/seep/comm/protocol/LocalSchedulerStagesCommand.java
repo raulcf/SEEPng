@@ -1,9 +1,7 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-import java.util.Map;
 import java.util.Set;
 
-import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
 public class LocalSchedulerStagesCommand implements CommandType {

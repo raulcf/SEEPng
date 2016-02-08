@@ -158,21 +158,21 @@ public class WorkerMasterCommManager {
 					 */
 					// LOCAL SCHEDULER ELECT command
 					else if(cType == MasterWorkerProtocolAPI.LOCAL_ELECT.type()) {
-						LOG.info("LOCAL SCHEDULER_ELECT command");
+						LOG.info("RX LOCAL SCHEDULER_ELECT command");
 						LocalSchedulerElectCommand lsec = c.getLocalSchedulerElectCommand();
 						out.println("ack");
 						lsm = new LocalScheduleManager(lsec.getWorkerNodes(), myPort);
 					}
 					// LOCAL SCHEDULER STAGE command
 					else if(cType == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
-						LOG.info("LOCAL SCHEDULER STAGE command");
+						LOG.info("RX LOCAL SCHEDULER STAGE command");
 						LocalSchedulerStagesCommand lssc = c.getLocalSchedulerStageCommand();
 						out.println("ack");
 						lsm.handleLocalStageCommand(lssc);
 					}
 					// LOCAL SCHEDULER GOT STAGE STATUS UPDATE
 					else if(cType == MasterWorkerProtocolAPI.STAGE_STATUS.type()){
-						LOG.info("RX -> LOCAL SCHEDULER STAGE Status command");
+						LOG.info("RX LOCAL SCHEDULER STAGE Status command");
 						StageStatusCommand ssc = c.getStageStatusCommand();
 						LOG.debug("Local StageID {} Status {} euid {} ",ssc.getStageId(), ssc.getStatus(), ssc.getEuId());
 						out.println("ack");

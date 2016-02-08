@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.PriorityBlockingQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryo.Kryo;
@@ -80,7 +82,8 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			Set<Connection> euInvolved = this.getLocalSchedulersInvolvedInStage(nextStage);
 			trackStageCompletionAsync(nextStage, euInvolved);
 			
-			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved);
+			// TODO: READ PRIORITY FROM TASK DEFINITION
+			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved, 1);
 			LOG.info("[START] GLOBAL SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
@@ -99,15 +102,16 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 		public Connection c;
 	}
 	
-	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns) {
+	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns, int priority) {
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();
+		Stage priorityStage = new Stage(nextStage, priority);
 		
 		List<CommandToNode> commands = new ArrayList<>();
 		for(Connection c : conns) {
 			MasterWorkerCommand esc = null;
 			Set<Stage> toSend = new HashSet<>();
-			toSend.add(nextStage);
+			toSend.add(priorityStage);
 			esc = ProtocolCommandFactory.buildLocalSchedulerStageCommand(nextStageId, toSend);
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
