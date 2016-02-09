@@ -5,13 +5,15 @@ public class CodeCommand implements CommandType {
 	private int dataSize;
 	private byte[] data;
 	
+	private short queryType;
 	private String baseClassName;
 	private String[] queryConfig;
 	private String methodName;
 
 	public CodeCommand(){}
 	
-	public CodeCommand(byte[] data, String baseClassName, String[] queryConfig, String methodName) {
+	public CodeCommand(short queryType, byte[] data, String baseClassName, String[] queryConfig, String methodName) {
+		this.queryType = queryType;
 		this.dataSize = data.length;
 		this.data = data;
 		this.baseClassName = baseClassName;
@@ -42,6 +44,10 @@ public class CodeCommand implements CommandType {
 	
 	public String getMethodName() {
 		return methodName;
+	}
+	
+	public short getQueryType() {
+		return queryType;
 	}
 	
 }

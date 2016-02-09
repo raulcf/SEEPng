@@ -49,6 +49,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private String definitionClassName;
 	private String[] queryArgs;
 	private String composeMethodName;
+	private short queryType;
 	
 	private InfrastructureManager inf;
 	private Comm comm;
@@ -60,18 +61,19 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private Thread worker;
 	private SchedulerEngineWorker seWorker;
 	
-	private ScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+	private ScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc, short queryType){
 		this.mc = mc;
 		this.inf = inf;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.queryType = queryType;
 	}
 	
 	public static ScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm, 
-			LifecycleManager lifeManager, MasterConfig mc){
+			LifecycleManager lifeManager, MasterConfig mc, short queryType){
 		if(sqm == null){
-			return new ScheduledQueryManager(inf, comm, lifeManager, mc);
+			return new ScheduledQueryManager(inf, comm, lifeManager, mc, queryType);
 		}
 		else{
 			return sqm;
@@ -81,7 +83,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	/** Implement QueryManager interface **/
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
+	public boolean loadQueryFromParameter(short queryType, SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
 			String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
@@ -98,6 +100,36 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		
 		// Create Scheduler Engine and build scheduling plan for the given query
 		scheduleDescription = this.buildSchedulingPlanForQuery(slq);
+		
+		loadSchedule(scheduleDescription, pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
+		return true;
+//		// Initialize the schedulerThread
+//		seWorker = new SchedulerEngineWorker(
+//				scheduleDescription, 
+//				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), 
+//				inf, 
+//				comm, 
+//				k);
+//		worker = new Thread(seWorker);
+//		LOG.info("Schedule Description:");
+//		LOG.info(scheduleDescription.toString());
+//		
+//		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
+//		return true;
+	}
+	
+	public boolean loadSchedule(
+			ScheduleDescription scheduleDescription, 
+			String pathToQueryJar,
+			String definitionClass,
+			String[] queryArgs,
+			String composeMethod) {
+		// Create Scheduler Engine for the given schedule
+		this.scheduleDescription = scheduleDescription;
+		this.pathToQueryJar = pathToQueryJar;
+		this.definitionClassName = definitionClass;
+		this.queryArgs = queryArgs;
+		this.composeMethodName = composeMethod;
 		// Initialize the schedulerThread
 		seWorker = new SchedulerEngineWorker(
 				scheduleDescription, 
@@ -114,7 +146,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
+	public boolean loadQueryFromFile(short queryType, String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
 		throw new NotImplementedException("ScheduledQueryManager.loadQueryFromFile not implemented !!");
 	}
 
@@ -140,7 +172,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		LOG.info("Sending query and schedule to nodes");
-		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
+		sendQueryToNodes(queryType, connections, definitionClassName, queryArgs, composeMethodName);
 		sendScheduleToNodes(connections);
 		LOG.info("Sending query and schedule to nodes...OK {}");
 		
@@ -174,11 +206,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
 	// FIXME: this code is repeated in materialisedQueryManager. please refactor
 	// FIXME: in particular, consider moving this to MasterWorkerAPIImplementation (that already handles a comm and k)
-	private void sendQueryToNodes(Set<Connection> connections, String definitionClassName, String[] queryArgs, String composeMethodName) {
+	private void sendQueryToNodes(short queryType, Set<Connection> connections, String definitionClassName, String[] queryArgs, String composeMethodName) {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryType, queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}
@@ -186,7 +218,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private boolean sendScheduleToNodes(Set<Connection> connections){
 		LOG.info("Sending Schedule Deploy Command");
 		// Send physical query to all nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
+		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(scheduleDescription);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
 	}
@@ -199,7 +231,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		Set<Stage> stages = new HashSet<>();
 		int stageId = 0;
 		buildScheduleFromStage(null, op,  opsAlreadyInSchedule, slq, stages, stageId);
-		ScheduleDescription sd = new ScheduleDescription(stages);
+		ScheduleDescription sd = new ScheduleDescription(stages, slq.getAllOperators());
 		return sd;
 	}
 	

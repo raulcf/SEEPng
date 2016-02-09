@@ -1,8 +1,10 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -13,6 +15,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.testutils.LongPipelineBase;
 
@@ -40,13 +43,23 @@ public class ScheduleTaskTest {
 		Stage s6 = new Stage(5);
 		s6.add(-2);
 		
+		// Create ScheduleDescription, with stages and operators
+		Set<Stage> stages = new HashSet<>();
+		stages.add(s1);
+		stages.add(s2);
+		stages.add(s3);
+		stages.add(s4);
+		stages.add(s5);
+		stages.add(s6);
+		ScheduleDescription sd = new ScheduleDescription(stages, lsq.getAllOperators());
+		
 		// Build scheduleTasks from Stages
-		ScheduleTask st1 = ScheduleTask.buildTaskFor(0, s1, lsq);
-		ScheduleTask st2 = ScheduleTask.buildTaskFor(0, s2, lsq);
-		ScheduleTask st3 = ScheduleTask.buildTaskFor(0, s3, lsq);
-		ScheduleTask st4 = ScheduleTask.buildTaskFor(0, s4, lsq);
-		ScheduleTask st5 = ScheduleTask.buildTaskFor(0, s5, lsq);
-		ScheduleTask st6 = ScheduleTask.buildTaskFor(0, s6, lsq);
+		ScheduleTask st1 = ScheduleTask.buildTaskFor(0, s1, sd);
+		ScheduleTask st2 = ScheduleTask.buildTaskFor(0, s2, sd);
+		ScheduleTask st3 = ScheduleTask.buildTaskFor(0, s3, sd);
+		ScheduleTask st4 = ScheduleTask.buildTaskFor(0, s4, sd);
+		ScheduleTask st5 = ScheduleTask.buildTaskFor(0, s5, sd);
+		ScheduleTask st6 = ScheduleTask.buildTaskFor(0, s6, sd);
 
 		// setUp tasks
 		st1.setUp();

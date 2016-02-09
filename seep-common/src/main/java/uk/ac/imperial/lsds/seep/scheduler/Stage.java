@@ -44,7 +44,7 @@ public class Stage {
 	private boolean hasPartitionedState = false;
 	private boolean hasMultipleInput = false;
 	
-	public Stage(int stageId){
+	public Stage(int stageId) {
 		this.stageId = stageId;
 		this.upstream = new HashSet<>();
 		this.downstream = new HashSet<>();

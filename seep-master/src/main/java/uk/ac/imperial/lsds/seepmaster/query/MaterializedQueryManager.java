@@ -53,6 +53,7 @@ public class MaterializedQueryManager implements QueryManager {
 	private String definitionClassName;
 	private String[] queryArgs;
 	private String composeMethodName;
+	private short queryType;
 	
 	// convenience method for testing
 	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, 
@@ -95,7 +96,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
+	public boolean loadQueryFromParameter(short queryType, SeepLogicalQuery slq, String pathToQueryJar, String definitionClass, 
 			String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
@@ -103,6 +104,7 @@ public class MaterializedQueryManager implements QueryManager {
 			return false;
 		}
 		this.slq = slq;
+		this.queryType = queryType;
 		this.pathToQueryJar = pathToQueryJar;
 		this.definitionClassName = definitionClass;
 		this.queryArgs = queryArgs;
@@ -115,7 +117,7 @@ public class MaterializedQueryManager implements QueryManager {
 	}
 	
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
+	public boolean loadQueryFromFile(short queryType, String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
 		boolean allowed = lifeManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		if(!allowed){
 			LOG.error("Attempt to violate application lifecycle");
@@ -294,7 +296,7 @@ public class MaterializedQueryManager implements QueryManager {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryType, queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}

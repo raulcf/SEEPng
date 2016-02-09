@@ -73,6 +73,7 @@ public class SimpleConsoleUI implements UI {
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String option = br.readLine();
 				boolean allowed = false;
+				short queryType = -1;
 				String pathToJar = null; 
 				String definitionClass = null;
 				String[] queryArgs = null;
@@ -80,13 +81,16 @@ public class SimpleConsoleUI implements UI {
 				switch(option){
 				case "0":
 					LOG.info("Loading query in Master...");
+					String queryTypeStr = getUserInput("Input queryType, seepLogicalQuery (0) or schedule (1): ");
+					queryType = Short.valueOf(queryTypeStr);
 					pathToJar = getUserInput("Write absolute path to query (jar file): ");
 					definitionClass = getUserInput("Write definition class name: ");
 					// FIXME: allow to specify query parameters here as well
 					queryArgs = new String[]{""};
 					// FIXME: get rid of harcoded name
 					composeMethod = "compose";
-					allowed = qm.loadQueryFromFile(pathToJar, definitionClass, queryArgs, composeMethod);
+					
+					allowed = qm.loadQueryFromFile(queryType, pathToJar, definitionClass, queryArgs, composeMethod);
 					if(!allowed){
 						LOG.warn("Could not load query");
 						break;

@@ -56,6 +56,7 @@ public class WorkerMasterCommManager {
 	private String definitionClass;
 	private String[] queryArgs;
 	private String methodName;
+	private short queryType;
 	
 	public WorkerMasterCommManager(InetAddress myIp, int port, WorkerConfig wc, RuntimeClassLoader rcl, Conductor c) {
 		this.c = c;
@@ -105,6 +106,7 @@ public class WorkerMasterCommManager {
 					if(cType == MasterWorkerProtocolAPI.CODE.type()) {
 						LOG.info("RX Code command");
 						CodeCommand cc = c.getCodeCommand();
+						short queryType = cc.getQueryType();
 						byte[] file = cc.getData();
 						LOG.info("Received query file with size: {}", file.length);
 						if(cc.getDataSize() != file.length){
@@ -117,7 +119,7 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						loadCodeToRuntime(f);
 						// Instantiate Seep Logical Query
-						handleQueryInstantiation(pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
+						handleQueryInstantiation(queryType, pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
 					}
 					// MATERIALIZED_TASK command
 					else if(cType == MasterWorkerProtocolAPI.MATERIALIZE_TASK.type()) {
@@ -173,7 +175,8 @@ public class WorkerMasterCommManager {
 		}	
 	}	
 	
-	public void handleQueryInstantiation(String pathToQueryJar, String definitionClass, String[] queryArgs, String methodName) {
+	public void handleQueryInstantiation(short queryType, String pathToQueryJar, String definitionClass, String[] queryArgs, String methodName) {
+		this.queryType = queryType;
 		this.pathToQueryJar = pathToQueryJar;
 		this.definitionClass = definitionClass;
 		this.queryArgs = queryArgs;
@@ -191,17 +194,22 @@ public class WorkerMasterCommManager {
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
  		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
  		LOG.info("Computed ID: {}", myOwnId);
-		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
-		c.materializeAndConfigureTask();
+//		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
+		c.materializeAndConfigureTask(myOwnId, slq, mapping, inputs, outputs);
 	}
 	
 	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
 		// Instantiate logical query
-		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+//		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		// Get schedule description
-		ScheduleDescription sd = sdc.getSchedule();
+		// ScheduleDescription sd = sdc.getSchedule();
+		
+		// TODO: remove above
+		
+		// Get schedule description by loading to runtime
+		ScheduleDescription sd = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
-		c.configureScheduleTasks(myOwnId, sd, slq);
+		c.configureScheduleTasks(myOwnId, sd);
 		LOG.info("Scheduled deploy is done. Waiting for master commands...");
 	}
 

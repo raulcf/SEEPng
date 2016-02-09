@@ -21,7 +21,7 @@ public class SequentialSchedulingStrategyTest {
 		MasterConfig mc = new MasterConfig(p);
 		ComplexBranchingQuery fb = new ComplexBranchingQuery();
 		SeepLogicalQuery lsq = fb.compose();
-		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc);
+		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc, (short)0);
 		se.buildSchedulingPlanForQuery(lsq);
 		
 		// Set schedulerEngine ready to start
@@ -104,7 +104,7 @@ public class SequentialSchedulingStrategyTest {
 		MasterConfig mc = new MasterConfig(p);
 		ComplexManyBranchesMultipleSourcesQuery fb = new ComplexManyBranchesMultipleSourcesQuery();
 		SeepLogicalQuery lsq = fb.compose();
-		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc);
+		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc, (short)0);
 		se.buildSchedulingPlanForQuery(lsq);
 		
 		// Set schedulerEngine ready to start

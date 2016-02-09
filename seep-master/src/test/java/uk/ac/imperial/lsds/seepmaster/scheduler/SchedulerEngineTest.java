@@ -84,7 +84,7 @@ public class SchedulerEngineTest {
 		p.setProperty(MasterConfig.SCHED_STRATEGY, "0");
 		p.setProperty(MasterConfig.PROPERTIES_FILE, "");
 		MasterConfig mc = new MasterConfig(p);
-		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc);
+		ScheduledQueryManager se = ScheduledQueryManager.getInstance(null, null,null, mc, (short)0);
 		ScheduleDescription sd = se.buildSchedulingPlanForQuery(lsq);
 		Set<Stage> stages = sd.getStages();
 		System.out.println("STAGES: "+stages.size());

@@ -13,6 +13,9 @@ public class MasterConfig extends Config {
 
 	private static final ConfigDef config;
 	
+	public static final String QUERY_TYPE = "query.type";
+	private static final String QUERY_TYPE_DOC = "Identifies the type of query that is being submitted. A traditional SEEP query or a handcrafted schedule.";
+	
 	public static final String QUERY_FILE = "query.file";
 	private static final String QUERY_FILE_DOC = "The file where user queries are specified";
 	
@@ -37,9 +40,10 @@ public class MasterConfig extends Config {
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
-	
+
 	static{
-		config = new ConfigDef().define(QUERY_FILE, Type.STRING, "", Importance.HIGH, QUERY_FILE_DOC)
+		config = new ConfigDef().define(QUERY_TYPE, Type.INT, 0, Importance.HIGH, QUERY_TYPE_DOC)
+				.define(QUERY_FILE, Type.STRING, "", Importance.HIGH, QUERY_FILE_DOC)
 				.define(BASECLASS_NAME, Type.STRING, "", Importance.HIGH, BASECLASS_NAME_DOC) 
 				.define(COMPOSE_METHOD_NAME, Type.STRING, "compose", Importance.LOW, COMPOSE_METHOD_NAME_DOC)
 				.define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)

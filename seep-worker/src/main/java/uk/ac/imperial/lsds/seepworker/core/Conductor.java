@@ -84,15 +84,13 @@ public class Conductor {
 		this.registerFlag = new CountDownLatch(1);
 	}
 	
-	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
+	public void materializeAndConfigureTask(int id, SeepLogicalQuery q, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		this.id = id;
-		this.query = query;
+		this.query = q;
 		this.mapping = mapping;
 		this.inputs = inputs;
 		this.outputs = outputs;
-	}
-	
-	public void materializeAndConfigureTask() {
+		
 		int opId = getOpIdLivingInThisEU(id);
 		LogicalOperator o = query.getOperatorWithId(opId);
 		LOG.info("Found LogicalOperator: {} mapped to this executionUnit: {} stateful: {}", o.getOperatorName(), 
@@ -127,9 +125,9 @@ public class Conductor {
 		}
 		registerFlag.countDown();
 
-		int id = o.getOperatorId();
+		int sid = o.getOperatorId();
 		
-		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, id, task, state, coreInput, coreOutput, makeContinuousConductorCallback());
+		engine = ProcessingEngineFactory.buildSingleTaskProcessingEngine(wc, sid, task, state, coreInput, coreOutput, makeContinuousConductorCallback());
 		
 		// Initialize system
 		LOG.info("Setting up task...");
@@ -143,16 +141,18 @@ public class Conductor {
 		coreInput.requestInputConnections(comm, k, myIp);
 	}
 
-	public void configureScheduleTasks(int id, ScheduleDescription sd, SeepLogicalQuery slq) {
+	public void configureScheduleTasks(int id, ScheduleDescription sd) {
 		this.id = id;
-		this.query = slq;
+		// FIXME: check whether this is going to cause problems.
+		// FIXME: in general remove the dependency of having query in this class
+		//this.query = slq;
 		this.sd = sd;
 		LOG.info("Configuring environment for scheduled operation...");
 		// Create ScheduleTask for every stage
 		Set<Stage> stages = sd.getStages();
 		LOG.info("Physical plan with {} stages", stages.size());
 		for(Stage s : stages) {
-			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, slq);
+			ScheduleTask st = ScheduleTask.buildTaskFor(id, s, sd);
 			st.setUp();
 			scheduleTasks.put(s, st);
 		}

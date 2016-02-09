@@ -11,6 +11,7 @@ import joptsimple.OptionParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.imperial.lsds.seep.api.QueryType;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
@@ -52,16 +53,18 @@ public class Main {
 		UI ui = UIFactory.createUI(uiType, qm, inf);
 		LOG.info("Created UI of type: {}", UIFactory.nameUIOfType(uiType));
 		
+		short queryType = -1;
 		String queryPathFile = null;
 		String baseClass = null;
 		String composeMethod = null;
 		// TODO: find a more appropriate way of checking whether a property is defined in config
 		if(! mc.getString(MasterConfig.QUERY_FILE).equals("") && (! mc.getString(MasterConfig.BASECLASS_NAME).equals(""))){
+			queryType = ((short)mc.getInt(MasterConfig.QUERY_TYPE));
 			queryPathFile = mc.getString(MasterConfig.QUERY_FILE);
 			baseClass = mc.getString(MasterConfig.BASECLASS_NAME);
 			composeMethod = mc.getString(MasterConfig.COMPOSE_METHOD_NAME);
 			LOG.info("Loading query {} with baseClass: {} from file...", queryPathFile, baseClass);
-			boolean success = qm.loadQueryFromFile(queryPathFile, baseClass, queryArgs, composeMethod);
+			boolean success = qm.loadQueryFromFile(queryType, queryPathFile, baseClass, queryArgs, composeMethod);
 			if(! success){
 				throw new InvalidLifecycleStatusException("Could not load query due to attempt to violate app lifecycle");
 			}

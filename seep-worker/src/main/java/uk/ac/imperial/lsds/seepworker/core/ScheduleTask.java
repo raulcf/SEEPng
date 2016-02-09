@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -41,12 +42,12 @@ public class ScheduleTask implements SeepTask {
 		this.taskIterator = tasks.iterator();
 	}
 	
-	public static ScheduleTask buildTaskFor(int id, Stage s, SeepLogicalQuery slq) {
+	public static ScheduleTask buildTaskFor(int id, Stage s, ScheduleDescription sd) {
 		Deque<Integer> wrappedOps = s.getWrappedOperators();
 		LOG.info("Building stage {}. Wraps {} operators", s.getStageId(), wrappedOps.size());
 		Deque<LogicalOperator> operators = new ArrayDeque<>();
 		while(! wrappedOps.isEmpty()) {
-			LogicalOperator lo = slq.getOperatorWithId(wrappedOps.poll());
+			LogicalOperator lo = sd.getOperatorWithId(wrappedOps.poll());
 			LOG.debug("op {} is part of stage {}", lo.getOperatorId(), s.getStageId());
 			operators.addLast(lo);
 		}

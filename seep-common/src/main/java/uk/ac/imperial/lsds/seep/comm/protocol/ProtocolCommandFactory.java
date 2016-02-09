@@ -20,8 +20,8 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 	
-	public static MasterWorkerCommand buildCodeCommand(byte[] data, String baseClassName, String[] queryConfig, String methodName){
-		CodeCommand cc = new CodeCommand(data, baseClassName, queryConfig, methodName);
+	public static MasterWorkerCommand buildCodeCommand(short queryType, byte[] data, String baseClassName, String[] queryConfig, String methodName){
+		CodeCommand cc = new CodeCommand(queryType, data, baseClassName, queryConfig, methodName);
 		MasterWorkerCommand c = new MasterWorkerCommand(cc);
 		return c;
 	}
@@ -44,8 +44,8 @@ public class ProtocolCommandFactory {
 		return c;
 	}
 
-	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
-		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription);
+	public static MasterWorkerCommand buildScheduleDeployCommand(ScheduleDescription scheduleDescription) {
+		ScheduleDeployCommand sdc = new ScheduleDeployCommand(scheduleDescription);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		return c;
 	}
