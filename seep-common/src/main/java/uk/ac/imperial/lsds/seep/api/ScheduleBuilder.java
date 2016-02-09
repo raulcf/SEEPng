@@ -1,20 +1,36 @@
-package uk.ac.imperial.lsds.seep.lapi;
+package uk.ac.imperial.lsds.seep.api;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import uk.ac.imperial.lsds.seep.api.QueryBuilder;
-import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
+import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
-public class LQueryBuilder implements LAPI {
+public class ScheduleBuilder implements ScheduleAPI {
+
+	private Set<Stage> stages = new HashSet<>();
 	
 	/**
-	 * LAPI implementation
+	 * ScheduleAPI implementation
 	 */
+	
+	public ScheduleDescription build() {
+		ScheduleDescription sd = new ScheduleDescription(stages, queryAPI.getQueryOperators());
+		return sd;
+	}
+	
+	@Override
+	public boolean declareStages(Stage... stagesToDeclare) {
+		for(Stage s : stagesToDeclare) {
+			stages.add(s);
+		}
+		return true;
+	}
 	
 	
 	/**
@@ -49,32 +65,32 @@ public class LQueryBuilder implements LAPI {
 	}
 
 	@Override
-	public Operator newStatefulSource(Source seepTask, SeepState state, int opId) {
+	public LogicalOperator newStatefulSource(Source seepTask, SeepState state, int opId) {
 		return queryAPI.newStatefulSource(seepTask, state, opId);
 	}
 
 	@Override
-	public Operator newStatelessSource(Source seepTask, int opId) {
+	public LogicalOperator newStatelessSource(Source seepTask, int opId) {
 		return queryAPI.newStatelessSource(seepTask, opId);
 	}
 
 	@Override
-	public Operator newStatefulOperator(SeepTask seepTask, SeepState state, int opId) {
+	public LogicalOperator newStatefulOperator(SeepTask seepTask, SeepState state, int opId) {
 		return queryAPI.newStatefulOperator(seepTask, state, opId);
 	}
 
 	@Override
-	public Operator newStatelessOperator(SeepTask seepTask, int opId) {
+	public LogicalOperator newStatelessOperator(SeepTask seepTask, int opId) {
 		return queryAPI.newStatelessOperator(seepTask, opId);
 	}
 
 	@Override
-	public Operator newStatefulSink(Sink seepTask, SeepState state, int opId) {
+	public LogicalOperator newStatefulSink(Sink seepTask, SeepState state, int opId) {
 		return queryAPI.newStatefulSink(seepTask, state, opId);
 	}
 
 	@Override
-	public Operator newStatelessSink(Sink seepTask, int opId) {
+	public LogicalOperator newStatelessSink(Sink seepTask, int opId) {
 		return queryAPI.newStatelessSink(seepTask, opId);
 	}
 
@@ -83,5 +99,5 @@ public class LQueryBuilder implements LAPI {
 		System.out.println("TODO: ERROR, invalid option");
 		System.exit(0);
 	}
-
+	
 }

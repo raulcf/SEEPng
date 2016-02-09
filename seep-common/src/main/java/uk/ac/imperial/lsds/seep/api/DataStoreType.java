@@ -10,7 +10,8 @@ public enum DataStoreType {
 	KAFKA((short)4),
 	HDFS((short)5),
 	MEMORYMAPPED_BYTEBUFFER((short)6),
-	SEEP_SYNTHETIC_GEN((short)7);
+	SEEP_SYNTHETIC_GEN((short)7),
+	CUSTOM_SYNTHETIC((short)8);
 	
 	private short type;
 	
