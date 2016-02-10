@@ -8,4 +8,5 @@ include \
 	"simple-cycle-stateless-query",
 	"simple-sourcefile-stateless-query",
 	"simple-kafka-stateless-pipeline",
-	"simple-dag-schedule"
+	"simple-dag-schedule",
+	"simple-shuffle-query"
