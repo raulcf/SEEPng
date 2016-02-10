@@ -14,7 +14,6 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
@@ -54,6 +53,16 @@ public class DataStoreSelectorFactory {
 		}
 		
 		return selectors;
+	}
+	
+	public static NetworkSelector configureNetworkSelector(CoreInput coreInput, 
+			WorkerConfig wc, int id,
+			InetAddress myIp, int dataPort) {
+		LOG.info("Configuring networkSelector for input");
+		NetworkSelector ns = new NetworkSelector(wc, id);
+		ns.configureServerToListen(myIp, dataPort);
+		ns.configureExpectedIncomingConnection(coreInput.getIBufferProvider());
+		return ns;
 	}
 	
 	public static NetworkSelector maybeConfigureNetworkSelector(CoreInput coreInput, CoreOutput coreOutput, 
@@ -100,42 +109,8 @@ public class DataStoreSelectorFactory {
 					}
 				}
 			}
-			
-			
-//			for(DataReference dR : dRefs) {
-//				DataStore dataStore = dR.getDataStore();
-//				if(dataStore.type() == DataStoreType.FILE) {
-//					int dRefId = dR.getId();
-//					fileOrigins.put(dRefId, dataStore);
-//				}
-//			}
-			
-//			for(UpstreamConnection uc : o.upstreamConnections()) {
-//				if(uc.getDataStoreType() == DataStoreType.FILE) {
-//					int sId = uc.getStreamId();
-//					fileOrigins.put(sId, uc.getDataStore());
-//				}
-//			}
-			
-			
 			fs.configureAccept(fileOrigins, coreInput.getIBufferProvider());
 		}
-		// Output of type File is taken care of
-//		if(coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
-//			Set<OBuffer> obufsToStream = coreOutput.getOBufferToDataStoreOfType(DataStoreType.FILE);
-//			// If fs is null create it first
-//			if(fs == null) {
-//				fs = new FileSelector(wc);
-//			}
-//			Map<Integer, DataStore> fileDest = coreOutput.getMapStreamIdToDataStore();
-//			fs.configureDownstreamFiles(fileDest, obufsToStream);
-//			// TODO: maybe we can iterate directly over eventbasedOBuffer ?
-//			for(OBuffer ob : obufsToStream) {
-//				if (ob instanceof EventBasedOBuffer) {
-//					((EventBasedOBuffer)ob).setEventAPI(fs);
-//				}
-//			}
-//		}
 		return fs;
 	}
 
