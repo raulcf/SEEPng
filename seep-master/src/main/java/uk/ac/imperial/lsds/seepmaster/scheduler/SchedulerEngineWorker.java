@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +8,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -27,14 +25,13 @@ import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
-import com.esotericsoftware.kryo.Kryo;
-
 public class SchedulerEngineWorker implements Runnable {
 
 	final private Logger LOG = LoggerFactory.getLogger(SchedulerEngineWorker.class);
 	
 	private ScheduleDescription scheduleDescription;
 	private SchedulingStrategy schedulingStrategy;
+	private LoadBalancingStrategy loadBalancingStrategy;
 	private ScheduleTracker tracker;
 	
 	private InfrastructureManager inf;
@@ -44,9 +41,10 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
+	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
+		this.loadBalancingStrategy = loadBalancingStrategy;
 		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
 		this.inf = inf;
 		this.comm = comm;
@@ -62,6 +60,7 @@ public class SchedulerEngineWorker implements Runnable {
 		LOG.info("[START JOB]");
 		while(work) {
 			// Get next stage
+			// TODO: make next return a List of next stages
 			Stage nextStage = schedulingStrategy.next(tracker);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
@@ -72,86 +71,81 @@ public class SchedulerEngineWorker implements Runnable {
 				}
 			}
 			
+			// TODO: make this thing receive a list of stages rather than only one
 			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
 			
+			// TODO: adapt tracking structures to track multiple stages simultaneously
 			trackStageCompletionAsync(nextStage, euInvolved);
 			
-			List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
+			// TODO: make this receive a list of stages
+			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, euInvolved);
 			
 			LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
 			
+			// TODO: make this compatible with waiting for multiple parallely schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 		}
 	}
 	
-	private class CommandToNode {
-		public CommandToNode(MasterWorkerCommand command, Connection c){
-			this.command = command;
-			this.c = c;
-		}
-		public MasterWorkerCommand command;
-		public Connection c;
-	}
+//	// TODO: straw-man solution
+//	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
+//	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
+//		// All input data references to process during next stage
+//		int nextStageId = nextStage.getStageId();
+//		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
+//		
+//		// Split input DataReference per worker to maximize locality (not load balancing)
+//		List<CommandToNode> commands = new ArrayList<>();
+//		final int totalWorkers = conns.size();
+//		int currentWorker = 0;
+//		for(Connection c : conns) {
+//			MasterWorkerCommand esc = null;
+//			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
+//			for(Integer streamId : drefs.keySet()) {
+//				for(DataReference dr : drefs.get(streamId)) {
+//					// EXTERNAL. assign one and continue
+//					if(! dr.isManaged()) {
+//						assignDataReferenceToWorker(perWorker, streamId, dr);
+//						currentWorker++;
+//						break;
+//					}
+//					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
+//					else {
+//						// SHUFFLE/PARTITIONED CASE
+//						if(dr.isPartitioned()) {
+//							// In this case, assign to this worker all DataReference with seqId module
+//							int partitionSeqId = dr.getPartitionId();
+//							if(partitionSeqId % totalWorkers == currentWorker) {
+//								assignDataReferenceToWorker(perWorker, streamId, dr);
+//							}
+//						}
+//						// NORMAL CASE, MAKE LOCALITY=LOCAL
+//						else if(dr.getEndPoint().getId() == c.getId()) {
+//							// assign
+//							assignDataReferenceToWorker(perWorker, streamId, dr);
+//						}
+//					}
+//				}
+//				currentWorker++;
+//			}
+//			// FIXME: what is outputdatareferences
+//			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
+//					perWorker, nextStage.getOutputDataReferences());
+//			CommandToNode ctn = new CommandToNode(esc, c);
+//			commands.add(ctn);
+//		}
+//		return commands;
+//	}
 	
-	// TODO: straw-man solution
-	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
-	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
-		// All input data references to process during next stage
-		int nextStageId = nextStage.getStageId();
-		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
-		
-		// Split input DataReference per worker to maximize locality (not load balancing)
-		List<CommandToNode> commands = new ArrayList<>();
-		final int totalWorkers = conns.size();
-		int currentWorker = 0;
-		for(Connection c : conns) {
-			MasterWorkerCommand esc = null;
-			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
-			for(Integer streamId : drefs.keySet()) {
-				for(DataReference dr : drefs.get(streamId)) {
-					// EXTERNAL. assign one and continue
-					if(! dr.isManaged()) {
-						assignDataReferenceToWorker(perWorker, streamId, dr);
-						currentWorker++;
-						break;
-					}
-					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
-					else {
-						// SHUFFLE/PARTITIONED CASE
-						if(dr.isPartitioned()) {
-							// In this case, assign to this worker all DataReference with seqId module
-							int partitionSeqId = dr.getPartitionId();
-							if(partitionSeqId % totalWorkers == currentWorker) {
-								assignDataReferenceToWorker(perWorker, streamId, dr);
-							}
-						}
-						// NORMAL CASE, MAKE LOCALITY=LOCAL
-						else if(dr.getEndPoint().getId() == c.getId()) {
-							// assign
-							assignDataReferenceToWorker(perWorker, streamId, dr);
-						}
-					}
-				}
-				currentWorker++;
-			}
-			// FIXME: what is outputdatareferences
-			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-					perWorker, nextStage.getOutputDataReferences());
-			CommandToNode ctn = new CommandToNode(esc, c);
-			commands.add(ctn);
-		}
-		return commands;
-	}
-	
-	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
-		if(! perWorker.containsKey(streamId)) {
-			perWorker.put(streamId, new HashSet<>());
-		}
-		perWorker.get(streamId).add(dr);
-	}
+//	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
+//		if(! perWorker.containsKey(streamId)) {
+//			perWorker.put(streamId, new HashSet<>());
+//		}
+//		perWorker.get(streamId).add(dr);
+//	}
 	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();

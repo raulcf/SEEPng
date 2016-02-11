@@ -37,6 +37,9 @@ public class MasterConfig extends Config {
     public static final String SCHED_STRATEGY = "scheduling.strategy.type";
     private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), etc";
     
+    public static final String SCHED_STAGE_ASSIGMENT_STRATEGY = "scheduling.stageassignment.type";
+    private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assing work to workers";
+    
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
@@ -50,7 +53,8 @@ public class MasterConfig extends Config {
 				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
 				.define(SCHED_STRATEGY, Type.INT, 0, Importance.LOW, SCHED_STRATEGY_DOC)
-				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);
+				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
+				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC);
 	}
 	
 	public MasterConfig(Map<? extends Object, ? extends Object> originals) {
