@@ -24,7 +24,7 @@ public class SeepMap<K,V> implements Map<K,V>, Checkpoint, Partitionable, Mergea
 
 	// Main map
 	private int owner;
-	private DistributedMutableState dms = DistributedMutableState.PARTIAL;
+	private DistributedMutableState dms = DistributedMutableState.PARTITIONED;
 	private Map<K, V> map;
 	
 	// Support for dirtyState

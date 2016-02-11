@@ -28,10 +28,10 @@ public class InputAdapterFactory {
 	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
 		
-		List<InputAdapter> ias_dataset = null;
-		List<InputAdapter> ias_network = null;
-		List<InputAdapter> ias_file = null;
-		List<InputAdapter> ias_kafka = null;
+		List<InputAdapter> ias_dataset = new ArrayList<>();
+		List<InputAdapter> ias_network = new ArrayList<>();
+		List<InputAdapter> ias_file = new ArrayList<>();
+		List<InputAdapter> ias_kafka = new ArrayList<>();
 		
 		// Iterate through DataReference to understand what type of InputAdapter they need
 		for(DataReference dRef : drefs) {

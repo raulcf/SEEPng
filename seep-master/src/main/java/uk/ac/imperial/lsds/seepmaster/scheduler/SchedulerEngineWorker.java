@@ -14,6 +14,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -209,7 +210,19 @@ public class SchedulerEngineWorker implements Runnable {
 		int srcOpId = s.getWrappedOperators().getLast();
 		LogicalOperator src = slq.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
-		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
+		
+		// We need to get the DataStore to configure a DataReference
+		DataStore dataStore = null;
+		// We handle here the special case of having a marker source operator, in which case it dissapeared and is null
+		for(UpstreamConnection uc : src.upstreamConnections()) {
+			if (uc.getUpstreamOperator() == null) {
+				dataStore = uc.getDataStore();
+			}
+		}
+		// If dataStore was not set above, then there is a real source operator, that we set here
+		if(dataStore == null) {
+			dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
+		}
 		// make a data reference, considering the datastore that describes the source, in each of the endpoint
 		// these will request to the DRM to get the data.
 		DataReference dr = DataReference.makeExternalDataReference(dataStore);
