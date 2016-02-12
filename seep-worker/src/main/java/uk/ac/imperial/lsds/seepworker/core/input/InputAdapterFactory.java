@@ -15,6 +15,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
+import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.Dataset;
@@ -48,6 +49,10 @@ public class InputAdapterFactory {
 					datasets.add((Dataset)ib);
 				}
 			}
+			else if(ib instanceof FacadeInputBuffer) {
+				InputAdapter ia = buildFacadeInputAdapter(streamId, ib);
+				ias.add(ia); // add directly here
+			}
 			else if (type.equals(DataStoreType.NETWORK)) {
 				network_buffers.add(ib);
 			}
@@ -77,6 +82,12 @@ public class InputAdapterFactory {
 		ias.addAll(ias_file);
 		ias.addAll(ias_kafka);
 		return ias;
+	}
+	
+	private static InputAdapter buildFacadeInputAdapter(int streamId, IBuffer buffer) {
+		// Check how to pass the return type information
+		InputAdapter ia = new FacadeInputAdapter(streamId, InputAdapterReturnType.ONE);
+		return ia;
 	}
 	
 	@Deprecated
