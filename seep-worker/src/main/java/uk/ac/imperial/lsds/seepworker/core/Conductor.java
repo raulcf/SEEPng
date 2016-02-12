@@ -179,13 +179,17 @@ public class Conductor {
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 		
 		// Make sure that NetworkSelector is listening for input connections
-		NetworkSelector ns = DataStoreSelectorFactory.configureNetworkSelector(coreInput, 
+		// FIXME: Note this is not reusable!! Can we make NetworkSelector a service rather than a
+		// configure on-demand thing?
+		if (coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
+			NetworkSelector ns = DataStoreSelectorFactory.configureNetworkSelector(coreInput, 
 				wc, stageId, myIp, wc.getInt(WorkerConfig.DATA_PORT));
-		ns.initSelector();
-		ns.startSelector();
+			ns.initSelector();
+			ns.startSelector();
+		}
 		
 		// Request (possibly) remote chunks in case of scheduling a shuffled stage
-		if(s.hasPartitionedStage()) {
+		if(s.hasPartitionedState()) {
 			// We pass our info---as the target EndPoint of the comm---and the workers will push their data to us
 			coreInput.requestInputConnections(comm, k, myIp);
 		}
@@ -203,7 +207,8 @@ public class Conductor {
 		// Master did not assign output, so we need to create it here
 		// This basically depends on how many outputs we need to generate
 		Map<Integer, Set<DataReference>> output = new HashMap<>();
-		if(s.hasPartitionedStage()) {
+		
+		if(s.hasDependantWithPartitionedStage()) {
 			// create a DR per partition, that are managed
 			// TODO: how to get the number of partitions
 			int numPartitions = wc.getInt(WorkerConfig.SHUFFLE_NUM_PARTITIONS);

@@ -19,6 +19,8 @@ import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class InputBuffer implements IBuffer {
 	
+	private DataReference dRef;
+	
 	private ByteBuffer header = ByteBuffer.allocate(TupleInfo.PER_BATCH_OVERHEAD_SIZE);
 	private ByteBuffer payload = null;
 	private int nTuples = 0;
@@ -29,10 +31,16 @@ public class InputBuffer implements IBuffer {
 	private InputBuffer(WorkerConfig wc, DataReference dr) {
 		this.queueSize = wc.getInt(WorkerConfig.SIMPLE_INPUT_QUEUE_LENGTH);
 		this.queue = new ArrayBlockingQueue<>(queueSize);
+		this.dRef = dr;
 	}
 	
 	public static InputBuffer makeInputBufferFor(WorkerConfig wc, DataReference dr) {
 		return new InputBuffer(wc, dr);
+	}
+	
+	@Override
+	public DataReference getDataReference() {
+		return dRef;
 	}
 	
 	@Override

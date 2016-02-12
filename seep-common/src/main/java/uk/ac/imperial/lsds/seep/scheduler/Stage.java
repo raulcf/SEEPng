@@ -107,8 +107,17 @@ public class Stage {
 		this.hasPartitionedState = true;
 	}
 	
-	public boolean hasPartitionedStage(){
+	public boolean hasPartitionedState(){
 		return hasPartitionedState;
+	}
+	
+	public boolean hasDependantWithPartitionedStage() {
+		for(Stage s : this.downstream) {
+			if (s.hasPartitionedState()) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public void setRequiresMultipleInput(){
