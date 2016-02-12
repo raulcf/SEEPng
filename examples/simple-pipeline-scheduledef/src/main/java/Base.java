@@ -21,13 +21,13 @@ public class Base implements ScheduleComposer {
         
         // Then add the operators in stages
         EndPoint location = null;
-        Stage source = schedAPI.createStage(0, src.getOperatorId(), StageType.SOURCE_STAGE, location);
+        Stage source = schedAPI.createStage(2, src.getOperatorId(), StageType.SOURCE_STAGE, location);
         
         EndPoint location2 = null;
         Stage intermediate = schedAPI.createStage(1, p.getOperatorId(), StageType.INTERMEDIATE_STAGE, location2);
         
         EndPoint location3 = null;
-        Stage sink = schedAPI.createStage(2, snk.getOperatorId(), StageType.SINK_STAGE, location3);
+        Stage sink = schedAPI.createStage(0, snk.getOperatorId(), StageType.SINK_STAGE, location3);
         
         schedAPI.declareStages(source, intermediate, sink);
         

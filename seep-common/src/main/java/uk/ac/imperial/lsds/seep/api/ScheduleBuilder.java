@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
@@ -15,6 +18,8 @@ import uk.ac.imperial.lsds.seep.scheduler.StageType;
 
 public class ScheduleBuilder implements ScheduleAPI {
 
+	final private Logger LOG = LoggerFactory.getLogger(ScheduleBuilder.class);
+	
 	private Set<Stage> stages = new HashSet<>();
 	
 	/**
@@ -38,6 +43,10 @@ public class ScheduleBuilder implements ScheduleAPI {
 	@Override
 	public Stage createStage(int stageId, int opId, StageType t, EndPoint location) {
 		// TODO: do all error checking here
+		if(t.equals(StageType.SINK_STAGE) && stageId != 0) {
+			LOG.error("Sink stage must have id == 0 (fix this constrain)");
+			System.exit(0);
+		}
 		Stage stage = new Stage(stageId);
 		stage.add(opId);
 		stage.setStageType(t);
