@@ -47,8 +47,7 @@ public class MarkerSink implements TaggingSink, Operator {
 
 	@Override
 	public int getOperatorId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return id;
 	}
 
 	@Override
@@ -86,5 +85,10 @@ public class MarkerSink implements TaggingSink, Operator {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	/**
+	 * public empty constructor for Kryo serialization
+	 */
+	public MarkerSink(){ }
 
 }

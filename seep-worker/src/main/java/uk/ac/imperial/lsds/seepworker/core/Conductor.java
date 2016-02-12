@@ -35,6 +35,7 @@ import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
@@ -177,8 +178,19 @@ public class Conductor {
 		}
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);
 		
+		// Make sure that NetworkSelector is listening for input connections
+		// FIXME: Note this is not reusable!! Can we make NetworkSelector a service rather than a
+		// configure on-demand thing?
+		if (coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
+			NetworkSelector ns = DataStoreSelectorFactory.configureNetworkSelector(coreInput, 
+				wc, stageId, myIp, wc.getInt(WorkerConfig.DATA_PORT));
+			ns.initSelector();
+			ns.startSelector();
+		}
+		
 		// Request (possibly) remote chunks in case of scheduling a shuffled stage
-		if(s.hasPartitionedStage()) {
+		if(s.hasPartitionedState()) {
+			// We pass our info---as the target EndPoint of the comm---and the workers will push their data to us
 			coreInput.requestInputConnections(comm, k, myIp);
 		}
 
@@ -186,7 +198,8 @@ public class Conductor {
 		
 		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
-				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output));
+				s.getStageId(), task, state, coreInput, 
+				coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output));
 		engine.start();
 	}
 	
@@ -194,10 +207,11 @@ public class Conductor {
 		// Master did not assign output, so we need to create it here
 		// This basically depends on how many outputs we need to generate
 		Map<Integer, Set<DataReference>> output = new HashMap<>();
-		if(s.hasPartitionedStage()) {
+		
+		if(s.hasDependantWithPartitionedStage()) {
 			// create a DR per partition, that are managed
 			// TODO: how to get the number of partitions
-			int numPartitions = 8;
+			int numPartitions = wc.getInt(WorkerConfig.SHUFFLE_NUM_PARTITIONS);
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
 			// TODO: create a DR per partition and assign the partitionSeqId

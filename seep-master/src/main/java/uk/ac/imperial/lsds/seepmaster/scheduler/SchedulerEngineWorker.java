@@ -12,14 +12,17 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
@@ -209,11 +212,48 @@ public class SchedulerEngineWorker implements Runnable {
 		int srcOpId = s.getWrappedOperators().getLast();
 		LogicalOperator src = slq.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
-		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
-		// make a data reference, considering the datastore that describes the source, in each of the endpoint
-		// these will request to the DRM to get the data.
-		DataReference dr = DataReference.makeExternalDataReference(dataStore);
+		
+		// We need to get the DataStore to configure a DataReference
+		DataStore dataStore = null;
+		// We handle here the special case of having a marker source operator, in which case it dissapeared and is null
+		for(UpstreamConnection uc : src.upstreamConnections()) {
+			if (uc.getUpstreamOperator() == null) {
+				dataStore = uc.getDataStore();
+			}
+		}
+		// If dataStore was not set above, then there is a real source operator, that we set here
+		if(dataStore == null) {
+			dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
+		}
+		
 		int streamId = 0; // only one streamId for sources in scheduled mode
+		
+//		// Create dataReferences per connection
+//		for(Connection c : connections) {
+//			// When downstream requires partitioned DataReferences
+//			if(s.hasDependantWithPartitionedStage()) {
+//
+//				int numPartitions = 8;
+//				// TODO: create a DR per partition and assign the partitionSeqId
+//				for(int i = 0; i < numPartitions; i++) {
+//					// FIXME: EndPoint should disappear in favor of the safer SeepEndPoint
+//					SeepEndPoint sep = c.getAssociatedEndPoint();
+//					EndPoint endPoint = new EndPoint(sep.getId(), sep.getIp(), sep.getPort());
+//					
+//					DataReference dr = null;
+//					int partitionId = i;
+//					dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, endPoint, ServeMode.STORE, partitionId);
+//					refs.add(dr);
+//				}
+//			}
+//			// When a normal data reference is required
+//			else {
+//				DataReference dr = DataReference.makeExternalDataReference(dataStore);
+//				refs.add(dr);
+//			}
+//		}
+		
+		DataReference dr = DataReference.makeExternalDataReference(dataStore);
 		refs.add(dr);
 		s.addInputDataReference(streamId, refs);
 	}

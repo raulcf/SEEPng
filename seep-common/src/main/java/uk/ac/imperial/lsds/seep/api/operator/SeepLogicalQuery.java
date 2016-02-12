@@ -182,6 +182,9 @@ public class SeepLogicalQuery {
 	}
 	
 	public LogicalOperator newStatefulOperator(SeepTask seepTask, SeepState state, int opId){
+		if(state == null) {
+			throw new InvalidQueryDefinitionException("State cannot be null");
+		}
 		state.setOwner(opId);
 		LogicalOperator lo = SeepLogicalOperator.newStatefulOperator(opId, seepTask, state);
 		logicalOperators.add(lo);

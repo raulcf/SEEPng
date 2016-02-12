@@ -29,6 +29,10 @@ public class Connection {
 		this.ep = ep;
 	}
 	
+	public SeepEndPoint getAssociatedEndPoint() {
+		return ep;
+	}
+	
 	public int getId() {
 		return ep.getId();
 	}

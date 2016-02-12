@@ -53,6 +53,8 @@ examples/static-scaleout-pipeline-stateful-query/.settings/
 examples/static-scaleout-pipeline-stateful-query/build/
 examples/simple-dag-schedule/.settings/
 examples/simple-dag-schedule/build/
+examples/simple-shuffle-query/.settings/
+examples/simple-shuffle-query/build/
 
 deploy/
 dist/

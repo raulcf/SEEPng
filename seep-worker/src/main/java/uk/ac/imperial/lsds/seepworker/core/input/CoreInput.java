@@ -70,6 +70,9 @@ public class CoreInput {
 					LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
 					comm.send_object_sync(requestStreamDataReference, targetConn, k);
 				}
+				else {
+					LOG.error("Requesting DataReference that is not managed by SEEPng");
+				}
 			}
 		}
 		LOG.info("Requesting input connections...OK");
