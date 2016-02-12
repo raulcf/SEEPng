@@ -15,7 +15,16 @@ import uk.ac.imperial.lsds.seep.util.Utils;
 public class Stage {
 
 	private final int stageId;
+	/**
+	 * Indicates the location where the stage *should* execute. 
+	 * Maybe a scheduler can overwrite this info
+	 */
+	private EndPoint location;
 	
+	/**
+	 * A stage can be of type source (first to execute), unique (only one in the schedule)
+	 * or a sink stage, that will output results.
+	 */
 	private StageType type;
 	/**
 	 * Dependencies of this stage
@@ -59,6 +68,10 @@ public class Stage {
 	
 	public int getStageId(){
 		return stageId;
+	}
+	
+	public EndPoint getStageLocation() {
+		return location;
 	}
 	
 	public void add(int opId){
@@ -117,6 +130,10 @@ public class Stage {
 	
 	public boolean hasMultipleInput(){
 		return hasMultipleInput;
+	}
+	
+	public void setStageLocation(EndPoint location) {
+		this.location = location;
 	}
 	
 	public void setStageType(StageType type){

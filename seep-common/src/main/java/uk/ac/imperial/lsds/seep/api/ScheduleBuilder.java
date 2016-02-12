@@ -8,8 +8,10 @@ import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
 
 public class ScheduleBuilder implements ScheduleAPI {
 
@@ -20,6 +22,7 @@ public class ScheduleBuilder implements ScheduleAPI {
 	 */
 	
 	public ScheduleDescription build() {
+		// TODO: make sure stages were declared, defined, etc
 		ScheduleDescription sd = new ScheduleDescription(stages, queryAPI.getQueryOperators());
 		return sd;
 	}
@@ -30,6 +33,16 @@ public class ScheduleBuilder implements ScheduleAPI {
 			stages.add(s);
 		}
 		return true;
+	}
+	
+	@Override
+	public Stage createStage(int stageId, int opId, StageType t, EndPoint location) {
+		// TODO: do all error checking here
+		Stage stage = new Stage(stageId);
+		stage.add(opId);
+		stage.setStageType(t);
+		stage.setStageLocation(location);
+		return stage;
 	}
 	
 	

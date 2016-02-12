@@ -1,13 +1,10 @@
 package uk.ac.imperial.lsds.seep.api;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
-import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -18,7 +15,6 @@ public class ScheduleAPITest implements ScheduleComposer {
 	public ScheduleDescription compose() {
 		
 		// First declare the general operators we need
-		
 		// Declare Source
 		LogicalOperator src = schedAPI.newStatelessSource(new CustomSource(), 0);
 		// Declare processor
@@ -26,27 +22,17 @@ public class ScheduleAPITest implements ScheduleComposer {
 		// Declare sink
 		LogicalOperator snk = schedAPI.newStatelessSink(new CustomSink(), 2);
 		
-		// Then put those operators as part of the schedule
+		// Then add the operators in stages
+		EndPoint location = null;
+		Stage source = schedAPI.createStage(0, src.getOperatorId(), StageType.SOURCE_STAGE, location);
 		
-		Stage source = new Stage(0);
-		source.add(src.getOperatorId());
-		source.setStageType(StageType.SOURCE_STAGE);
-		Schema schema = null; // declare here what is the schema of the data
-		Properties config = new Properties();
-		DataStore dataStore = new DataStore(schema, DataStoreType.CUSTOM_SYNTHETIC, config);
-		DataReference dRef = DataReference.makeExternalDataReference(dataStore);
-		Set<DataReference> drefs = new HashSet<>();
-		drefs.add(dRef);
-		source.addInputDataReference(0, drefs);
+		EndPoint location2 = null;
+		Stage intermediate = schedAPI.createStage(1, p.getOperatorId(), StageType.INTERMEDIATE_STAGE, location2);
 		
-		Stage intermediate = new Stage(1);
-		intermediate.add(p.getOperatorId());
-		intermediate.setStageType(StageType.INTERMEDIATE_STAGE);
+		EndPoint location3 = null;
+		Stage sink = schedAPI.createStage(2, snk.getOperatorId(), StageType.SINK_STAGE, location3);
 		
-		Stage sink = new Stage(2);
-		sink.add(snk.getOperatorId());
-		sink.setStageType(StageType.SINK_STAGE);
-		
+		// Create the schedule by chaining the stages
 		sink.dependsOn(intermediate);
 		intermediate.dependsOn(source);
 		
