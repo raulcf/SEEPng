@@ -53,6 +53,12 @@ examples/static-scaleout-pipeline-stateful-query/.settings/
 examples/static-scaleout-pipeline-stateful-query/build/
 examples/simple-dag-schedule/.settings/
 examples/simple-dag-schedule/build/
+examples/simple-pipeline-scheduleref/.settings/
+examples/simple-pipeline-scheduleref/build/
+examples/simple-dag-schedule/.gitignore
+examples/simple-pipeline-scheduledef/.gitignore
+examples/simple-pipeline-scheduledef/.settings/
+examples/simple-pipeline-scheduledef/build/
 
 deploy/
 dist/
