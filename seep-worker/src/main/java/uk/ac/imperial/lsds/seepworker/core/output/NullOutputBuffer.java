@@ -36,5 +36,9 @@ public class NullOutputBuffer implements OBuffer {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	@Override
+	public void flush() {
+	}
 
 }

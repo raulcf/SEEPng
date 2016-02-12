@@ -147,5 +147,11 @@ public class Dataset implements IBuffer, OBuffer {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void flush() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

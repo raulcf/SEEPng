@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seepworker.core.output.OutputBuffer;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -41,7 +42,12 @@ public class CoreOutputFactory {
 					// TODO: refactor this into a another private method below
 					DataStoreType type = dr.getDataStore().type();
 					if(type.equals(DataStoreType.FILE)) {
-						ob = new FileOutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
+						FileConfig config = new FileConfig(dr.getDataStore().getConfig());
+						if (config.getBoolean(FileConfig.TEXT_SOURCE)) {
+							ob = new TextFileOutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
+						} else {
+							ob = new FileOutputBuffer(dr, wc.getInt(WorkerConfig.BATCH_SIZE));
+						}
 					}
 					else {
 						ob = new NullOutputBuffer();
