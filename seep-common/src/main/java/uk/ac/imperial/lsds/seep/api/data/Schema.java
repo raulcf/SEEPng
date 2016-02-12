@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seep.api.data;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +18,7 @@ public class Schema {
 	private final boolean variableSize;
 	// Maps fieldName to fieldPosition (fields are ordered in a certain way)
 	private Map<String, Integer> mapFieldNameToFieldPosition = new HashMap<>();
+	private SchemaParser parser = DefaultParser.getInstance();
 	
 	private Schema(int schemaId, Type[] fields, String[] names){
 		this.schemaId = schemaId;
@@ -176,6 +179,50 @@ public class Schema {
 			values[i] = fields[i].defaultValue();
 		}
 		return values;
+	}
+	
+	public SchemaParser getSchemaParser() {
+		return parser;
+	}
+	
+	public void SchemaParser(SchemaParser newparser) {
+		parser = newparser;
+	}
+	
+	private static class DefaultParser implements SchemaParser {
+		private Charset encoding = Charset.defaultCharset();
+		private static DefaultParser instance = null;		
+
+		private DefaultParser(){}
+		
+		public static DefaultParser getInstance(){
+			if(instance == null){
+				instance = new DefaultParser();
+			}
+			return instance;
+		}
+		
+		public byte[] bytesFromString(String textRecord) {
+			byte[] byteline = textRecord.getBytes(encoding);
+			ByteBuffer b = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) + byteline.length);
+			b.putInt(byteline.length);
+			b.put(byteline);
+			return b.array();
+		}
+		
+		public String stringFromBytes(byte[] binaryRecord) {
+			ByteBuffer wrapper = ByteBuffer.allocate(binaryRecord.length - (Integer.SIZE/Byte.SIZE));
+			wrapper.put(binaryRecord, (Integer.SIZE/Byte.SIZE), binaryRecord.length - (Integer.SIZE/Byte.SIZE));
+			return new String(wrapper.array());
+		}
+		
+		public Charset getCharset() {
+			return encoding;
+		}
+		
+		public void setCharset(Charset newencoding) {
+			encoding = newencoding;
+		}
 	}
 	
 }

@@ -8,10 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
+import uk.ac.imperial.lsds.seep.api.operator.sinks.MarkerSink;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.DistributedMutableState;
@@ -340,6 +342,11 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	}
 	
 	private boolean isSink(SeepLogicalOperator slo) {
+		for(DownstreamConnection dc : slo.downstreamConnections()) {
+			if (dc.getDownstreamOperator() instanceof MarkerSink) {
+				return true;
+			}
+		}
 		if(slo.getSeepTask() instanceof Sink) {
 			return true;
 		}

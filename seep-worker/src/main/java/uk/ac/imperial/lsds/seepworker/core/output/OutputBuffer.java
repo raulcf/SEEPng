@@ -138,4 +138,10 @@ public class OutputBuffer implements EventBasedOBuffer {
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public void flush() {
+		// TODO Auto-generated method stub
+		
+	}
 }

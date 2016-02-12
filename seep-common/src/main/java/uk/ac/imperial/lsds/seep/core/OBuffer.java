@@ -11,5 +11,5 @@ public interface OBuffer {
 	public boolean drainTo(WritableByteChannel channel);
 	public boolean write(byte[] data);
 	public boolean readyToWrite();
-	
+	public void flush();	
 }

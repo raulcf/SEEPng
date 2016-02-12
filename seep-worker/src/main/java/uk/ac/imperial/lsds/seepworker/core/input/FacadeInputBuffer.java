@@ -19,6 +19,11 @@ public class FacadeInputBuffer implements IBuffer {
 	}
 	
 	@Override
+	public DataReference getDataReference() {
+		return dr;
+	}
+	
+	@Override
 	public int readFrom(ReadableByteChannel channel) {
 		// TODO Auto-generated method stub
 		return 0;

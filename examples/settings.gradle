@@ -10,3 +10,4 @@ include \
 	"simple-kafka-stateless-pipeline",
 	"simple-dag-schedule",
     "simple-pipeline-scheduledef"
+	"simple-shuffle-query"
