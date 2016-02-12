@@ -90,63 +90,6 @@ public class SchedulerEngineWorker implements Runnable {
 		}
 	}
 	
-//	// TODO: straw-man solution
-//	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
-//	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
-//		// All input data references to process during next stage
-//		int nextStageId = nextStage.getStageId();
-//		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
-//		
-//		// Split input DataReference per worker to maximize locality (not load balancing)
-//		List<CommandToNode> commands = new ArrayList<>();
-//		final int totalWorkers = conns.size();
-//		int currentWorker = 0;
-//		for(Connection c : conns) {
-//			MasterWorkerCommand esc = null;
-//			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
-//			for(Integer streamId : drefs.keySet()) {
-//				for(DataReference dr : drefs.get(streamId)) {
-//					// EXTERNAL. assign one and continue
-//					if(! dr.isManaged()) {
-//						assignDataReferenceToWorker(perWorker, streamId, dr);
-//						currentWorker++;
-//						break;
-//					}
-//					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
-//					else {
-//						// SHUFFLE/PARTITIONED CASE
-//						if(dr.isPartitioned()) {
-//							// In this case, assign to this worker all DataReference with seqId module
-//							int partitionSeqId = dr.getPartitionId();
-//							if(partitionSeqId % totalWorkers == currentWorker) {
-//								assignDataReferenceToWorker(perWorker, streamId, dr);
-//							}
-//						}
-//						// NORMAL CASE, MAKE LOCALITY=LOCAL
-//						else if(dr.getEndPoint().getId() == c.getId()) {
-//							// assign
-//							assignDataReferenceToWorker(perWorker, streamId, dr);
-//						}
-//					}
-//				}
-//				currentWorker++;
-//			}
-//			// FIXME: what is outputdatareferences
-//			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-//					perWorker, nextStage.getOutputDataReferences());
-//			CommandToNode ctn = new CommandToNode(esc, c);
-//			commands.add(ctn);
-//		}
-//		return commands;
-//	}
-	
-//	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
-//		if(! perWorker.containsKey(streamId)) {
-//			perWorker.put(streamId, new HashSet<>());
-//		}
-//		perWorker.get(streamId).add(dr);
-//	}
-	
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
 		// In this case DataReference do not necessarily contain EndPoint information
@@ -183,14 +126,14 @@ public class SchedulerEngineWorker implements Runnable {
 		}).start();
 	}
 	
-	public boolean prepareForStart(Set<Connection> connections, SeepLogicalQuery slq) {
+	public boolean prepareForStart(Set<Connection> connections) {
 		// Set initial connections in worker
 		this.connections = connections;
 		// Basically change stage status so that SOURCE tasks are ready to run
 		boolean success = true;
 		for(Stage stage : scheduleDescription.getStages()) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
-				configureInputForInitialStage(connections, stage, slq);
+				configureInputForInitialStage(connections, stage, scheduleDescription);
 				boolean changed = tracker.setReady(stage);
 				success = success && changed;
 			}
@@ -198,10 +141,16 @@ public class SchedulerEngineWorker implements Runnable {
 		return success;
 	}
 
-	private void configureInputForInitialStage(Set<Connection> connections, Stage s, SeepLogicalQuery slq) {
+	private void configureInputForInitialStage(Set<Connection> connections, Stage s, ScheduleDescription sd) {
+		// Check whether the stage needs to be configured or whether it comes configured already
+		// such as in the case of a handcrafted schedule
+		if(! s.getInputDataReferences().isEmpty()) {
+			// It's already configured
+			return;
+		}
 		// Get input type from first operator
 		int srcOpId = s.getWrappedOperators().getLast();
-		LogicalOperator src = slq.getOperatorWithId(srcOpId);
+		LogicalOperator src = sd.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
 		DataStore dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
 		// make a data reference, considering the datastore that describes the source, in each of the endpoint

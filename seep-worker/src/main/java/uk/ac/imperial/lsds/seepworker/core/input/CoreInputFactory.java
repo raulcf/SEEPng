@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
@@ -40,6 +41,9 @@ public class CoreInputFactory {
 				}
 				else if(dr.getDataStore().type().equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
 					ib = drm.getSyntheticDataset(dr);
+				}
+				else if(dr.getServeMode().equals(ServeMode.EMPTY)) {
+					ib = FacadeInputBuffer.makeOneFor(wc, dr);
 				}
 				// If not
 				else {

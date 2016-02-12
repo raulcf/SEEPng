@@ -7,8 +7,9 @@ import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 public final class DataReference {
 	
 	public enum ServeMode {
-		STREAM,	// When data is meant to be managed by seep in a diffrent place that where it's generated
+		STREAM,	// When data is meant to be managed by seep in a different place that where it's generated
 		STORE,	// When data is meant to be managed by seep where it is generated
+		EMPTY,	// When the DataReference works as Marker and no data is associated to the DR
 		SINK	// When data is not meant to be managed by seep, i.e. in the case of a sink that externalizes it
 	}
 	
@@ -42,6 +43,15 @@ public final class DataReference {
 	 */
 	private final EndPoint endPoint;
 	
+	private DataReference(EndPoint endPoint) {
+		this.ownerId = new UID().hashCode();
+		this.endPoint = endPoint;
+		this.managed = true;
+		this.dataStore = null;
+		this.serveMode = ServeMode.EMPTY;
+		this.partitioned = false;
+	}
+	
 	private DataReference(int uid, DataStore dataStore, EndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode) {
 		this.ownerId = uid;
 		this.dataStore = dataStore;
@@ -59,6 +69,10 @@ public final class DataReference {
 		this.partitioned = partitioned;
 		this.serveMode = serveMode;
 		this.partitionId = partitionId;
+	}
+	
+	public static DataReference makeEmptyDataReference(EndPoint endPoint) {
+		return new DataReference(endPoint);
 	}
 	
 	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {

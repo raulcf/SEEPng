@@ -44,7 +44,6 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	
 	private MasterConfig mc;
 	private static ScheduledQueryManager sqm;
-	private SeepLogicalQuery slq;
 	
 	private String pathToQueryJar;
 	private String definitionClassName;
@@ -91,7 +90,6 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
-		this.slq = slq;
 		this.pathToQueryJar = pathToQueryJar;
 		this.definitionClassName = definitionClass;
 		this.queryArgs = queryArgs;
@@ -104,19 +102,6 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		
 		loadSchedule(scheduleDescription, pathToQueryJar, definitionClassName, queryArgs, composeMethodName);
 		return true;
-//		// Initialize the schedulerThread
-//		seWorker = new SchedulerEngineWorker(
-//				scheduleDescription, 
-//				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), 
-//				inf, 
-//				comm, 
-//				k);
-//		worker = new Thread(seWorker);
-//		LOG.info("Schedule Description:");
-//		LOG.info(scheduleDescription.toString());
-//		
-//		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
-//		return true;
 	}
 	
 	public boolean loadSchedule(
@@ -180,7 +165,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		
 		LOG.info("Prepare scheduler engine...");
 		// Get the input info for the first stages
-		seWorker.prepareForStart(connections, slq);
+		seWorker.prepareForStart(connections);
 		LOG.info("Prepare scheduler engine...OK");
 		
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
@@ -384,7 +369,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	/** Methods to facilitate testing **/
 	
 	public void __initializeEverything(){
-		seWorker.prepareForStart(null, slq);
+		seWorker.prepareForStart(null);
 	}
 	
 	public ScheduleTracker __tracker_for_test(){
