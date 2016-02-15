@@ -260,7 +260,7 @@ public class FileSelector implements DataStoreSelector {
 		}
 		
 		private void readFromText(Entry<SeekableByteChannel, Integer> e, IBuffer ib, ReadableByteChannel rbc) {
-			BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharset().name()));
+			BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharsetName()));
 			String line;
 			try {
 				while ((line = br.readLine()) != null) {
