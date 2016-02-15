@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,6 +121,25 @@ public class DataReferenceManager {
 			if(dss.type() == type) return dss;
 		}
 		return null;
+	}
+	
+	public void sendDatasetToDisk(int datasetId) throws IOException {
+		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
+		datasets.get(datasetId).cacheToDisk();
+		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+	}
+	
+	public int retrieveDatasetFromDisk(int datasetId) {
+		try {
+			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
+			return datasets.get(datasetId).retrieveFromDisk();
+		} finally {
+			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
+		}
+	}
+	
+	public boolean datasetIsInMem(int datasetId) {
+		return datasets.get(datasetId).inMem();
 	}
 
 	public IBuffer getInputBufferFor(DataReference dr) {
