@@ -37,7 +37,7 @@ import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
+import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -51,7 +51,7 @@ public class Conductor {
 	
 	private WorkerConfig wc;
 	private InetAddress myIp;
-	private WorkerMasterAPIImplementation masterApi;
+	private ControlAPIImplementation masterApi;
 	private Connection masterConn;
 	private Comm comm;
 	private Kryo k;
@@ -74,7 +74,7 @@ public class Conductor {
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm, DataReferenceManager drm){
+	public Conductor(InetAddress myIp, ControlAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm, DataReferenceManager drm){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
@@ -219,7 +219,7 @@ public class Conductor {
 			// TODO: create a DR per partition and assign the partitionSeqId
 			for(int i = 0; i < numPartitions; i++) {
 				DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-				DataEndPoint dep = new DataEndPoint(id, wc.getString(WorkerConfig.LISTENING_IP), wc.getInt(WorkerConfig.DATA_PORT));
+				DataEndPoint dep = new DataEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.DATA_PORT));
 				DataReference dr = null;
 				int partitionId = i;
 				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, dep, ServeMode.STORE, partitionId);

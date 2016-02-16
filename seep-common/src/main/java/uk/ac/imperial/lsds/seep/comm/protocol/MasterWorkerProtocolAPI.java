@@ -6,7 +6,6 @@ public enum MasterWorkerProtocolAPI {
 	BOOTSTRAP((short)0, new BootstrapCommand()), 
 	CRASH((short)1, new CrashCommand()), 
 	CODE((short)2, new CodeCommand()), 
-//	QUERYDEPLOY((short)3, new QueryDeployCommand()),
 	STARTQUERY((short)5, new StartQueryCommand()),
 	STOPQUERY((short)6, new StopQueryCommand()),
 	DEADWORKER((short)7, new DeadWorkerCommand()),
@@ -17,15 +16,21 @@ public enum MasterWorkerProtocolAPI {
 	// 3 is free
 	
 	private short type;
+	private short familyType;
 	private CommandType c;
 	
 	MasterWorkerProtocolAPI(short type, CommandType c){
 		this.type = type;
+		this.familyType = CommandFamilyType.MASTERCOMMAND.ofType();
 		this.c = c;
 	}
 	
 	public short type(){
 		return type;
+	}
+	
+	public short familyType() {
+		return familyType;
 	}
 	
 	public CommandType clazz(){

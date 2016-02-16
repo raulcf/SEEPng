@@ -27,7 +27,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void test() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -87,7 +87,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testMultipleBuffers() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -134,7 +134,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testWriteReadMicrobenchmark() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -188,7 +188,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testWriteReadMicrobenchmarkIsolated() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);

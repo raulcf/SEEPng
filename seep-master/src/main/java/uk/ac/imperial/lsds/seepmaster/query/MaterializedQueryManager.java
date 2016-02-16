@@ -280,7 +280,7 @@ public class MaterializedQueryManager implements QueryManager {
 		for(LogicalOperator lso : slq.getAllOperators()){
 			int opId = lso.getOperatorId();
 			ExecutionUnit eu = inf.getExecutionUnit();
-			SeepEndPoint ep = eu.getWorkerControlEndPoint();
+			SeepEndPoint ep = eu.getControlEndPoint();
 			LOG.debug("LogicalOperator: {} will run on: {} -> ({})", opId, ep.getId(), ep.getIp().toString());
 			mapping.put(opId, ep);
 		}

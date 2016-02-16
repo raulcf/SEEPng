@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
+import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
 
 public class WorkerShutdownHookWorker implements Runnable {
@@ -15,9 +15,9 @@ public class WorkerShutdownHookWorker implements Runnable {
 	
 	private Conductor c;
 	private Connection masterConn;
-	private WorkerMasterAPIImplementation api;
+	private ControlAPIImplementation api;
 	
-	public WorkerShutdownHookWorker(int workerId, Conductor c, Connection masterConn, WorkerMasterAPIImplementation api) {
+	public WorkerShutdownHookWorker(int workerId, Conductor c, Connection masterConn, ControlAPIImplementation api) {
 		this.workerId = workerId;
 		this.c = c;
 		this.masterConn = masterConn;

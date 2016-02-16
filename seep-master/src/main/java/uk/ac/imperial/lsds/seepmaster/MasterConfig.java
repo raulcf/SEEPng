@@ -25,8 +25,8 @@ public class MasterConfig extends Config {
 	public static final String DEPLOYMENT_TARGET_TYPE = "deployment_target.type";
     private static final String DEPLOYMENT_TARGET_TYPE_DOC = "The target cluster to which the master will submit queries."
     													+ "Physical cluster(0), yarn container(1), lxc, docker, etc";
-    public static final String LISTENING_PORT = "master.port";
-    private static final String LISTENING_PORT_DOC = "The port in which master will receive commands from workers";
+    public static final String CONTROL_PORT = "master.port";
+    private static final String CONTROL_PORT_DOC = "Port that listens to commands from workers";
     
     public static final String UI_TYPE = "ui.type";
     private static final String UI_TYPE_DOC = "The type of UI chosen, simpleconsole(0), console(1), web(2), etc";
@@ -43,7 +43,7 @@ public class MasterConfig extends Config {
 				.define(BASECLASS_NAME, Type.STRING, "", Importance.HIGH, BASECLASS_NAME_DOC) 
 				.define(COMPOSE_METHOD_NAME, Type.STRING, "compose", Importance.LOW, COMPOSE_METHOD_NAME_DOC)
 				.define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
-				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
+				.define(CONTROL_PORT, Type.INT, 3500, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
 				.define(SCHED_STRATEGY, Type.INT, 0, Importance.LOW, SCHED_STRATEGY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC);

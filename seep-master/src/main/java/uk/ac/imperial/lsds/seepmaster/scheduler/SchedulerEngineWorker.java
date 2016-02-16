@@ -161,7 +161,7 @@ public class SchedulerEngineWorker implements Runnable {
 			//TODO: probably this won't work later
 			// Simply report all nodes
 			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
-				Connection conn = new Connection(eu.getMasterControlEndPoint());
+				Connection conn = new Connection(eu.getControlEndPoint());
 				cons.add(conn);
 			}
 		}

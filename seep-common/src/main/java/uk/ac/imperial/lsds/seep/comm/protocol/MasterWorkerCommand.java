@@ -60,6 +60,11 @@ public class MasterWorkerCommand implements SeepCommand {
 		}
 	}
 	
+	@Override
+	public short familyType() {
+		return CommandFamilyType.MASTERCOMMAND.ofType();
+	}
+	
 	public short type(){
 		return type;
 	}
@@ -103,4 +108,5 @@ public class MasterWorkerCommand implements SeepCommand {
 	public MaterializeTaskCommand getMaterializeTaskCommand() {
 		return mtc;
 	}
+	
 }

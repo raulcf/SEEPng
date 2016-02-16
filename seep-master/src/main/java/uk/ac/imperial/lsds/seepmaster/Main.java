@@ -42,7 +42,7 @@ public class Main {
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager, mc);
 		// TODO: put this in the config manager
-		int port = mc.getInt(MasterConfig.LISTENING_PORT);
+		int port = mc.getInt(MasterConfig.CONTROL_PORT);
 		MasterWorkerAPIImplementation api = new MasterWorkerAPIImplementation(qm, inf);
 		MasterWorkerCommManager mwcm = new MasterWorkerCommManager(port, api);
 		mwcm.start();

@@ -29,18 +29,15 @@ public class WorkerConfig extends Config {
     private static final String DEPLOYMENT_TARGET_TYPE_DOC = "The target cluster to which the master will submit queries."
     													+ "Physical cluster(0), yarn container(1), lxc, docker, etc";
     
-    public static final String LISTENING_IP = "worker.ip";
-    private static final String LISTENING_IP_DOC = "The IP in which workers will bind their servers";
+    public static final String WORKER_IP = "worker.ip";
+    private static final String WORKER_IP_DOC = "The IP in which workers will bind their servers";
     
-    public static final String LISTENING_PORT = "worker.port";
-    private static final String LISTENING_PORT_DOC = "The port in which workers will receive commands from the master";
+    public static final String CONTROL_PORT = "worker.port";
+    private static final String CONTROL_PORT_DOC = "The port in which workers will receive commands from the master";
     
     public static final String DATA_PORT = "data.port";
     private static final String DATA_PORT_DOC = "The port used to receive data through the network";
     
-    public static final String CONTROL_PORT = "control.port";
-    private static final String CONTROL_PORT_DOC = "The port used to receive control commands from other workers";
-
     public static final String MASTER_IP = "master.ip";
     private static final String MASTER_IP_DOC = "The Ip where the master is listening";
     
@@ -101,10 +98,9 @@ public class WorkerConfig extends Config {
 		config = new ConfigDef().define(DEPLOYMENT_TARGET_TYPE, Type.INT, 0, Importance.HIGH, DEPLOYMENT_TARGET_TYPE_DOC)
 				.define(SYNTHETIC_DATA_GENERATOR_ID, Type.INT, -666, Importance.LOW, SYNTHETIC_DATA_GENERATOR_ID_DOC)
 				.define(SYNTHETIC_DATA_GENERATOR_TYPE, Type.INT, 0, Importance.LOW, SYNTHETIC_DATA_GENERATOR_TYPE_DOC)
-				.define(LISTENING_IP, Type.STRING,  null, Importance.MEDIUM, LISTENING_IP_DOC)
-				.define(LISTENING_PORT, Type.INT, 3500, Importance.HIGH, LISTENING_PORT_DOC)
+				.define(WORKER_IP, Type.STRING,  null, Importance.MEDIUM, WORKER_IP_DOC)
+				.define(CONTROL_PORT, Type.INT, 3500, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(MASTER_PORT, Type.INT, 3500, Importance.HIGH, MASTER_PORT_DOC)
-				.define(CONTROL_PORT, Type.INT, 7777, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(MASTER_IP, Type.STRING, Importance.HIGH, MASTER_IP_DOC)
 				.define(MASTER_CONNECTION_RETRIES, Type.INT, Integer.MAX_VALUE, Importance.LOW, MASTER_CONNECTION_RETRIES_DOC)
 				.define(MASTER_RETRY_BACKOFF_MS, Type.INT, 3000, Importance.LOW, MASTER_RETRY_BACKOFF_MS_DOC)

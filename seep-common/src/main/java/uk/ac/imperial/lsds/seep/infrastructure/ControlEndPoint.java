@@ -1,0 +1,49 @@
+package uk.ac.imperial.lsds.seep.infrastructure;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+public class ControlEndPoint implements SeepEndPoint {
+
+	final private int id;
+	final private String ip;
+	final private int port;
+	
+	public ControlEndPoint(int id, String ip, int port) {
+		this.id = id;
+		this.ip = ip;
+		this.port = port;
+	}
+	
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public int getType() {
+		return SeepEndPointType.CONTROL.ofType();
+	}
+
+	@Override
+	public InetAddress getIp() {
+		try {
+			return InetAddress.getByName(ip);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public int getPort() {
+		return port;
+	}
+
+	@Override
+	public boolean isValid() {
+		if(ip == null) return false;
+		return true;
+	}
+
+}
