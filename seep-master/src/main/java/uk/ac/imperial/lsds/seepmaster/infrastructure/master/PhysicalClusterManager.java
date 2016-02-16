@@ -38,7 +38,7 @@ public class PhysicalClusterManager implements InfrastructureManager {
 	@Override
 	public void addExecutionUnit(ExecutionUnit eu) {
 		availablePhysicalNodes.push(eu);
-		connectionsToPhysicalNodes.put(eu.getId(), new Connection(eu.getEndPoint().extractMasterControlEndPoint()));
+		connectionsToPhysicalNodes.put(eu.getId(), new Connection(eu.getControlEndPoint()));
 	}
 	
 	@Override

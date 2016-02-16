@@ -7,7 +7,7 @@ import java.util.Set;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
 public class ProtocolCommandFactory {
@@ -57,7 +57,7 @@ public class ProtocolCommandFactory {
 	}
 	
 	public static MasterWorkerCommand buildMaterializeTaskCommand(
-			Map<Integer, EndPoint> opToEndpointMapping, 
+			Map<Integer, SeepEndPoint> opToEndpointMapping, 
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		MaterializeTaskCommand mtc = new MaterializeTaskCommand(opToEndpointMapping, inputs, outputs);

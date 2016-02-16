@@ -7,7 +7,6 @@ public class MasterWorkerCommand implements SeepCommand {
 	private BootstrapCommand bc;
 	private CrashCommand cc;
 	private CodeCommand coc;
-//	private QueryDeployCommand qdc;
 	private StartQueryCommand sqc;
 	private StopQueryCommand stqc;
 	private DeadWorkerCommand dwc;
@@ -30,9 +29,6 @@ public class MasterWorkerCommand implements SeepCommand {
 		else if(type == MasterWorkerProtocolAPI.CODE.type()){
 			this.coc = (CodeCommand)ct;
 		}
-//		else if(type == MasterWorkerProtocolAPI.QUERYDEPLOY.type()){
-//			this.qdc = (QueryDeployCommand)ct;
-//		}
 		else if(type == MasterWorkerProtocolAPI.STARTQUERY.type()){
 			this.sqc = (StartQueryCommand)ct;
 		}
@@ -79,10 +75,6 @@ public class MasterWorkerCommand implements SeepCommand {
 	public CodeCommand getCodeCommand(){
 		return coc;
 	}
-	
-//	public QueryDeployCommand getQueryDeployCommand(){
-//		return qdc;
-//	}
 	
 	public StartQueryCommand getStartQueryCommand(){
 		return sqc;

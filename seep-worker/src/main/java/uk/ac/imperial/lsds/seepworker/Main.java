@@ -19,7 +19,7 @@ import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.MasterControlEndPoint;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -47,7 +47,7 @@ public class Main {
 		
 		// Get connection to master node
 		int masterId = Utils.computeIdFromIpAndPort(masterIp, masterPort);
-		Connection masterConnection = new Connection(new EndPoint(masterId, masterIp, masterPort).extractMasterControlEndPoint());
+		Connection masterConnection = new Connection(new MasterControlEndPoint(masterId, wc.getString(WorkerConfig.MASTER_IP), masterPort));
 		
 		// Read configs with info about IP and port to bind to
 		String myIpStr = wc.getString(WorkerConfig.LISTENING_IP);

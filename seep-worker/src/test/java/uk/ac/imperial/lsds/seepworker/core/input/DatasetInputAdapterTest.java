@@ -17,7 +17,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 import uk.ac.imperial.lsds.seepworker.core.Dataset;
@@ -42,7 +42,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -102,7 +102,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -149,7 +149,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -203,7 +203,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		

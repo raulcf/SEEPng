@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
@@ -84,12 +84,13 @@ public class Stage {
 		return outputDataReferences;
 	}
 	
-	public Set<EndPoint> getInvolvedNodes() {
+	public Set<SeepEndPoint> getInvolvedNodes() {
 		// FIXME: cannot depend on DR, as these can be external, i.e. no endpoint inside
-		Set<EndPoint> in = new HashSet<>();
+		// FIXME: NEW -> what about location attribute?
+		Set<SeepEndPoint> in = new HashSet<>();
 		for(Set<DataReference> drs : inputDataReferences.values()) {
 			for(DataReference dr : drs) {
-				in.add(dr.getEndPoint());
+				in.add(dr.getDataEndPoint());
 			}
 		}
 		return in;

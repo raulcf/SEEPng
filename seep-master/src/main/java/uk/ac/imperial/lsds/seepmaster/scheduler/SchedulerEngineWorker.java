@@ -10,9 +10,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
@@ -21,7 +22,6 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -29,8 +29,6 @@ import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-
-import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
 
@@ -132,7 +130,7 @@ public class SchedulerEngineWorker implements Runnable {
 							}
 						}
 						// NORMAL CASE, MAKE LOCALITY=LOCAL
-						else if(dr.getEndPoint().getId() == c.getId()) {
+						else if(dr.getDataEndPoint().getId() == c.getId()) {
 							// assign
 							assignDataReferenceToWorker(perWorker, streamId, dr);
 						}
@@ -163,15 +161,15 @@ public class SchedulerEngineWorker implements Runnable {
 			//TODO: probably this won't work later
 			// Simply report all nodes
 			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
-				Connection conn = new Connection(eu.getEndPoint().extractMasterControlEndPoint());
+				Connection conn = new Connection(eu.getControlEndPoint());
 				cons.add(conn);
 			}
 		}
 		// If not first stages, then DataReferences contain the right EndPoint information
 		else {
-			Set<EndPoint> eps = stage.getInvolvedNodes();
-			for(EndPoint ep : eps) {
-				Connection c = new Connection(ep.extractMasterControlEndPoint());
+			Set<SeepEndPoint> eps = stage.getInvolvedNodes();
+			for(SeepEndPoint ep : eps) {
+				Connection c = new Connection(ep);
 				cons.add(c);
 			}
 		}

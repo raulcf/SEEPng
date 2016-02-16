@@ -66,7 +66,7 @@ public class CoreInput {
 				if(dr.isManaged()) {
 					// Create dataRef request and send to the worker
 					WorkerWorkerCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
-					Connection targetConn = new Connection(dr.getEndPoint().extractWorkerControlEndPoint());
+					Connection targetConn = new Connection(dr.getDataEndPoint());
 					LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
 					comm.send_object_sync(requestStreamDataReference, targetConn, k);
 				}

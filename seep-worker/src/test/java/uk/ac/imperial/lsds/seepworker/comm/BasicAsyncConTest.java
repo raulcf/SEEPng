@@ -12,7 +12,7 @@ import java.nio.channels.UnresolvedAddressException;
 import org.junit.Test;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPointType;
 
 public class BasicAsyncConTest {
@@ -20,7 +20,7 @@ public class BasicAsyncConTest {
 	@Test
 	public void testOpenCon(){
 		try {
-			Connection c = new Connection(new EndPoint(0, InetAddress.getLocalHost(), 2500, 5200).extractDataEndPoint());
+			Connection c = new Connection(new DataEndPoint(0, InetAddress.getLocalHost().getHostAddress(), 5200));
 			SocketChannel channel = SocketChannel.open();
 			InetSocketAddress address = c.getInetSocketAddress(SeepEndPointType.DATA);
 		    Socket socket = channel.socket();

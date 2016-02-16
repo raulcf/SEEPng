@@ -6,24 +6,23 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 
-import joptsimple.OptionParser;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import joptsimple.OptionParser;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
-import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
 import uk.ac.imperial.lsds.seepmaster.query.GenericQueryManager;
+import uk.ac.imperial.lsds.seepmaster.query.InvalidLifecycleStatusException;
 import uk.ac.imperial.lsds.seepmaster.ui.UI;
 import uk.ac.imperial.lsds.seepmaster.ui.UIFactory;
 
@@ -38,7 +37,7 @@ public class Main {
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
 		LifecycleManager lifeManager = LifecycleManager.getInstance();
 		// TODO: get file from config if exists and parse it to get a map from operator to endPoint
-		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
+		Map<Integer, SeepEndPoint> mapOperatorToEndPoint = null;
 		// TODO: from properties get serializer and type of thread pool and resources assigned to it
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager, mc);

@@ -3,8 +3,14 @@ package uk.ac.imperial.lsds.seep.infrastructure;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class MasterControlEndPoint implements SeepEndPoint {
 
+	final private static Logger LOG = LoggerFactory.getLogger(MasterControlEndPoint.class);
+	
 	private final int id;
 	private final String ip;
 	private final int port;
@@ -31,6 +37,7 @@ public class MasterControlEndPoint implements SeepEndPoint {
 			return InetAddress.getByName(ip);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
+			LOG.error("The IP: {} is unrecognized", ip);
 		}
 		return null;
 	}
