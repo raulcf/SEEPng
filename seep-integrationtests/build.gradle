@@ -5,4 +5,7 @@ dependencies {
 	compile project(':seep-worker')
 	compile project(':seep-contrib')
 	compile project(':seep-java2sdg')
+
+	compile project(':seep-worker').sourceSets.test.output
+	compile 'junit:junit:4.11'
 }
