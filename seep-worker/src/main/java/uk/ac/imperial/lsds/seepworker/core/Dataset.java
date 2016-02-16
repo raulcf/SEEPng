@@ -256,7 +256,7 @@ public class Dataset implements IBuffer, OBuffer {
 				
 				wPtrToBuffer.putInt(recordSize);
 				wPtrToBuffer.put(record);
-				System.out.println(returnedTuples++);
+				returnedTuples++;
 			}
 			inputStream.close();
 			try {
