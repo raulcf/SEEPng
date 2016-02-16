@@ -12,6 +12,7 @@ import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
@@ -25,7 +26,7 @@ public class QueryManagerTest {
 		BaseTest fb = new BaseTest();
 		SeepLogicalQuery lsq = fb.compose();
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(0);
-		Map<Integer, SeepEndPoint> mapOperatorToEndPoint = null;
+		Map<Integer, ControlEndPoint> mapOperatorToEndPoint = null;
 		Comm cu = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
 		// Artificially populate infrastructure
@@ -51,8 +52,8 @@ public class QueryManagerTest {
 		MaterializedQueryManager qm = MaterializedQueryManager.buildTestMaterializedQueryManager(lsq, inf, mapOperatorToEndPoint, cu);
 		
 		// Use helper method to create physical query
-		Map<Integer, SeepEndPoint> m = qm.createMappingOfOperatorWithEndPoint(lsq);
-		for(Entry<Integer, SeepEndPoint> entry : m.entrySet()) {
+		Map<Integer, ControlEndPoint> m = qm.createMappingOfOperatorWithEndPoint(lsq);
+		for(Entry<Integer, ControlEndPoint> entry : m.entrySet()) {
 			System.out.println("OPID: "+entry.getKey()+ " EP: "+entry.getValue());
 		}
 		assert(true);

@@ -19,7 +19,6 @@ import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;

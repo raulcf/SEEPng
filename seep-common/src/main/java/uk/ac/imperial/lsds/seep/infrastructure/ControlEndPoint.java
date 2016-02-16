@@ -45,5 +45,14 @@ public class ControlEndPoint implements SeepEndPoint {
 		if(ip == null) return false;
 		return true;
 	}
+	
+	/**
+	 * Empty constructor for kryo serialization
+	 */
+	public ControlEndPoint() {
+		this.id = 0;
+		this.ip = null;
+		this.port = 0;
+	}
 
 }

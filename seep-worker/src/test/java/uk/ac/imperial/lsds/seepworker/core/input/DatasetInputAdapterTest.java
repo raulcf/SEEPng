@@ -17,6 +17,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
@@ -42,7 +43,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -102,7 +103,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -149,7 +150,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -203,7 +204,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DataEndPoint endPoint = new DataEndPoint(0, whatever.getHostAddress(), 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		

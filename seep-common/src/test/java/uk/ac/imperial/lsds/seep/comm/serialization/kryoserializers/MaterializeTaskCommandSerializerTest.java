@@ -23,13 +23,14 @@ import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MaterializeTaskCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 
 public class MaterializeTaskCommandSerializerTest {
 
 	public MasterWorkerCommand get() {
-		Map<Integer, SeepEndPoint> mapping = new HashMap<>();
+		Map<Integer, ControlEndPoint> mapping = new HashMap<>();
 		InetAddress ip = null;
 		try {
 			ip = InetAddress.getLocalHost();
@@ -37,7 +38,7 @@ public class MaterializeTaskCommandSerializerTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		mapping.put(1, new DataEndPoint(2000, ip.getHostAddress(), 3000));
+		mapping.put(1, new ControlEndPoint(2000, ip.getHostAddress(), 3000));
 		Set<DataReference> r = new HashSet<>();
 //		r.add(DataReference.makeExternalDataReference(null, new EndPoint(1000, ip, 1000)));
 		r.add(DataReference.makeExternalDataReference(null));

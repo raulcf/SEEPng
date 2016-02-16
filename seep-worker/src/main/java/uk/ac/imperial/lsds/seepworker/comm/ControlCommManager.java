@@ -32,6 +32,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StopQueryCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerProtocolAPI;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -238,7 +239,7 @@ public class ControlCommManager {
 		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		LOG.info("Composing query and loading to class loader...OK");
 		// Get physical info from command
-		Map<Integer, SeepEndPoint> mapping = mtc.getMapping();
+		Map<Integer, ControlEndPoint> mapping = mtc.getMapping();
 		Map<Integer, Map<Integer, Set<DataReference>>> inputs = mtc.getInputs();
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
  		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);

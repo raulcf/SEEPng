@@ -30,6 +30,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -57,7 +58,7 @@ public class Conductor {
 	private Kryo k;
 	private int id;
 	private SeepLogicalQuery query;
-	private Map<Integer, SeepEndPoint> mapping;
+	private Map<Integer, ControlEndPoint> mapping;
 	// TODO: these two are only specific to materialise tasks
 	private Map<Integer, Map<Integer, Set<DataReference>>> inputs;
 	private Map<Integer, Map<Integer, Set<DataReference>>> outputs;
@@ -86,7 +87,10 @@ public class Conductor {
 		this.registerFlag = new CountDownLatch(1);
 	}
 	
-	public void setQuery(int id, SeepLogicalQuery query, Map<Integer, SeepEndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
+	public void setQuery(int id, SeepLogicalQuery query, 
+			Map<Integer, ControlEndPoint> mapping, 
+			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
+			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		this.id = id;
 		this.query = query;
 		this.mapping = mapping;
@@ -219,10 +223,10 @@ public class Conductor {
 			// TODO: create a DR per partition and assign the partitionSeqId
 			for(int i = 0; i < numPartitions; i++) {
 				DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-				DataEndPoint dep = new DataEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.DATA_PORT));
+				ControlEndPoint cep = new ControlEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.CONTROL_PORT));
 				DataReference dr = null;
 				int partitionId = i;
-				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, dep, ServeMode.STORE, partitionId);
+				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, cep, ServeMode.STORE, partitionId);
 				drefs.add(dr);
 			}
 			output.put(streamId, drefs);
@@ -232,14 +236,14 @@ public class Conductor {
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-			DataEndPoint dep = new DataEndPoint(id, myIp.toString(), wc.getInt(WorkerConfig.DATA_PORT));
+			ControlEndPoint cep = new ControlEndPoint(id, myIp.toString(), wc.getInt(WorkerConfig.CONTROL_PORT));
 			DataReference dr = null;
 			// TODO: is this enough?
 			if(s.getStageType().equals(StageType.SINK_STAGE)) {
 				dr = DataReference.makeSinkExternalDataReference(dataStore);
 			}
 			else {
-				dr = DataReference.makeManagedDataReference(dataStore, dep, ServeMode.STORE);
+				dr = DataReference.makeManagedDataReference(dataStore, cep, ServeMode.STORE);
 			}
 			drefs.add(dr);
 			output.put(streamId, drefs);
@@ -276,7 +280,7 @@ public class Conductor {
 	}
 
 	private int getOpIdLivingInThisEU(int id) {
-		for(Entry<Integer, SeepEndPoint> entry : mapping.entrySet()) {
+		for(Entry<Integer, ControlEndPoint> entry : mapping.entrySet()) {
 			if(entry.getValue().getId() == id) return entry.getKey();
 		}
 		return -1;

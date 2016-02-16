@@ -15,7 +15,7 @@ import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerAPIImplementation;
 import uk.ac.imperial.lsds.seepmaster.comm.MasterWorkerCommManager;
@@ -37,7 +37,7 @@ public class Main {
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(infType);
 		LifecycleManager lifeManager = LifecycleManager.getInstance();
 		// TODO: get file from config if exists and parse it to get a map from operator to endPoint
-		Map<Integer, SeepEndPoint> mapOperatorToEndPoint = null;
+		Map<Integer, ControlEndPoint> mapOperatorToEndPoint = null;
 		// TODO: from properties get serializer and type of thread pool and resources assigned to it
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, comm, lifeManager, mc);

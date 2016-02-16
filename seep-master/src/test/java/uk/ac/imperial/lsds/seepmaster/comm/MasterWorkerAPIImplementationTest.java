@@ -9,7 +9,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.protocol.BootstrapCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
-import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
@@ -20,7 +20,7 @@ public class MasterWorkerAPIImplementationTest {
 	@Test
 	public void testBootstrap() {
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(0);
-		Map<Integer, SeepEndPoint> mapOperatorToEndPoint = null;
+		Map<Integer, ControlEndPoint> mapOperatorToEndPoint = null;
 		Comm cu = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		LifecycleManager lifeManager = LifecycleManager.getInstance();
 		GenericQueryManager qm = GenericQueryManager.getInstance(inf, mapOperatorToEndPoint, cu, lifeManager, null);
