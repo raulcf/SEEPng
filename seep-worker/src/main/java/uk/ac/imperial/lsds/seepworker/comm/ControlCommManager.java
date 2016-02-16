@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.protocol.CodeCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.CommandFamilyType;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
@@ -104,12 +105,12 @@ public class ControlCommManager {
 					InputStream is = incomingSocket.getInputStream();
 					out = new PrintWriter(incomingSocket.getOutputStream(), true);
 					Input i = new Input(is, 1000000);
-					SeepCommand sc = k.readObject(i, SeepCommand.class);
+					Command sc = k.readObject(i, Command.class);
 					if(sc.familyType() == CommandFamilyType.MASTERCOMMAND.ofType()) {
-						handleMasterCommand(((MasterWorkerCommand)sc), out);
+						handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
 					}
 					else if(sc.familyType() == CommandFamilyType.WORKERCOMMAND.ofType()) {
-						handleWorkerCommand(((WorkerWorkerCommand)sc), out);
+						handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()), out);
 					}
 					
 				}

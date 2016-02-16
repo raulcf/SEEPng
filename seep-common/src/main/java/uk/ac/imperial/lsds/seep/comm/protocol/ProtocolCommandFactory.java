@@ -14,61 +14,70 @@ public class ProtocolCommandFactory {
 	
 	/** MasterWorker commands **/
 	
-	public static MasterWorkerCommand buildBootstrapCommand(String ip, int controlPort, int dataPort){
+	public static SeepCommand buildBootstrapCommand(String ip, int controlPort, int dataPort){
 		BootstrapCommand bc = new BootstrapCommand(ip, controlPort, dataPort);
 		MasterWorkerCommand c = new MasterWorkerCommand(bc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
-	public static MasterWorkerCommand buildCodeCommand(byte[] data, String baseClassName, String[] queryConfig, String methodName){
+	public static SeepCommand buildCodeCommand(byte[] data, String baseClassName, String[] queryConfig, String methodName){
 		CodeCommand cc = new CodeCommand(data, baseClassName, queryConfig, methodName);
 		MasterWorkerCommand c = new MasterWorkerCommand(cc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
-	public static MasterWorkerCommand buildStartQueryCommand(){
+	public static SeepCommand buildStartQueryCommand(){
 		StartQueryCommand sqc = new StartQueryCommand();
 		MasterWorkerCommand c = new MasterWorkerCommand(sqc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
-	public static MasterWorkerCommand buildStopQueryCommand(){
+	public static SeepCommand buildStopQueryCommand(){
 		StopQueryCommand sqc = new StopQueryCommand();
 		MasterWorkerCommand c = new MasterWorkerCommand(sqc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
-	public static MasterWorkerCommand buildDeadWorkerCommand(int workerId, String reason){
+	public static SeepCommand buildDeadWorkerCommand(int workerId, String reason){
 		DeadWorkerCommand dwc = new DeadWorkerCommand(workerId, reason);
 		MasterWorkerCommand c = new MasterWorkerCommand(dwc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 
-	public static MasterWorkerCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
+	public static SeepCommand buildScheduleDeployCommand(SeepLogicalQuery slq, ScheduleDescription scheduleDescription) {
 		ScheduleDeployCommand sdc = new ScheduleDeployCommand(slq, scheduleDescription);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 
-	public static MasterWorkerCommand buildScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut) {
+	public static SeepCommand buildScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut) {
 		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId, input, ouptut);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
-	public static MasterWorkerCommand buildMaterializeTaskCommand(
+	public static SeepCommand buildMaterializeTaskCommand(
 			Map<Integer, SeepEndPoint> opToEndpointMapping, 
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		MaterializeTaskCommand mtc = new MaterializeTaskCommand(opToEndpointMapping, inputs, outputs);
 		MasterWorkerCommand c = new MasterWorkerCommand(mtc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 
-	public static MasterWorkerCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
+	public static SeepCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
 	/** WorkerWorker commands 
@@ -76,10 +85,11 @@ public class ProtocolCommandFactory {
 	 * @param dataReferenceId 
 	 * @param myIp **/
 	
-	public static WorkerWorkerCommand buildRequestDataReference(int dataReferenceId, InetAddress myIp, int receivingDataPort) {
+	public static SeepCommand buildRequestDataReference(int dataReferenceId, InetAddress myIp, int receivingDataPort) {
 		RequestDataReferenceCommand rdrc = new RequestDataReferenceCommand(dataReferenceId, myIp.getHostAddress(), receivingDataPort);
 		WorkerWorkerCommand c = new WorkerWorkerCommand(rdrc);
-		return c;
+		Command co = new Command(c);
+		return co;
 	}
 	
 }

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.comm.protocol.BootstrapCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.Command;
+import uk.ac.imperial.lsds.seep.comm.protocol.CommandFamilyType;
 import uk.ac.imperial.lsds.seep.comm.protocol.DeadWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerProtocolAPI;
@@ -69,7 +71,11 @@ public class MasterWorkerCommManager {
 					InputStream is = incomingSocket.getInputStream();
 					i = new Input(is);
 					
-					MasterWorkerCommand command = k.readObject(i, MasterWorkerCommand.class);
+					Command c = k.readObject(i, Command.class);
+					if(c.familyType() != CommandFamilyType.MASTERCOMMAND.ofType()) {
+						LOG.error("Received an unrecognized (non-Master Command) here");
+					}
+					MasterWorkerCommand command = (MasterWorkerCommand) c.getCommand();
 					short type = command.type();
 					// BOOTSTRAP command
 					if(type == MasterWorkerProtocolAPI.BOOTSTRAP.type()){

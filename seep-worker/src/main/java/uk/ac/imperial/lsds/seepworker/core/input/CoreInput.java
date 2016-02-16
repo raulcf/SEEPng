@@ -8,17 +8,17 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
-import uk.ac.imperial.lsds.seep.comm.protocol.WorkerWorkerCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-
-import com.esotericsoftware.kryo.Kryo;
 
 public class CoreInput {
 	
@@ -65,7 +65,7 @@ public class CoreInput {
 			for(DataReference dr : i) {
 				if(dr.isManaged()) {
 					// Create dataRef request and send to the worker
-					WorkerWorkerCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
+					SeepCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
 					Connection targetConn = new Connection(dr.getDataEndPoint());
 					LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
 					comm.send_object_sync(requestStreamDataReference, targetConn, k);

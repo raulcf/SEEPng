@@ -23,6 +23,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
@@ -251,7 +252,7 @@ public class MaterializedQueryManager implements QueryManager {
 		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		// Send start query command
-		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
+		SeepCommand start = ProtocolCommandFactory.buildStartQueryCommand();
 		comm.send_object_sync(start, connections, k);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
 		return true;
@@ -269,7 +270,7 @@ public class MaterializedQueryManager implements QueryManager {
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		
 		// Send start query command
-		MasterWorkerCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
+		SeepCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
 		comm.send_object_sync(stop, connections, k);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_STOPPED);
 		return true;
@@ -295,7 +296,7 @@ public class MaterializedQueryManager implements QueryManager {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		SeepCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}
@@ -306,7 +307,7 @@ public class MaterializedQueryManager implements QueryManager {
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		LOG.info("Sending materialize task command to nodes...");
-		MasterWorkerCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
+		SeepCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
 		comm.send_object_sync(materializeCommand, connections, k);
 		LOG.info("Sending materialize task command to nodes...OK");
 	}

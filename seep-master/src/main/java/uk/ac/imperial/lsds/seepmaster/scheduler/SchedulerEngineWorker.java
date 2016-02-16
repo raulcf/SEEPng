@@ -21,6 +21,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -89,11 +90,11 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	private class CommandToNode {
-		public CommandToNode(MasterWorkerCommand command, Connection c){
+		public CommandToNode(SeepCommand command, Connection c){
 			this.command = command;
 			this.c = c;
 		}
-		public MasterWorkerCommand command;
+		public SeepCommand command;
 		public Connection c;
 	}
 	
@@ -109,7 +110,7 @@ public class SchedulerEngineWorker implements Runnable {
 		final int totalWorkers = conns.size();
 		int currentWorker = 0;
 		for(Connection c : conns) {
-			MasterWorkerCommand esc = null;
+			SeepCommand esc = null;
 			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
 			for(Integer streamId : drefs.keySet()) {
 				for(DataReference dr : drefs.get(streamId)) {

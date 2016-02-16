@@ -48,7 +48,7 @@ public class MaterializeTaskCommandSerializerTest {
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = new HashMap<>();
 		outputs.put(777, refs);
 		
-		return ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
+		return (MasterWorkerCommand) ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
 	}
 	
 	@Test

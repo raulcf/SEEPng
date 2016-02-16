@@ -21,6 +21,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
@@ -180,7 +181,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		SeepCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}
@@ -188,7 +189,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 	private boolean sendScheduleToNodes(Set<Connection> connections){
 		LOG.info("Sending Schedule Deploy Command");
 		// Send physical query to all nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
+		SeepCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
 	}

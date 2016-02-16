@@ -11,6 +11,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -35,14 +36,14 @@ public class ControlAPIImplementation {
 	}
 	
 	public void bootstrap(Connection masterConn, String myIp, int controlPort, int dataPort){
-		MasterWorkerCommand command = ProtocolCommandFactory.buildBootstrapCommand(myIp, controlPort, dataPort);
+		SeepCommand command = ProtocolCommandFactory.buildBootstrapCommand(myIp, controlPort, dataPort);
 		LOG.info("Bootstrapping...");
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 		LOG.info("Bootstrapping OK conn to master: {}", masterConn.toString());
 	}
 	
 	public void signalDeadWorker(Connection masterConn, int workerId, String reason){
-		MasterWorkerCommand command = ProtocolCommandFactory.buildDeadWorkerCommand(workerId, reason);
+		SeepCommand command = ProtocolCommandFactory.buildDeadWorkerCommand(workerId, reason);
 		LOG.info("Sending bye message to master...");
 		// Retry to reconnect to master (master is highly available, will be alive eventually)
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
@@ -50,7 +51,7 @@ public class ControlAPIImplementation {
 	}
 	
 	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
-		MasterWorkerCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput);
+		SeepCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput);
 		LOG.debug("Send stage {} status {} to master...", stageId, status.toString());
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 	}
