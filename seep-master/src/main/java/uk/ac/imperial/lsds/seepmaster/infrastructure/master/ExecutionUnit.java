@@ -9,6 +9,7 @@ public interface ExecutionUnit {
 	public int getId();
 	public String toString();
 	public SeepEndPoint getDataEndPoint();
-	public SeepEndPoint getControlEndPoint();
+	public SeepEndPoint getMasterControlEndPoint();
+	public SeepEndPoint getWorkerControlEndPoint();
 	
 }

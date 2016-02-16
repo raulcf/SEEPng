@@ -3,17 +3,17 @@ package uk.ac.imperial.lsds.seep.comm.protocol;
 public class BootstrapCommand implements CommandType {
 
 	private String ip;
-	private int port;
+	private int masterControlport;
 	private int dataPort;
-	private int controlPort;
+	private int workerControlPort;
 	
 	public BootstrapCommand(){}
 	
 	public BootstrapCommand(String ip, int port, int dataPort, int controlPort){
 		this.ip = ip;
-		this.port = port;
+		this.masterControlport = port;
 		this.dataPort = dataPort;
-		this.controlPort = controlPort;
+		this.workerControlPort = controlPort;
 	}
 	
 	@Override
@@ -25,16 +25,16 @@ public class BootstrapCommand implements CommandType {
 		return ip;
 	}
 	
-	public int getPort() {
-		return port;
+	public int getMasterControlPort() {
+		return masterControlport;
 	}
 	
 	public int getDataPort() {
 		return dataPort;
 	}
 	
-	public int getControlPort() {
-		return controlPort;
+	public int getWorkerControlPort() {
+		return workerControlPort;
 	}
 
 }

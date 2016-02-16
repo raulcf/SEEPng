@@ -4,6 +4,7 @@ import java.net.InetAddress;
 
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnitType;
+import uk.ac.imperial.lsds.seep.infrastructure.MasterControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.WorkerControlEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
@@ -13,13 +14,15 @@ public class PhysicalNode implements ExecutionUnit {
 	private static final ExecutionUnitType executionUnitType = ExecutionUnitType.PHYSICAL_NODE;
 	
 	private DataEndPoint dep;
+	private MasterControlEndPoint mcep;
 	private WorkerControlEndPoint wcep;
 	private int id;
 
-	public PhysicalNode(InetAddress ip, int port, int dataPort, int controlPort) {
-		this.id = Utils.computeIdFromIpAndPort(ip, port);
+	public PhysicalNode(InetAddress ip, int masterControlPort, int dataPort, int workerControlPort) {
+		this.id = Utils.computeIdFromIpAndPort(ip, masterControlPort);
 		this.dep = new DataEndPoint(id, ip.getHostAddress(), dataPort);
-		this.wcep = new WorkerControlEndPoint(id, ip.getHostAddress(), controlPort);
+		this.mcep = new MasterControlEndPoint(id, ip.getHostAddress(), masterControlPort);
+		this.wcep = new WorkerControlEndPoint(id, ip.getHostAddress(), workerControlPort);
 	}
 
 	
@@ -29,8 +32,13 @@ public class PhysicalNode implements ExecutionUnit {
 	}
 
 	@Override
-	public SeepEndPoint getControlEndPoint() {
+	public SeepEndPoint getWorkerControlEndPoint() {
 		return wcep;
+	}
+	
+	@Override
+	public SeepEndPoint getMasterControlEndPoint() {
+		return mcep;
 	}
 
 
