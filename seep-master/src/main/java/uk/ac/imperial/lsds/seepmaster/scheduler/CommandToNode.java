@@ -1,13 +1,13 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 
 public class CommandToNode {
-	public CommandToNode(MasterWorkerCommand command, Connection c){
+	public CommandToNode(SeepCommand command, Connection c){
 		this.command = command;
 		this.c = c;
 	}
-	public MasterWorkerCommand command;
+	public SeepCommand command;
 	public Connection c;
 }

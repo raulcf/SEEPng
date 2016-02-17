@@ -23,8 +23,11 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
@@ -44,7 +47,7 @@ public class MaterializedQueryManager implements QueryManager {
 	private SeepLogicalQuery slq;
 	private int executionUnitsRequiredToStart;
 	private InfrastructureManager inf;
-	private Map<Integer, EndPoint> opToEndpointMapping;
+	private Map<Integer, ControlEndPoint> opToEndpointMapping;
 	private final Comm comm;
 	private final Kryo k;
 	
@@ -57,12 +60,12 @@ public class MaterializedQueryManager implements QueryManager {
 	
 	// convenience method for testing
 	public static MaterializedQueryManager buildTestMaterializedQueryManager(SeepLogicalQuery lsq, 
-			InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, Comm comm) {
+			InfrastructureManager inf, Map<Integer, ControlEndPoint> mapOpToEndPoint, Comm comm) {
 		return new MaterializedQueryManager(lsq, inf, mapOpToEndPoint, comm);
 	}
 	
 	private MaterializedQueryManager(SeepLogicalQuery lsq, InfrastructureManager inf, 
-			Map<Integer, EndPoint> opToEndpointMapping, Comm comm) {
+			Map<Integer, ControlEndPoint> opToEndpointMapping, Comm comm) {
 		this.slq = lsq;
 		this.executionUnitsRequiredToStart = this.computeRequiredExecutionUnits(lsq);
 		this.inf = inf;
@@ -71,7 +74,7 @@ public class MaterializedQueryManager implements QueryManager {
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 	}
 	
-	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, ControlEndPoint> mapOpToEndPoint, 
 			Comm comm, LifecycleManager lifeManager, MasterConfig mc) {
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
@@ -81,7 +84,7 @@ public class MaterializedQueryManager implements QueryManager {
 		this.mc = mc;
 	}
 	
-	public static MaterializedQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
+	public static MaterializedQueryManager getInstance(InfrastructureManager inf, Map<Integer, ControlEndPoint> mapOpToEndPoint, 
 			Comm comm, LifecycleManager lifeManager, MasterConfig mc) {
 		if(qm == null){
 			return new MaterializedQueryManager(inf, mapOpToEndPoint, comm, lifeManager, mc);
@@ -168,9 +171,9 @@ public class MaterializedQueryManager implements QueryManager {
 		return true; 
 	}
 	
-	private Set<Integer> getInvolvedEuIdIn(Collection<EndPoint> values) {
+	private Set<Integer> getInvolvedEuIdIn(Collection<ControlEndPoint> values) {
 		Set<Integer> involvedEUs = new HashSet<>();
-		for(EndPoint ep : values) {
+		for(ControlEndPoint ep : values) {
 			involvedEUs.add(ep.getId());
 		}
 		return involvedEUs;
@@ -213,13 +216,13 @@ public class MaterializedQueryManager implements QueryManager {
 		return inputs;
 	}
 	
-	private Map<Integer, Map<Integer, Set<DataReference>>> generateOutputDataReferences(SeepLogicalQuery slq, Map<Integer, EndPoint> mapping) {
+	private Map<Integer, Map<Integer, Set<DataReference>>> generateOutputDataReferences(SeepLogicalQuery slq, Map<Integer, ControlEndPoint> mapping) {
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = new HashMap<>();
 		// Generate per operator the dataReferences it produces
 		for(LogicalOperator lo : slq.getAllOperators()) {
 			Map<Integer, Set<DataReference>> output = new HashMap<>();
 			int opId = lo.getOperatorId();
-			EndPoint ep = mapping.get(opId);
+			ControlEndPoint ep = mapping.get(opId);
 			// One dataReference per downstream, group by streamId
 			for(DownstreamConnection dc : lo.downstreamConnections()) {
 				DataStore dataStore = dc.getExpectedDataStoreOfDownstream();
@@ -252,7 +255,7 @@ public class MaterializedQueryManager implements QueryManager {
 		Set<Integer> involvedEUId = getInvolvedEuIdIn(opToEndpointMapping.values());
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		// Send start query command
-		MasterWorkerCommand start = ProtocolCommandFactory.buildStartQueryCommand();
+		SeepCommand start = ProtocolCommandFactory.buildStartQueryCommand();
 		comm.send_object_sync(start, connections, k);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_RUNNING);
 		return true;
@@ -270,18 +273,18 @@ public class MaterializedQueryManager implements QueryManager {
 		Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 		
 		// Send start query command
-		MasterWorkerCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
+		SeepCommand stop = ProtocolCommandFactory.buildStopQueryCommand();
 		comm.send_object_sync(stop, connections, k);
 		lifeManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_STOPPED);
 		return true;
 	}
 	
-	public Map<Integer, EndPoint> createMappingOfOperatorWithEndPoint(SeepLogicalQuery slq) {
-		Map<Integer, EndPoint> mapping = new HashMap<>();
+	public Map<Integer, ControlEndPoint> createMappingOfOperatorWithEndPoint(SeepLogicalQuery slq) {
+		Map<Integer, ControlEndPoint> mapping = new HashMap<>();
 		for(LogicalOperator lso : slq.getAllOperators()){
 			int opId = lso.getOperatorId();
 			ExecutionUnit eu = inf.getExecutionUnit();
-			EndPoint ep = eu.getEndPoint();
+			ControlEndPoint ep = eu.getControlEndPoint();
 			LOG.debug("LogicalOperator: {} will run on: {} -> ({})", opId, ep.getId(), ep.getIp().toString());
 			mapping.put(opId, ep);
 		}
@@ -296,18 +299,18 @@ public class MaterializedQueryManager implements QueryManager {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryType, queryFile, definitionClassName, queryArgs, composeMethodName);
+		SeepCommand code = ProtocolCommandFactory.buildCodeCommand(queryType, queryFile, definitionClassName, queryArgs, composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}
 	
 	private void sendMaterializeTaskToNodes(
 			Set<Connection> connections, 
-			Map<Integer, EndPoint> mapping, 
+			Map<Integer, ControlEndPoint> mapping, 
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		LOG.info("Sending materialize task command to nodes...");
-		MasterWorkerCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
+		SeepCommand materializeCommand = ProtocolCommandFactory.buildMaterializeTaskCommand(mapping, inputs, outputs);
 		comm.send_object_sync(materializeCommand, connections, k);
 		LOG.info("Sending materialize task command to nodes...OK");
 	}

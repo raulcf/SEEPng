@@ -11,7 +11,7 @@ import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -41,7 +41,7 @@ public class ScheduleBuilder implements ScheduleAPI {
 	}
 	
 	@Override
-	public Stage createStage(int stageId, int opId, StageType t, EndPoint location) {
+	public Stage createStage(int stageId, int opId, StageType t, ControlEndPoint location) {
 		// TODO: do all error checking here
 		if(t.equals(StageType.SINK_STAGE) && stageId != 0) {
 			LOG.error("Sink stage must have id == 0 (fix this constrain)");

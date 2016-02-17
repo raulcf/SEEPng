@@ -12,7 +12,8 @@ import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManagerFactory;
@@ -25,17 +26,17 @@ public class QueryManagerTest {
 		BaseTest fb = new BaseTest();
 		SeepLogicalQuery lsq = fb.compose();
 		InfrastructureManager inf = InfrastructureManagerFactory.createInfrastructureManager(0);
-		Map<Integer, EndPoint> mapOperatorToEndPoint = null;
+		Map<Integer, ControlEndPoint> mapOperatorToEndPoint = null;
 		Comm cu = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
 		// Artificially populate infrastructure
 		ExecutionUnit eu = null, eu1 = null, eu2 = null, eu3 = null, eu4 = null;
 		try {
-			eu = new PhysicalNode(InetAddress.getByName("10.0.0.1"), 3500, 5000, 7777);
-			eu1 = new PhysicalNode(InetAddress.getByName("10.0.0.2"), 3501, 5001, 7778);
-			eu2 = new PhysicalNode(InetAddress.getByName("10.0.0.3"), 3502, 5002, 7779);
-			eu3 = new PhysicalNode(InetAddress.getByName("10.0.0.4"), 3503, 5003, 7780);
-			eu4 = new PhysicalNode(InetAddress.getByName("10.0.0.5"), 3504, 5004, 7781);
+			eu = new PhysicalNode(InetAddress.getByName("10.0.0.1"), 3500, 5000);
+			eu1 = new PhysicalNode(InetAddress.getByName("10.0.0.2"), 3501, 5001);
+			eu2 = new PhysicalNode(InetAddress.getByName("10.0.0.3"), 3502, 5002);
+			eu3 = new PhysicalNode(InetAddress.getByName("10.0.0.4"), 3503, 5003);
+			eu4 = new PhysicalNode(InetAddress.getByName("10.0.0.5"), 3504, 5004);
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -51,8 +52,8 @@ public class QueryManagerTest {
 		MaterializedQueryManager qm = MaterializedQueryManager.buildTestMaterializedQueryManager(lsq, inf, mapOperatorToEndPoint, cu);
 		
 		// Use helper method to create physical query
-		Map<Integer, EndPoint> m = qm.createMappingOfOperatorWithEndPoint(lsq);
-		for(Entry<Integer, EndPoint> entry : m.entrySet()) {
+		Map<Integer, ControlEndPoint> m = qm.createMappingOfOperatorWithEndPoint(lsq);
+		for(Entry<Integer, ControlEndPoint> entry : m.entrySet()) {
 			System.out.println("OPID: "+entry.getKey()+ " EP: "+entry.getValue());
 		}
 		assert(true);

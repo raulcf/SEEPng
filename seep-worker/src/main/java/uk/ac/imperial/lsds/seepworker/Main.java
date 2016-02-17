@@ -8,25 +8,22 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 
-import joptsimple.OptionParser;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import joptsimple.OptionParser;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
 import uk.ac.imperial.lsds.seep.comm.serialization.JavaSerializer;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.util.RuntimeClassLoader;
 import uk.ac.imperial.lsds.seep.util.Utils;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterCommManager;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerAPIImplementation;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerWorkerCommManager;
+import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
+import uk.ac.imperial.lsds.seepworker.comm.ControlCommManager;
 import uk.ac.imperial.lsds.seepworker.core.Conductor;
 import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 
@@ -37,9 +34,10 @@ public class Main {
 	
 	private void executeWorker(WorkerConfig wc) {
 		int masterPort = wc.getInt(WorkerConfig.MASTER_PORT);
+		String masterIpStr = wc.getString(WorkerConfig.MASTER_IP);
 		InetAddress masterIp = null;
 		try {
-			masterIp = InetAddress.getByName(wc.getString(WorkerConfig.MASTER_IP));
+			masterIp = InetAddress.getByName(masterIpStr);
 		} 
 		catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -47,14 +45,14 @@ public class Main {
 		
 		// Get connection to master node
 		int masterId = Utils.computeIdFromIpAndPort(masterIp, masterPort);
-		Connection masterConnection = new Connection(new EndPoint(masterId, masterIp, masterPort).extractMasterControlEndPoint());
+		ControlEndPoint masterEndPoint = new ControlEndPoint(masterId, masterIpStr, masterPort);
+		Connection masterConnection = new Connection(masterEndPoint);
 		
 		// Read configs with info about IP and port to bind to
-		String myIpStr = wc.getString(WorkerConfig.LISTENING_IP);
+		String myIpStr = wc.getString(WorkerConfig.WORKER_IP);
 		InetAddress myIp = Utils.getIpFromStringRepresentation(myIpStr);//InetAddress.getByName(myIpStr);
-		int myPort = wc.getInt(WorkerConfig.LISTENING_PORT);
-		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		int controlPort = wc.getInt(WorkerConfig.CONTROL_PORT);
+		int dataPort = wc.getInt(WorkerConfig.DATA_PORT);
 		// If no IP is given, then find some local address
 		if(myIp == null) {
 			myIp = Utils.getLocalIp();
@@ -64,7 +62,7 @@ public class Main {
 		Comm comm = new IOComm(new JavaSerializer(), Executors.newCachedThreadPool());
 		
 		// Create master-worker API handler (to send commands to master)
-		WorkerMasterAPIImplementation api = new WorkerMasterAPIImplementation(comm, wc);
+		ControlAPIImplementation api = new ControlAPIImplementation(comm, wc);
 		
 		// Create DataReferenceManager
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(wc);
@@ -74,23 +72,18 @@ public class Main {
 		
 		// Create and start master-worker communication manager (to receive commands from master)
 		RuntimeClassLoader rcl = new RuntimeClassLoader(new URL[0], this.getClass().getClassLoader());
-		WorkerMasterCommManager wmcm = new WorkerMasterCommManager(myIp, myPort, wc, rcl, c);
+		ControlCommManager wmcm = new ControlCommManager(myIp, controlPort, wc, rcl, c);
 		wmcm.start();
-		
-		// Start worker-worker communication manager
-		WorkerWorkerAPIImplementation apiWorker = new WorkerWorkerAPIImplementation(comm, c, wc);
-		WorkerWorkerCommManager wwcm = new WorkerWorkerCommManager(myIp, controlPort, apiWorker);
-		wwcm.start();
 		
 		// Bootstrap
 		myIpStr = Utils.getStringRepresentationOfIp(myIp);
-		api.bootstrap(masterConnection, myIpStr, myPort, dataPort, controlPort);
+		api.bootstrap(masterConnection, myIpStr, controlPort, dataPort);
 		
 		// Configure metrics serving
 		this.configureMetricsReporting(wc);
 		
 		// Register JVM shutdown hook
-		registerShutdownHook(Utils.computeIdFromIpAndPort(myIp, myPort), c, masterConnection, api);
+		registerShutdownHook(Utils.computeIdFromIpAndPort(myIp, controlPort), c, masterConnection, api);
 	}
 	
 	private void configureMetricsReporting(WorkerConfig wc){
@@ -147,7 +140,7 @@ public class Main {
 	}
 	
 	private static void registerShutdownHook(int workerId, Conductor c, Connection masterConn, 
-											WorkerMasterAPIImplementation api){
+											ControlAPIImplementation api){
 		Thread hook = new Thread(new WorkerShutdownHookWorker(workerId, c, masterConn, api));
 		Runtime.getRuntime().addShutdownHook(hook);
 	}

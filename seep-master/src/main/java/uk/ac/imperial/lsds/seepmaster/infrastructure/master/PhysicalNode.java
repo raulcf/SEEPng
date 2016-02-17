@@ -2,7 +2,8 @@ package uk.ac.imperial.lsds.seepmaster.infrastructure.master;
 
 import java.net.InetAddress;
 
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.ExecutionUnitType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
@@ -10,18 +11,27 @@ public class PhysicalNode implements ExecutionUnit {
 
 	private static final ExecutionUnitType executionUnitType = ExecutionUnitType.PHYSICAL_NODE;
 	
-	private EndPoint ep;
+	private ControlEndPoint cep;
+	private DataEndPoint dep;
 	private int id;
 
-	public PhysicalNode(InetAddress ip, int port, int dataPort, int controlPort) {
-		this.id = Utils.computeIdFromIpAndPort(ip, port);
-		this.ep = new EndPoint(id, ip, port, dataPort, controlPort);
+	public PhysicalNode(InetAddress ip, int controlPort, int dataPort) {
+		this.id = Utils.computeIdFromIpAndPort(ip, controlPort);
+		this.dep = new DataEndPoint(id, ip.getHostAddress(), dataPort);
+		this.cep = new ControlEndPoint(id, ip.getHostAddress(), controlPort);
 	}
 
+	
 	@Override
-	public EndPoint getEndPoint() {
-		return ep;
+	public DataEndPoint getDataEndPoint() {
+		return dep;
 	}
+	
+	@Override
+	public ControlEndPoint getControlEndPoint() {
+		return cep;
+	}
+
 
 	@Override
 	public int getId() {
@@ -37,11 +47,13 @@ public class PhysicalNode implements ExecutionUnit {
 	public String toString(){
 		String ls = System.getProperty("line.separator");
 		StringBuilder sb = new StringBuilder();
-		sb.append("TYPE: "+executionUnitType.name());
+		sb.append("TYPE: " + executionUnitType.name());
 		sb.append(ls);
-		sb.append("IP: "+ep.getIp().toString());
+		sb.append("IP: " + dep.getIp().toString());
 		sb.append(ls);
-		sb.append("PORT: "+ep.getPort());
+		sb.append("Data-PORT: " + dep.getPort());
+		sb.append(ls);
+		sb.append("Control-PORT: " + cep.getPort());
 		sb.append(ls);
 		return sb.toString();
 	}

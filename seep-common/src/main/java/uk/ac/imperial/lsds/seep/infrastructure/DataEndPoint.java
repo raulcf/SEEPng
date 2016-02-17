@@ -51,7 +51,7 @@ public class DataEndPoint implements SeepEndPoint {
 	}
 
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(this.ip.toString()+" dataPort: "+this.dataPort);
 		return sb.toString();

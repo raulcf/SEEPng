@@ -6,18 +6,19 @@ import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.comm.serialization.MapWrapper;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 
 public class MaterializeTaskCommand implements CommandType {
 	
-	private Map<Integer, EndPoint> mapping;
+	private Map<Integer, ControlEndPoint> mapping;
 	private Map<Integer, MapWrapper> inputs;
 	private Map<Integer, MapWrapper> outputs;
 	
 	public MaterializeTaskCommand() { }
 	
 	public MaterializeTaskCommand(
-			Map<Integer, EndPoint> mapping, 
+			Map<Integer, ControlEndPoint> mapping, 
 			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
 			Map<Integer, Map<Integer, Set<DataReference>>> outputs) { 
 		this.mapping = mapping;
@@ -59,7 +60,7 @@ public class MaterializeTaskCommand implements CommandType {
 		return rOutputs;
 	}
 	
-	public Map<Integer, EndPoint> getMapping() {
+	public Map<Integer, ControlEndPoint> getMapping() {
 		return mapping;
 	}
 	

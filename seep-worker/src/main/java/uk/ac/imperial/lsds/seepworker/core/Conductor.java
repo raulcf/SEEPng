@@ -30,14 +30,15 @@ import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
-import uk.ac.imperial.lsds.seepworker.comm.WorkerMasterAPIImplementation;
+import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
@@ -51,13 +52,13 @@ public class Conductor {
 	
 	private WorkerConfig wc;
 	private InetAddress myIp;
-	private WorkerMasterAPIImplementation masterApi;
+	private ControlAPIImplementation masterApi;
 	private Connection masterConn;
 	private Comm comm;
 	private Kryo k;
 	private int id;
 	private SeepLogicalQuery query;
-	private Map<Integer, EndPoint> mapping;
+	private Map<Integer, ControlEndPoint> mapping;
 	// TODO: these two are only specific to materialise tasks
 	private Map<Integer, Map<Integer, Set<DataReference>>> inputs;
 	private Map<Integer, Map<Integer, Set<DataReference>>> outputs;
@@ -74,7 +75,7 @@ public class Conductor {
 	private Map<Stage, ScheduleTask> scheduleTasks;
 	private ScheduleDescription sd;
 	
-	public Conductor(InetAddress myIp, WorkerMasterAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm, DataReferenceManager drm){
+	public Conductor(InetAddress myIp, ControlAPIImplementation masterApi, Connection masterConn, WorkerConfig wc, Comm comm, DataReferenceManager drm){
 		this.myIp = myIp;
 		this.masterApi = masterApi;
 		this.masterConn = masterConn;
@@ -86,7 +87,11 @@ public class Conductor {
 		this.registerFlag = new CountDownLatch(1);
 	}
 	
-	public void materializeAndConfigureTask(int id, SeepLogicalQuery q, Map<Integer, EndPoint> mapping, Map<Integer, Map<Integer, Set<DataReference>>> inputs, Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
+	public void materializeAndConfigureTask(int id, 
+			SeepLogicalQuery q, 
+			Map<Integer, ControlEndPoint> mapping, 
+			Map<Integer, Map<Integer, Set<DataReference>>> inputs, 
+			Map<Integer, Map<Integer, Set<DataReference>>> outputs) {
 		this.id = id;
 		this.query = q;
 		this.mapping = mapping;
@@ -191,7 +196,8 @@ public class Conductor {
 		
 		// Request (possibly) remote chunks in case of scheduling a shuffled stage
 		if(s.hasPartitionedState()) {
-			// We pass our info---as the target EndPoint of the comm---and the workers will push their data to us
+			// We pass our info---as the target EndPoint of the comm---and the 
+			// workers will push their data to us
 			coreInput.requestInputConnections(comm, k, myIp);
 		}
 
@@ -218,10 +224,10 @@ public class Conductor {
 			// TODO: create a DR per partition and assign the partitionSeqId
 			for(int i = 0; i < numPartitions; i++) {
 				DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-				EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
+				ControlEndPoint cep = new ControlEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.CONTROL_PORT));
 				DataReference dr = null;
 				int partitionId = i;
-				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, endPoint, ServeMode.STORE, partitionId);
+				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, cep, ServeMode.STORE, partitionId);
 				drefs.add(dr);
 			}
 			output.put(streamId, drefs);
@@ -231,14 +237,14 @@ public class Conductor {
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-			EndPoint endPoint = new EndPoint(id, myIp, wc.getInt(WorkerConfig.LISTENING_PORT), wc.getInt(WorkerConfig.DATA_PORT)); // me
+			ControlEndPoint cep = new ControlEndPoint(id, myIp.toString(), wc.getInt(WorkerConfig.CONTROL_PORT));
 			DataReference dr = null;
 			// TODO: is this enough?
 			if(s.getStageType().equals(StageType.SINK_STAGE)) {
 				dr = DataReference.makeSinkExternalDataReference(dataStore);
 			}
 			else {
-				dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
+				dr = DataReference.makeManagedDataReference(dataStore, cep, ServeMode.STORE);
 			}
 			drefs.add(dr);
 			output.put(streamId, drefs);
@@ -275,7 +281,7 @@ public class Conductor {
 	}
 
 	private int getOpIdLivingInThisEU(int id) {
-		for(Entry<Integer, EndPoint> entry : mapping.entrySet()) {
+		for(Entry<Integer, ControlEndPoint> entry : mapping.entrySet()) {
 			if(entry.getValue().getId() == id) return entry.getKey();
 		}
 		return -1;

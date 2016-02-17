@@ -12,14 +12,14 @@ import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -93,6 +93,73 @@ public class SchedulerEngineWorker implements Runnable {
 		}
 	}
 	
+//	private class CommandToNode {
+//		public CommandToNode(SeepCommand command, Connection c){
+//			this.command = command;
+//			this.c = c;
+//		}
+//		public SeepCommand command;
+//		public Connection c;
+//	}
+//	
+//	// TODO: straw-man solution
+//	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
+//	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
+//		// All input data references to process during next stage
+//		int nextStageId = nextStage.getStageId();
+//		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
+//		
+//		// Split input DataReference per worker to maximize locality (not load balancing)
+//		List<CommandToNode> commands = new ArrayList<>();
+//		final int totalWorkers = conns.size();
+//		int currentWorker = 0;
+//		for(Connection c : conns) {
+//			SeepCommand esc = null;
+//			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
+//			for(Integer streamId : drefs.keySet()) {
+//				for(DataReference dr : drefs.get(streamId)) {
+//					// EXTERNAL. assign one and continue
+//					if(! dr.isManaged()) {
+//						assignDataReferenceToWorker(perWorker, streamId, dr);
+//						currentWorker++;
+//						break;
+//					}
+//					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
+//					else {
+//						// SHUFFLE/PARTITIONED CASE
+//						if(dr.isPartitioned()) {
+//							// In this case, assign to this worker all DataReference with seqId module
+//							int partitionSeqId = dr.getPartitionId();
+//							if(partitionSeqId % totalWorkers == currentWorker) {
+//								assignDataReferenceToWorker(perWorker, streamId, dr);
+//							}
+//						}
+//						// NORMAL CASE, MAKE LOCALITY=LOCAL
+//						else if(dr.getDataEndPoint().getId() == c.getId()) {
+//							// assign
+//							assignDataReferenceToWorker(perWorker, streamId, dr);
+//						}
+//					}
+//				}
+//				currentWorker++;
+//			}
+//			// FIXME: what is outputdatareferences
+//			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
+//					perWorker, nextStage.getOutputDataReferences());
+//			CommandToNode ctn = new CommandToNode(esc, c);
+//			commands.add(ctn);
+//		}
+//		return commands;
+//	}
+//	
+//	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
+//		if(! perWorker.containsKey(streamId)) {
+//			perWorker.put(streamId, new HashSet<>());
+//		}
+//		perWorker.get(streamId).add(dr);
+//	}
+//	
+
 	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
 		Set<Connection> cons = new HashSet<>();
 		// In this case DataReference do not necessarily contain EndPoint information
@@ -100,15 +167,15 @@ public class SchedulerEngineWorker implements Runnable {
 			//TODO: probably this won't work later
 			// Simply report all nodes
 			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
-				Connection conn = new Connection(eu.getEndPoint().extractMasterControlEndPoint());
+				Connection conn = new Connection(eu.getControlEndPoint());
 				cons.add(conn);
 			}
 		}
 		// If not first stages, then DataReferences contain the right EndPoint information
 		else {
-			Set<EndPoint> eps = stage.getInvolvedNodes();
-			for(EndPoint ep : eps) {
-				Connection c = new Connection(ep.extractMasterControlEndPoint());
+			Set<SeepEndPoint> eps = stage.getInvolvedNodes();
+			for(SeepEndPoint ep : eps) {
+				Connection c = new Connection(ep);
 				cons.add(c);
 			}
 		}

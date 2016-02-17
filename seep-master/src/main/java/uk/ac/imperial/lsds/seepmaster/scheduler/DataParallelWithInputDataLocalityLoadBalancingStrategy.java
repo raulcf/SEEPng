@@ -11,6 +11,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 
 public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements LoadBalancingStrategy {
@@ -26,7 +27,7 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 		final int totalWorkers = conns.size();
 		int currentWorker = 0;
 		for(Connection c : conns) {
-			MasterWorkerCommand esc = null;
+			SeepCommand esc = null;
 			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
 			for(Integer streamId : drefs.keySet()) {
 				for(DataReference dr : drefs.get(streamId)) {
@@ -47,7 +48,7 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 							}
 						}
 						// NORMAL CASE, MAKE LOCALITY=LOCAL
-						else if(dr.getEndPoint().getId() == c.getId()) {
+						else if(dr.getControlEndPoint().getId() == c.getId()) {
 							// assign
 							assignDataReferenceToWorker(perWorker, streamId, dr);
 						}

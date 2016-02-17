@@ -2,7 +2,8 @@ package uk.ac.imperial.lsds.seep.api;
 
 import java.rmi.server.UID;
 
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 
 public final class DataReference {
 	
@@ -41,18 +42,9 @@ public final class DataReference {
 	/**
 	 * The endPoint to whom one should contact to request the DR
 	 */
-	private final EndPoint endPoint;
+	private final ControlEndPoint endPoint;
 	
-	private DataReference(EndPoint endPoint) {
-		this.ownerId = new UID().hashCode();
-		this.endPoint = endPoint;
-		this.managed = true;
-		this.dataStore = null;
-		this.serveMode = ServeMode.EMPTY;
-		this.partitioned = false;
-	}
-	
-	private DataReference(int uid, DataStore dataStore, EndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode) {
+	private DataReference(int uid, DataStore dataStore, ControlEndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode) {
 		this.ownerId = uid;
 		this.dataStore = dataStore;
 		this.endPoint = endPoint;
@@ -61,7 +53,7 @@ public final class DataReference {
 		this.serveMode = serveMode;
 	}
 	
-	private DataReference(DataStore dataStore, EndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode, int partitionId) {
+	private DataReference(DataStore dataStore, ControlEndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode, int partitionId) {
 		this.ownerId = new UID().hashCode();
 		this.dataStore = dataStore;
 		this.endPoint = endPoint;
@@ -71,23 +63,33 @@ public final class DataReference {
 		this.partitionId = partitionId;
 	}
 	
-	public static DataReference makeEmptyDataReference(EndPoint endPoint) {
-		return new DataReference(endPoint);
+	private DataReference(ControlEndPoint endPoint) {
+		this.ownerId = new UID().hashCode();
+		this.dataStore = null;
+		this.endPoint = endPoint;
+		this.managed = true;
+		this.partitioned = false;
+		this.serveMode = ServeMode.STORE;
+		this.partitionId = -1;
 	}
 	
-	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
+    public static DataReference makeEmptyDataReference(ControlEndPoint endPoint) {
+        return new DataReference(endPoint);
+    }
+
+	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, ControlEndPoint endPoint, ServeMode serveMode) {
 		return new DataReference(ownerId, dataStore, endPoint, true, false, serveMode);
 	}
 	
-	public static DataReference makeManagedAndPartitionedDataReferenceWithOwner(int ownerId, DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
+	public static DataReference makeManagedAndPartitionedDataReferenceWithOwner(int ownerId, DataStore dataStore, ControlEndPoint endPoint, ServeMode serveMode) {
 		return new DataReference(ownerId, dataStore, endPoint, true, true, serveMode);
 	}
 	
-	public static DataReference makeManagedDataReference(DataStore dataStore, EndPoint endPoint, ServeMode serveMode) {
+	public static DataReference makeManagedDataReference(DataStore dataStore, ControlEndPoint endPoint, ServeMode serveMode) {
 		return new DataReference(dataStore, endPoint, true, false, serveMode, -1);
 	}
 	
-	public static DataReference makeManagedAndPartitionedDataReference(DataStore dataStore, EndPoint endPoint, ServeMode serveMode, int partitionId) {
+	public static DataReference makeManagedAndPartitionedDataReference(DataStore dataStore, ControlEndPoint endPoint, ServeMode serveMode, int partitionId) {
 		return new DataReference(dataStore, endPoint, true, true, serveMode, partitionId);
 	}
 	
@@ -113,7 +115,7 @@ public final class DataReference {
 		return dataStore;
 	}
 	
-	public EndPoint getEndPoint() {
+	public SeepEndPoint getControlEndPoint() {
 		return endPoint;
 	}
 	

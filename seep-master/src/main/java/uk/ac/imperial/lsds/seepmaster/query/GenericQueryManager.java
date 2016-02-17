@@ -10,7 +10,8 @@ import uk.ac.imperial.lsds.seep.api.QueryType;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
@@ -28,20 +29,26 @@ public class GenericQueryManager implements QueryManager {
 	private QueryManager qm;
 	
 	private InfrastructureManager inf;
-	private Map<Integer, EndPoint> opToEndpointMapping;
+	private Map<Integer, ControlEndPoint> opToEndpointMapping;
 	private Comm comm;
 	private LifecycleManager lifeManager;
 	
-	public static GenericQueryManager getInstance(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
-			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+	public static GenericQueryManager getInstance(InfrastructureManager inf, 
+			Map<Integer, ControlEndPoint> mapOpToEndPoint, 
+			Comm comm, 
+			LifecycleManager lifeManager, 
+			MasterConfig mc){
 		if(gqm == null){
 			gqm = new GenericQueryManager(inf, mapOpToEndPoint, comm, lifeManager, mc);
 		}
 		return gqm;
 	}
 	
-	private GenericQueryManager(InfrastructureManager inf, Map<Integer, EndPoint> mapOpToEndPoint, 
-			Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+	private GenericQueryManager(InfrastructureManager inf, 
+			Map<Integer, ControlEndPoint> mapOpToEndPoint, 
+			Comm comm, 
+			LifecycleManager lifeManager, 
+			MasterConfig mc){
 		this.inf = inf;
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;

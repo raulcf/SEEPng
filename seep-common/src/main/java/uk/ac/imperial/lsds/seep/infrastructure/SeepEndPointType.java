@@ -1,9 +1,9 @@
 package uk.ac.imperial.lsds.seep.infrastructure;
 
 public enum SeepEndPointType {
-	MASTER_CONTROL(0),
-	WORKER_CONTROL(1),
-	DATA(2);
+	
+	CONTROL(0),
+	DATA(1);
 	
 	private int type;
 	

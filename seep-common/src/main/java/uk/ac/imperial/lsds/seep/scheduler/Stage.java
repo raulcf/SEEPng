@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
@@ -19,7 +20,7 @@ public class Stage {
 	 * Indicates the location where the stage *should* execute. 
 	 * Maybe a scheduler can overwrite this info
 	 */
-	private EndPoint location;
+	private ControlEndPoint location;
 	
 	/**
 	 * A stage can be of type source (first to execute), unique (only one in the schedule)
@@ -70,7 +71,7 @@ public class Stage {
 		return stageId;
 	}
 	
-	public EndPoint getStageLocation() {
+	public ControlEndPoint getStageLocation() {
 		return location;
 	}
 	
@@ -97,12 +98,15 @@ public class Stage {
 		return outputDataReferences;
 	}
 	
-	public Set<EndPoint> getInvolvedNodes() {
+	public Set<SeepEndPoint> getInvolvedNodes() {
 		// FIXME: cannot depend on DR, as these can be external, i.e. no endpoint inside
-		Set<EndPoint> in = new HashSet<>();
+		// FIXME: NEW -> what about location attribute?
+		Set<SeepEndPoint> in = new HashSet<>();
+		// FIXME: not all inputDAtaReferences, but those with same id. use set here
+		// otherwise we create a connection per partition, which is wrong
 		for(Set<DataReference> drs : inputDataReferences.values()) {
 			for(DataReference dr : drs) {
-				in.add(dr.getEndPoint());
+				in.add(dr.getControlEndPoint());
 			}
 		}
 		return in;
@@ -141,7 +145,7 @@ public class Stage {
 		return hasMultipleInput;
 	}
 	
-	public void setStageLocation(EndPoint location) {
+	public void setStageLocation(ControlEndPoint location) {
 		this.location = location;
 	}
 	

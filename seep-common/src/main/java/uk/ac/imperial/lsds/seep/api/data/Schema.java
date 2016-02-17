@@ -190,7 +190,7 @@ public class Schema {
 	}
 	
 	private static class DefaultParser implements SchemaParser {
-		private Charset encoding = Charset.defaultCharset();
+		private String encoding = Charset.defaultCharset().name();
 		private static DefaultParser instance = null;		
 
 		private DefaultParser(){}
@@ -203,7 +203,7 @@ public class Schema {
 		}
 		
 		public byte[] bytesFromString(String textRecord) {
-			byte[] byteline = textRecord.getBytes(encoding);
+			byte[] byteline = textRecord.getBytes(Charset.forName(encoding));
 			ByteBuffer b = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) + byteline.length);
 			b.putInt(byteline.length);
 			b.put(byteline);
@@ -216,11 +216,11 @@ public class Schema {
 			return new String(wrapper.array());
 		}
 		
-		public Charset getCharset() {
+		public String getCharsetName() {
 			return encoding;
 		}
 		
-		public void setCharset(Charset newencoding) {
+		public void setCharset(String newencoding) {
 			encoding = newencoding;
 		}
 	}

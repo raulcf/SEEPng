@@ -17,7 +17,8 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 import uk.ac.imperial.lsds.seepworker.core.Dataset;
@@ -27,7 +28,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void test() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -42,7 +43,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -87,7 +88,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testMultipleBuffers() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -102,7 +103,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -134,7 +135,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testWriteReadMicrobenchmark() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -149,7 +150,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		
@@ -188,7 +189,7 @@ public class DatasetInputAdapterTest {
 	@Test
 	public void testWriteReadMicrobenchmarkIsolated() {
 		Properties p = new Properties();
-		p.setProperty(WorkerConfig.LISTENING_IP, "");
+		p.setProperty(WorkerConfig.WORKER_IP, "");
 		p.setProperty(WorkerConfig.MASTER_IP, "");
 		p.setProperty(WorkerConfig.PROPERTIES_FILE, "");
 		WorkerConfig wc = new WorkerConfig(p);
@@ -203,7 +204,7 @@ public class DatasetInputAdapterTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		EndPoint endPoint = new EndPoint(0, whatever, 0, 0); // me
+		ControlEndPoint endPoint = new ControlEndPoint(0, whatever.getHostAddress(), 0); // me
 		DataReference dr = DataReference.makeManagedDataReference(dataStore, endPoint, ServeMode.STORE);
 		
 		

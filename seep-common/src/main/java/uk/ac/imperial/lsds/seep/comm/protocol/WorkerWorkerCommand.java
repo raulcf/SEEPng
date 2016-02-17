@@ -32,6 +32,11 @@ public class WorkerWorkerCommand implements SeepCommand {
 		}
 	}
 	
+	@Override
+	public short familyType() {
+		return CommandFamilyType.WORKERCOMMAND.ofType();
+	}
+	
 	public short type(){
 		return type;
 	}
@@ -47,5 +52,6 @@ public class WorkerWorkerCommand implements SeepCommand {
 	public RequestDataReferenceCommand getRequestDataReferenceCommand() {
 		return rdrc;
 	}
+
 }
 

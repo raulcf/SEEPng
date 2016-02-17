@@ -36,12 +36,11 @@ public class MasterWorkerAPIImplementation {
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		int port = bc.getPort();
 		int dataPort = bc.getDataPort();
 		int controlPort = bc.getControlPort();
-		int workerId = Utils.computeIdFromIpAndPort(bootIp, port);
-		LOG.info("New worker [id-> {}] node in {}:{}, dataPort: {}, controlPort: {}", workerId, bootIp.toString(), port, dataPort, controlPort);
-		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, port, dataPort, controlPort);
+		int workerId = Utils.computeIdFromIpAndPort(bootIp, controlPort);
+		LOG.info("New worker [id-> {}] node in {}:{}, dataPort: {}", workerId, bootIp.toString(), controlPort, dataPort);
+		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, controlPort, dataPort);
 		inf.addExecutionUnit(eu);
 	}
 	

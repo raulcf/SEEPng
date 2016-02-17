@@ -4,7 +4,7 @@ import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.infrastructure.EndPoint;
+import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -23,13 +23,13 @@ public class ScheduleAPITest implements ScheduleComposer {
 		LogicalOperator snk = schedAPI.newStatelessSink(new CustomSink(), 2);
 		
 		// Then add the operators in stages
-		EndPoint location = null;
+		ControlEndPoint location = null;
 		Stage source = schedAPI.createStage(0, src.getOperatorId(), StageType.SOURCE_STAGE, location);
 		
-		EndPoint location2 = null;
+		ControlEndPoint location2 = null;
 		Stage intermediate = schedAPI.createStage(1, p.getOperatorId(), StageType.INTERMEDIATE_STAGE, location2);
 		
-		EndPoint location3 = null;
+		ControlEndPoint location3 = null;
 		Stage sink = schedAPI.createStage(2, snk.getOperatorId(), StageType.SINK_STAGE, location3);
 		
 		// Create the schedule by chaining the stages
