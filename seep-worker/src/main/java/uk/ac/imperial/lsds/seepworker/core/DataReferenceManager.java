@@ -155,7 +155,7 @@ public class DataReferenceManager {
 	public IBuffer getSyntheticDataset(DataReference dr) {
 		
 		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(99);//3999);
+		ByteBuffer d = ByteBuffer.allocate(3999);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();
