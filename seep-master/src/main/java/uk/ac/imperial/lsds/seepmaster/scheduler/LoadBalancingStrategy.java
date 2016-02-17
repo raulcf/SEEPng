@@ -1,12 +1,11 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import java.util.List;
-import java.util.Set;
 
-import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 public interface LoadBalancingStrategy {
 
-	public List<CommandToNode> assignWorkToWorkers(Stage stage, Set<Connection> conns);
+	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf);
 }

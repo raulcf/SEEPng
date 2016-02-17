@@ -18,6 +18,7 @@ import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seep.core.InputAdapterReturnType;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaDataStream;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
 import uk.ac.imperial.lsds.seepworker.core.Dataset;
 
 public class InputAdapterFactory {
@@ -26,7 +27,92 @@ public class InputAdapterFactory {
 	
 	final static private Logger LOG = LoggerFactory.getLogger(IOComm.class.getName());
 	
-	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
+	public static List<InputAdapter> buildInputAdapterForStreamId(WorkerConfig wc, 
+			int streamId, 
+			List<IBuffer> buffers, 
+			Set<DataReference> drefs, 
+			ConnectionType connType,
+			DataReferenceManager drm) {
+		List<InputAdapter> ias = new ArrayList<>();
+		List<InputAdapter> ias_dataset = new ArrayList<>();
+		List<InputAdapter> ias_network = new ArrayList<>();
+		List<InputAdapter> ias_file = new ArrayList<>();
+		List<InputAdapter> ias_kafka = new ArrayList<>();
+		
+		List<Dataset> datasets = new ArrayList<>();
+		List<IBuffer> network_buffers = new ArrayList<>();
+		List<IBuffer> file_buffers = new ArrayList<>();
+		List<IBuffer> kafka_buffers = new ArrayList<>();
+		
+		for(IBuffer ib : buffers) {
+			DataReference dRef = ib.getDataReference();
+			boolean dRefManaged = dRef.isManaged();
+			DataStoreType type = dRef.getDataStore().type();
+			
+			// Exception, when SYNTHETIC, simply add Dataset and continue
+			if(type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+				datasets.add((Dataset)ib);
+				continue;
+			}
+			
+			// Exception, when ib is FacadeInputBuffer, simply add the InputAdapter and continue
+			if(ib instanceof FacadeInputBuffer) {
+				InputAdapter ia = buildFacadeInputAdapter(streamId, ib);
+				ias.add(ia); // add directly here
+				continue;
+			}
+			
+			if(dRefManaged) {
+				// The DR is managed by SEEP
+				if(drm.doesManageDataReference(dRef.getId()) != null) {
+					// In this node. We should have a dataset
+					if(! (ib instanceof Dataset)) {
+						// throw error
+					}
+					datasets.add((Dataset)ib);
+				}
+				else {
+					// If NOT in this node. Request a NETWORK conn and we should have InputBuffer
+					if(! (ib instanceof InputBuffer)) {
+						// throw error
+					}
+					network_buffers.add(ib);
+				}
+			}
+			else if(!dRefManaged) {
+				if (type.equals(DataStoreType.NETWORK)) {
+					network_buffers.add(ib);
+				}
+				else if(type.equals(DataStoreType.FILE)) {
+					file_buffers.add(ib);
+				}
+				else if(type.equals(DataStoreType.KAFKA)) {
+					kafka_buffers.add(ib);
+				}
+			}
+		}
+		
+		if(! datasets.isEmpty()) {
+			ias_dataset = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
+		}
+		if(! network_buffers.isEmpty()) {
+			ias_network = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, network_buffers, connType);
+		}
+		if(! file_buffers.isEmpty()) {
+			ias_file = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, file_buffers, connType);
+		}
+		if(! kafka_buffers.isEmpty()) {
+			ias_kafka = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, kafka_buffers, connType);
+		}
+		
+		ias.addAll(ias_dataset);
+		ias.addAll(ias_network);
+		ias.addAll(ias_file);
+		ias.addAll(ias_kafka);
+		return ias;
+	}
+	
+	public static List<InputAdapter> _buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
 		List<InputAdapter> ias = new ArrayList<>();
 		List<InputAdapter> ias_dataset = new ArrayList<>();
 		List<InputAdapter> ias_network = new ArrayList<>();
@@ -90,52 +176,52 @@ public class InputAdapterFactory {
 		return ia;
 	}
 	
-	@Deprecated
-	public static List<InputAdapter> _buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
-		List<InputAdapter> ias = new ArrayList<>();
-		
-		List<InputAdapter> ias_dataset = new ArrayList<>();
-		List<InputAdapter> ias_network = new ArrayList<>();
-		List<InputAdapter> ias_file = new ArrayList<>();
-		List<InputAdapter> ias_kafka = new ArrayList<>();
-		
-		// Iterate through DataReference to understand what type of InputAdapter they need
-		for(DataReference dRef : drefs) {
-			// The case of locally serving a DataReference.
-			// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
-			DataStoreType type = dRef.getDataStore().type();
-			if(dRef.isManaged() && dRef.getServeMode().equals(ServeMode.STORE) || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
-				List<Dataset> datasets = new ArrayList<>();
-				for(IBuffer iBuf : buffers){
-					if( ! (iBuf instanceof Dataset)) {
-						// TODO: throw some exception here, what other method is there to host managed data otherwise?
-						LOG.error("iBuf is not a Dataset!");
-						System.exit(0);
-					}
-					datasets.add((Dataset)iBuf);
-				}
-				ias_dataset = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
-			}
-			else{
-				if(type.equals(DataStoreType.NETWORK)) {
-					ias_network = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
-				}
-				else if(type.equals(DataStoreType.FILE)) {
-					ias_file = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
-				}
-				else if(type.equals(DataStoreType.KAFKA)) {
-					ias_kafka = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
-				}
-			}
-		}
-
-		ias.addAll(ias_dataset);
-		ias.addAll(ias_network);
-		ias.addAll(ias_file);
-		ias.addAll(ias_kafka);
-		
-		return ias;
-	}
+//	@Deprecated
+//	public static List<InputAdapter> _buildInputAdapterForStreamId(WorkerConfig wc, int streamId, List<IBuffer> buffers, Set<DataReference> drefs, ConnectionType connType) {
+//		List<InputAdapter> ias = new ArrayList<>();
+//		
+//		List<InputAdapter> ias_dataset = new ArrayList<>();
+//		List<InputAdapter> ias_network = new ArrayList<>();
+//		List<InputAdapter> ias_file = new ArrayList<>();
+//		List<InputAdapter> ias_kafka = new ArrayList<>();
+//		
+//		// Iterate through DataReference to understand what type of InputAdapter they need
+//		for(DataReference dRef : drefs) {
+//			// The case of locally serving a DataReference.
+//			// Note that although SEEP_SYNTHETIC_GEN is declared as external, it's just faked.
+//			DataStoreType type = dRef.getDataStore().type();
+//			if(dRef.isManaged() && dRef.getServeMode().equals(ServeMode.STORE) || type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+//				List<Dataset> datasets = new ArrayList<>();
+//				for(IBuffer iBuf : buffers){
+//					if( ! (iBuf instanceof Dataset)) {
+//						// TODO: throw some exception here, what other method is there to host managed data otherwise?
+//						LOG.error("iBuf is not a Dataset!");
+//						System.exit(0);
+//					}
+//					datasets.add((Dataset)iBuf);
+//				}
+//				ias_dataset = buildInputAdapterOfTypeDatasetForOps(wc, streamId, drefs, datasets);
+//			}
+//			else{
+//				if(type.equals(DataStoreType.NETWORK)) {
+//					ias_network = buildInputAdapterOfTypeNetworkForOps(wc, streamId, drefs, buffers, connType);
+//				}
+//				else if(type.equals(DataStoreType.FILE)) {
+//					ias_file = buildInputAdapterOfTypeFileForOps(wc, streamId, drefs, buffers, connType);
+//				}
+//				else if(type.equals(DataStoreType.KAFKA)) {
+//					ias_kafka = buildInputAdapterOfTypeKafkaForOps(wc, streamId, drefs, buffers, connType);
+//				}
+//			}
+//		}
+//
+//		ias.addAll(ias_dataset);
+//		ias.addAll(ias_network);
+//		ias.addAll(ias_file);
+//		ias.addAll(ias_kafka);
+//		
+//		return ias;
+//	}
 	
 	private static List<InputAdapter> buildInputAdapterOfTypeDatasetForOps(
 			WorkerConfig wc, int streamId, Set<DataReference> drefs, List<Dataset> datasets){

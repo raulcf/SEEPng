@@ -53,7 +53,7 @@ public class CoreInputFactory {
 				buffers.add(ib);
 			}
 			ConnectionType ct = connTypeInformation.get(streamId);
-			List<InputAdapter> ias = InputAdapterFactory.buildInputAdapterForStreamId(wc, streamId, buffers, drefs, ct);
+			List<InputAdapter> ias = InputAdapterFactory.buildInputAdapterForStreamId(wc, streamId, buffers, drefs, ct, drm);
 			inputAdapters.addAll(ias);
 		}
 		CoreInput ci = new CoreInput(wc, input, iBuffers, inputAdapters);

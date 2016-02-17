@@ -102,8 +102,6 @@ public class Stage {
 		// FIXME: cannot depend on DR, as these can be external, i.e. no endpoint inside
 		// FIXME: NEW -> what about location attribute?
 		Set<SeepEndPoint> in = new HashSet<>();
-		// FIXME: not all inputDAtaReferences, but those with same id. use set here
-		// otherwise we create a connection per partition, which is wrong
 		for(Set<DataReference> drs : inputDataReferences.values()) {
 			for(DataReference dr : drs) {
 				in.add(dr.getControlEndPoint());

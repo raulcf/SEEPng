@@ -64,8 +64,7 @@ public class DataEndPoint implements SeepEndPoint {
 	
 	@Override
 	public boolean equals(Object obj){
-		if(this.hashCode() == obj.hashCode()) return true;
-		return false;
+		return this.hashCode() == obj.hashCode();
 	}
 	
 	/**

@@ -1,8 +1,10 @@
 package uk.ac.imperial.lsds.seepworker.core.input;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -76,6 +78,18 @@ public class CoreInput {
 			}
 		}
 		LOG.info("Requesting input connections...OK");
+	}
+
+	public Map<Integer, IBuffer> getIBufferThatRequireNetwork() {
+		Map<Integer, IBuffer> toReturn = new HashMap<>();
+		for(Entry<Integer, IBuffer> entry : iBuffers.entrySet()) {
+			int streamId = entry.getKey();
+			IBuffer ib = entry.getValue();
+			if(ib instanceof IBuffer) {
+				toReturn.put(streamId, ib);
+			}
+		}
+		return toReturn;
 	}
 	
 }

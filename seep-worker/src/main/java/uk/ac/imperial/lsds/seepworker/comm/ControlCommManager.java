@@ -252,15 +252,13 @@ public class ControlCommManager {
 	}
 	
 	public void handleScheduleDeploy(ScheduleDeployCommand sdc) {
-		// Instantiate logical query
-//		SeepLogicalQuery slq = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
-		// Get schedule description
-		// ScheduleDescription sd = sdc.getSchedule();
+		// TODO: this requires further testing. Try both queryTypes and see what happens
 		
-		// TODO: remove above
+		// Get schedule description
+		ScheduleDescription sd = sdc.getSchedule();
 		
 		// Get schedule description by loading to runtime
-		ScheduleDescription sd = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
+//		ScheduleDescription sd = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
 		c.configureScheduleTasks(myOwnId, sd);
 		LOG.info("Scheduled deploy is done. Waiting for master commands...");

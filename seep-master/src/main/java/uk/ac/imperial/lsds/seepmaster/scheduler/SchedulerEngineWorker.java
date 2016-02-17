@@ -13,19 +13,14 @@ import com.esotericsoftware.kryo.Kryo;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
-import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
-import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 public class SchedulerEngineWorker implements Runnable {
@@ -74,14 +69,19 @@ public class SchedulerEngineWorker implements Runnable {
 				}
 			}
 			
-			// TODO: make this thing receive a list of stages rather than only one
-			Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
+			// TODO: (parallel sched) make this receive a list of stages
+			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf);
 			
-			// TODO: adapt tracking structures to track multiple stages simultaneously
+			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
+			// we should have a tracker entity that receives progressively what to track, and then we 
+			// just pass info (the connections) to that guy
+			Set<Connection> euInvolved = new HashSet<>();
+			for(CommandToNode ctn : commands) {
+				euInvolved.add(ctn.c);
+			}
+			
+			// TODO: (parallel sched) adapt tracking structures to track multiple stages simultaneously
 			trackStageCompletionAsync(nextStage, euInvolved);
-			
-			// TODO: make this receive a list of stages
-			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, euInvolved);
 			
 			LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
@@ -91,95 +91,6 @@ public class SchedulerEngineWorker implements Runnable {
 			// TODO: make this compatible with waiting for multiple parallely schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 		}
-	}
-	
-//	private class CommandToNode {
-//		public CommandToNode(SeepCommand command, Connection c){
-//			this.command = command;
-//			this.c = c;
-//		}
-//		public SeepCommand command;
-//		public Connection c;
-//	}
-//	
-//	// TODO: straw-man solution
-//	// TODO: this guy will receive info about each node status, so that it can make decisions on how each Dataref must be stored
-//	private List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
-//		// All input data references to process during next stage
-//		int nextStageId = nextStage.getStageId();
-//		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
-//		
-//		// Split input DataReference per worker to maximize locality (not load balancing)
-//		List<CommandToNode> commands = new ArrayList<>();
-//		final int totalWorkers = conns.size();
-//		int currentWorker = 0;
-//		for(Connection c : conns) {
-//			SeepCommand esc = null;
-//			Map<Integer, Set<DataReference>> perWorker = new HashMap<>();
-//			for(Integer streamId : drefs.keySet()) {
-//				for(DataReference dr : drefs.get(streamId)) {
-//					// EXTERNAL. assign one and continue
-//					if(! dr.isManaged()) {
-//						assignDataReferenceToWorker(perWorker, streamId, dr);
-//						currentWorker++;
-//						break;
-//					}
-//					// MANAGED. Check whether to assign this DR or not. Assign when shuffled or locality=local
-//					else {
-//						// SHUFFLE/PARTITIONED CASE
-//						if(dr.isPartitioned()) {
-//							// In this case, assign to this worker all DataReference with seqId module
-//							int partitionSeqId = dr.getPartitionId();
-//							if(partitionSeqId % totalWorkers == currentWorker) {
-//								assignDataReferenceToWorker(perWorker, streamId, dr);
-//							}
-//						}
-//						// NORMAL CASE, MAKE LOCALITY=LOCAL
-//						else if(dr.getDataEndPoint().getId() == c.getId()) {
-//							// assign
-//							assignDataReferenceToWorker(perWorker, streamId, dr);
-//						}
-//					}
-//				}
-//				currentWorker++;
-//			}
-//			// FIXME: what is outputdatareferences
-//			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-//					perWorker, nextStage.getOutputDataReferences());
-//			CommandToNode ctn = new CommandToNode(esc, c);
-//			commands.add(ctn);
-//		}
-//		return commands;
-//	}
-//	
-//	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {
-//		if(! perWorker.containsKey(streamId)) {
-//			perWorker.put(streamId, new HashSet<>());
-//		}
-//		perWorker.get(streamId).add(dr);
-//	}
-//	
-
-	private Set<Connection> getWorkersInvolvedInStage(Stage stage) {
-		Set<Connection> cons = new HashSet<>();
-		// In this case DataReference do not necessarily contain EndPoint information
-		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
-			//TODO: probably this won't work later
-			// Simply report all nodes
-			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
-				Connection conn = new Connection(eu.getControlEndPoint());
-				cons.add(conn);
-			}
-		}
-		// If not first stages, then DataReferences contain the right EndPoint information
-		else {
-			Set<SeepEndPoint> eps = stage.getInvolvedNodes();
-			for(SeepEndPoint ep : eps) {
-				Connection c = new Connection(ep);
-				cons.add(c);
-			}
-		}
-		return cons;
 	}
 	
 	private void trackStageCompletionAsync(Stage stage, Set<Connection> euInvolved) {
@@ -236,33 +147,7 @@ public class SchedulerEngineWorker implements Runnable {
 			dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
 		}
 		
-		int streamId = 0; // only one streamId for sources in scheduled mode
-		
-//		// Create dataReferences per connection
-//		for(Connection c : connections) {
-//			// When downstream requires partitioned DataReferences
-//			if(s.hasDependantWithPartitionedStage()) {
-//
-//				int numPartitions = 8;
-//				// TODO: create a DR per partition and assign the partitionSeqId
-//				for(int i = 0; i < numPartitions; i++) {
-//					// FIXME: EndPoint should disappear in favor of the safer SeepEndPoint
-//					SeepEndPoint sep = c.getAssociatedEndPoint();
-//					EndPoint endPoint = new EndPoint(sep.getId(), sep.getIp(), sep.getPort());
-//					
-//					DataReference dr = null;
-//					int partitionId = i;
-//					dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, endPoint, ServeMode.STORE, partitionId);
-//					refs.add(dr);
-//				}
-//			}
-//			// When a normal data reference is required
-//			else {
-//				DataReference dr = DataReference.makeExternalDataReference(dataStore);
-//				refs.add(dr);
-//			}
-//		}
-		
+		int streamId = 0; // only one streamId for sources in scheduled mode	
 		DataReference dr = DataReference.makeExternalDataReference(dataStore);
 		refs.add(dr);
 		s.addInputDataReference(streamId, refs);

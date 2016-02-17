@@ -46,6 +46,16 @@ public class ControlEndPoint implements SeepEndPoint {
 		return true;
 	}
 	
+	@Override
+	public int hashCode() {
+		return id;
+	}
+	
+	@Override
+	public boolean equals(Object cep) {
+		return cep.hashCode() == this.hashCode();
+	}
+	
 	/**
 	 * Empty constructor for kryo serialization
 	 */

@@ -9,15 +9,21 @@ import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.comm.Connection;
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
+import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
+import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
+import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
 public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	@Override
-	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, Set<Connection> conns) {
+	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, InfrastructureManager inf) {
+		// moved in from previously external method
+		Set<Connection> conns = getWorkersInvolvedInStage(nextStage, inf);
+		
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();
 		Map<Integer, Set<DataReference>> drefs = nextStage.getInputDataReferences();
@@ -63,6 +69,28 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 			commands.add(ctn);
 		}
 		return commands;
+	}
+	
+	private Set<Connection> getWorkersInvolvedInStage(Stage stage, InfrastructureManager inf) {
+		Set<Connection> cons = new HashSet<>();
+		// In this case DataReference do not necessarily contain EndPoint information
+		if(stage.getStageType().equals(StageType.SOURCE_STAGE) || stage.getStageType().equals(StageType.UNIQUE_STAGE)) {
+			//TODO: probably this won't work later
+			// Simply report all nodes
+			for(ExecutionUnit eu : inf.executionUnitsInUse()) {
+				Connection conn = new Connection(eu.getControlEndPoint());
+				cons.add(conn);
+			}
+		}
+		// If not first stages, then DataReferences contain the right EndPoint information
+		else {
+			Set<SeepEndPoint> eps = stage.getInvolvedNodes();
+			for(SeepEndPoint ep : eps) {
+				Connection c = new Connection(ep);
+				cons.add(c);
+			}
+		}
+		return cons;
 	}
 	
 	private void assignDataReferenceToWorker(Map<Integer, Set<DataReference>> perWorker, int streamId, DataReference dr) {

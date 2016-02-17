@@ -16,6 +16,7 @@ import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
+import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seepcontrib.kafka.comm.KafkaSelector;
 import uk.ac.imperial.lsds.seepcontrib.kafka.config.KafkaConfig;
@@ -61,7 +62,8 @@ public class DataStoreSelectorFactory {
 		LOG.info("Configuring networkSelector for input");
 		NetworkSelector ns = new NetworkSelector(wc, id);
 		ns.configureServerToListen(myIp, dataPort);
-		ns.configureExpectedIncomingConnection(coreInput.getIBufferProvider());
+		Map<Integer, IBuffer> incomingNetworkConn = coreInput.getIBufferThatRequireNetwork();
+		ns.configureExpectedIncomingConnection(incomingNetworkConn);
 		return ns;
 	}
 	
