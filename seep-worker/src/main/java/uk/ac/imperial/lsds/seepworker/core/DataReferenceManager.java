@@ -43,6 +43,7 @@ public class DataReferenceManager {
 	private Map<Integer, DataReference> catalogue;
 	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
+	private DiskCacher cacher;
 	
 	private int syntheticDatasetGenerator;
 	
@@ -54,6 +55,7 @@ public class DataReferenceManager {
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
 		this.bufferPool = BufferPool.createBufferPool(wc);
+		this.cacher = DiskCacher.makeDiskCacher();
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -125,21 +127,21 @@ public class DataReferenceManager {
 	
 	public void sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
-		datasets.get(datasetId).cacheToDisk();
+		cacher.cacheToDisk(datasets.get(datasetId));
 		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
 	}
 	
 	public int retrieveDatasetFromDisk(int datasetId) {
 		try {
 			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
-			return datasets.get(datasetId).retrieveFromDisk();
+			return cacher.retrieveFromDisk(datasets.get(datasetId));
 		} finally {
 			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
 		}
 	}
 	
 	public boolean datasetIsInMem(int datasetId) {
-		return datasets.get(datasetId).inMem();
+		return cacher.inMem(datasets.get(datasetId));
 	}
 
 	public IBuffer getInputBufferFor(DataReference dr) {
@@ -153,7 +155,7 @@ public class DataReferenceManager {
 	public IBuffer getSyntheticDataset(DataReference dr) {
 		
 		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(3999);
+		ByteBuffer d = ByteBuffer.allocate(99);//3999);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();

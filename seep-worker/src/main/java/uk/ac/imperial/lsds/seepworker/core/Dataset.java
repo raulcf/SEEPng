@@ -80,9 +80,10 @@ public class Dataset implements IBuffer, OBuffer {
 					//We caught up to the write buffer. Allocate a new buffer for writing
 					this.wPtrToBuffer = bufferPool.borrowBuffer();
 					this.buffers.add(wPtrToBuffer);
-					//Yes, the following looks a bit silly, but it is necessary to allow
-					//readerIterator.remove to work without the iterator complaining
-					//about concurrent modification
+					//Yes, the following looks a bit silly (just getting a new iterator to the position
+					//of the current one), but it is necessary to allow readerIterator.remove to work 
+					//without the iterator complaining about concurrent modification due to adding a new
+					//write buffer to the list.
 					readerIterator = this.buffers.iterator();
 					rPtrToBuffer = readerIterator.next();
 					if (rPtrToBuffer.remaining() == 0) {
@@ -160,6 +161,14 @@ public class Dataset implements IBuffer, OBuffer {
 		return true;
 	}
 	
+	public void setCachedLocation(String filename) {
+		cacheFileName = filename;
+	}
+	
+	public void unsetCachedLocation() {
+		cacheFileName = "";
+	}
+	
 	/**
 	 * IBuffer interface
 	 */
@@ -186,106 +195,5 @@ public class Dataset implements IBuffer, OBuffer {
 	public void pushData(byte[] data) {
 		// TODO Auto-generated method stub
 		
-	}
-	
-	public void cacheToDisk() throws FileNotFoundException, IOException {
-		if (!cacheFileName.equals("")) {
-			//Already on disk. Claim victory and move on.
-			return;
-		}
-		//Changing to abs might lead to a conflict (HIGHLY unlikely, needs a DataSet with the opposite 
-		//ID cached at exactly the same time), but files that start with - are annoying in console
-		//debugging.
-		cacheFileName = Math.abs(id) + "_" + System.currentTimeMillis() + ".cached";
-		try {
-			DataOutputStream cacheStream = new DataOutputStream(new FileOutputStream(cacheFileName));
-			byte[] record;
-			while((record = consumeData()) != null) {
-				cacheStream.writeInt(record.length);
-				cacheStream.write(record);
-			}
-			cacheStream.flush();
-			cacheStream.close();
-		} catch (FileNotFoundException fnfe) {
-			cacheFileName = "";
-			fnfe.printStackTrace();
-			throw fnfe;
-		} catch (IOException ioe) {
-			//Assume nothing got cached. This isn't a particularly safe assumption, but it's probably
-			//more likely than something was cached and we have a split dataset.
-			cacheFileName = "";
-			ioe.printStackTrace();
-			throw ioe;
-		} catch (SecurityException e) {
-			cacheFileName = "";
-			//Yes, technically throwing the SecurityException would be more descriptive, but the end result is the same,
-			//and handling only one type of exception is easier at the higher levels.
-			FileNotFoundException toThrow = new FileNotFoundException("Security settings prevent the file from being created");
-			toThrow.fillInStackTrace();
-			toThrow.printStackTrace();
-			throw toThrow;
-		}
-	}
-	
-	public int retrieveFromDisk() {
-		if (cacheFileName.equals("")) {
-			//No file on disk, so exactly zero ITuples can be returned to memory.
-			return 0;
-		}
-		FileInputStream inputStream  = null;
-		int returnedTuples = 0;
-		try {
-			//It is used, in the while condition just below, but Eclipse's analyzer isn't 
-			//smart enough to figure that out. This just saves us a warning.
-			@SuppressWarnings("unused")
-			int readSuccess;
-			inputStream = new FileInputStream(cacheFileName);
-			byte[] recordSizeBytes = new byte[Integer.SIZE / Byte.SIZE];
-			//If there is another record the next few bytes will be an int containing the size of said record.
-			while ((readSuccess = inputStream.read(recordSizeBytes)) != -1) {
-				//Convert the bytes giving us the size to an int and read exactly the next record
-				int recordSize = ByteBuffer.wrap(recordSizeBytes).getInt();
-				byte[] record = new byte[recordSize];
-				inputStream.read(record);
-				
-				if(wPtrToBuffer.remaining() < recordSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
-					// Borrow a new buffer and add to the collection
-					this.wPtrToBuffer = bufferPool.borrowBuffer();
-					this.buffers.add(wPtrToBuffer);
-				}
-				
-				wPtrToBuffer.putInt(recordSize);
-				wPtrToBuffer.put(record);
-				returnedTuples++;
-			}
-			inputStream.close();
-			try {
-				Files.delete((new File(cacheFileName)).toPath());
-			} catch (IOException ioex) {
-				//This isn't good, but failing to clean up is different from not being able
-				//to read everything, so we still consider this a success.
-				//ioex.printStackTrace();
-			}
-			cacheFileName = "";
-			return returnedTuples;
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException ioe) {
-			// TODO Auto-generated catch block
-			ioe.printStackTrace();
-		} 
-		try {
-			if (inputStream != null) {
-				inputStream.close();
-			}
-		} catch (IOException ex) {
-			
-		}
-		return returnedTuples;
-	}
-	
-	public boolean inMem() {
-		return cacheFileName.equals("");
 	}
 }
