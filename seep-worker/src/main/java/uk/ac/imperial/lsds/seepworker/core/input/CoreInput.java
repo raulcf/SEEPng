@@ -60,24 +60,23 @@ public class CoreInput {
 	public Map<Integer, IBuffer> getIBufferProvider(){
 		return iBuffers;
 	}
-
+	
 	public void requestInputConnections(Comm comm, Kryo k, InetAddress myIp) {
-		LOG.info("Requesting input connections...");
-		for(Set<DataReference> i : input.values()) {
-			for(DataReference dr : i) {
-				if(dr.isManaged()) {
-					// Create dataRef request and send to the worker
-					SeepCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
-					Connection targetConn = new Connection(dr.getControlEndPoint());
-					LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
-					comm.send_object_sync(requestStreamDataReference, targetConn, k);
-				}
-				else {
-					LOG.error("Requesting DataReference that is not managed by SEEPng");
-				}
+		Map<Integer, IBuffer> externalIBuffers = getIBufferThatRequireNetwork();
+		LOG.info("Requesting {} input connections...", externalIBuffers.size());
+		for(IBuffer ib : externalIBuffers.values()) {
+			DataReference dr = ib.getDataReference();
+			if(dr.isManaged()) {
+				// Create dataRef request and send to the worker
+				SeepCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
+				Connection targetConn = new Connection(dr.getControlEndPoint());
+				LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
+				comm.send_object_sync(requestStreamDataReference, targetConn, k);
+			}
+			else {
+				LOG.error("Requesting DataReference that is not managed by SEEPng");
 			}
 		}
-		LOG.info("Requesting input connections...OK");
 	}
 
 	public Map<Integer, IBuffer> getIBufferThatRequireNetwork() {
@@ -85,7 +84,7 @@ public class CoreInput {
 		for(Entry<Integer, IBuffer> entry : iBuffers.entrySet()) {
 			int streamId = entry.getKey();
 			IBuffer ib = entry.getValue();
-			if(ib instanceof IBuffer) {
+			if(ib instanceof InputBuffer) {
 				toReturn.put(streamId, ib);
 			}
 		}

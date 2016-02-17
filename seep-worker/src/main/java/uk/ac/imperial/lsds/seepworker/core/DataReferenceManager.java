@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -163,6 +164,12 @@ public class DataReferenceManager {
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
+	}
+	
+	public void printCatalogue() {
+		for(Entry<Integer, DataReference> entry : catalogue.entrySet()) {
+			System.out.println("id: " + entry.getKey()+ " val: " + entry.getValue().getPartitionId());
+		}
 	}
 	
 }

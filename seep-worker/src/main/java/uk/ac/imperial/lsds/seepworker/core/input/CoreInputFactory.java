@@ -24,7 +24,10 @@ public class CoreInputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreInputFactory.class);
 
-	public static CoreInput buildCoreInputFor(WorkerConfig wc, DataReferenceManager drm, Map<Integer, Set<DataReference>> input, Map<Integer, ConnectionType> connTypeInformation) {
+	public static CoreInput buildCoreInputFor(WorkerConfig wc, 
+			DataReferenceManager drm, 
+			Map<Integer, Set<DataReference>> input, 
+			Map<Integer, ConnectionType> connTypeInformation) {
 		LOG.info("Building Core Input...");
 		List<InputAdapter> inputAdapters = new LinkedList<>();
 		Map<Integer, IBuffer> iBuffers = new HashMap<>();

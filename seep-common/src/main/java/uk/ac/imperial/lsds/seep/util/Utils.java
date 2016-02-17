@@ -13,19 +13,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
-import java.util.Comparator;
+import java.rmi.server.UID;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
-import uk.ac.imperial.lsds.seep.config.ConfigDef.Type;
 
 public class Utils {
 
@@ -38,6 +36,12 @@ public class Utils {
 	public static String absolutePath(String resource){
 		File f = new File(resource);
 		return f.getAbsolutePath();
+	}
+	
+	// FIXME: make this stronger (pass some seed value that gets concatenated to make 
+	// it stronger, concatenating through string and returnning long if necessary
+	public static int SeepUID() {
+		return UUID.randomUUID().hashCode();
 	}
 	
 	public static int computeIdFromIpAndPort(InetAddress ip, int port){
@@ -279,128 +283,6 @@ public class Utils {
 		//Finally we return the queryPlan
 		return toReturn;
 	}
-	
-//	public static SeepLogicalQuery executeComposeFromQuery(String pathToJar, String definitionClass, String[] queryArgs, String methodName) {
-//		Class<?> baseI = null;
-//		Object baseInstance = null;
-//		Method compose = null;
-//		SeepLogicalQuery lsq = null;
-//		File urlPathToQueryDefinition = new File(pathToJar);
-//		LOG.debug("-> Set path to query definition: {}", urlPathToQueryDefinition.getAbsolutePath());
-//		URL[] urls = new URL[1];
-//		try {
-//			urls[0] = urlPathToQueryDefinition.toURI().toURL();
-//		}
-//		catch (MalformedURLException e) {
-//			e.printStackTrace();
-//		}
-//		// First time it is created we pass the urls
-//		URLClassLoader ucl = new URLClassLoader(urls);
-//		try {
-//			baseI = ucl.loadClass(definitionClass);
-//			// For backwards compatibility, use the default constructor if one with a string array argument is not found
-//			try {
-//				baseInstance = baseI.getConstructor(String[].class).newInstance((Object)queryArgs);
-//			} catch (NoSuchMethodException e) {
-//				baseInstance = baseI.newInstance();
-//				if (queryArgs.length > 0) {
-//					LOG.warn("Query arguments specified but Base class has no constructor taking a String[] argument");
-//				}
-//			}
-//			compose = baseI.getDeclaredMethod(methodName, (Class<?>[])null);
-//			lsq = (SeepLogicalQuery) compose.invoke(baseInstance, (Object[])null);
-//			ucl.close();
-//		}
-//		catch (SecurityException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (NoSuchMethodException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IllegalArgumentException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IllegalAccessException e) {
-//			e.printStackTrace();
-//		}
-//		catch (InvocationTargetException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (InstantiationException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (ClassNotFoundException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		//Finally we return the queryPlan
-//		return lsq;
-//	}
-//	
-//	public static ScheduleDescription executeComposeFromSchedule(
-//			String pathToQueryJar, 
-//			String definitionClassName,
-//			String[] queryArgs, 
-//			String composeMethodName) {
-//		Class<?> baseI = null;
-//		Object baseInstance = null;
-//		Method compose = null;
-//		ScheduleDescription schedDescr = null;
-//		File urlPathToScheduleDefinition = new File(pathToQueryJar);
-//		LOG.debug("-> Set path to schedule definition: {}", urlPathToScheduleDefinition.getAbsolutePath());
-//		URL[] urls = new URL[1];
-//		try {
-//			urls[0] = urlPathToScheduleDefinition.toURI().toURL();
-//		}
-//		catch (MalformedURLException e) {
-//			e.printStackTrace();
-//		}
-//		// First time it is created we pass the urls
-//		URLClassLoader ucl = new URLClassLoader(urls);
-//		try {
-//			baseI = ucl.loadClass(definitionClassName);
-//			// For backwards compatibility, use the default constructor if one with a string array argument is not found
-//			try {
-//				baseInstance = baseI.getConstructor(String[].class).newInstance((Object)queryArgs);
-//			} catch (NoSuchMethodException e) {
-//				baseInstance = baseI.newInstance();
-//				if (queryArgs.length > 0) {
-//					LOG.warn("Query arguments specified but Base class has no constructor taking a String[] argument");
-//				}
-//			}
-//			compose = baseI.getDeclaredMethod(composeMethodName, (Class<?>[])null);
-//			schedDescr = (ScheduleDescription) compose.invoke(baseInstance, (Object[])null);
-//			ucl.close();
-//		}
-//		catch (SecurityException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (NoSuchMethodException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IllegalArgumentException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IllegalAccessException e) {
-//			e.printStackTrace();
-//		}
-//		catch (InvocationTargetException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (InstantiationException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (ClassNotFoundException e) {
-//			e.printStackTrace();
-//		} 
-//		catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		//Finally we return the queryPlan
-//		return schedDescr;
-//	}
 	
 	public static <K,V> String printMap(Map<K, V> map) {
 		StringBuffer sb = new StringBuffer();

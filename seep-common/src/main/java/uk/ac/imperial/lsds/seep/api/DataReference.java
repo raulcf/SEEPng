@@ -4,6 +4,7 @@ import java.rmi.server.UID;
 
 import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
+import uk.ac.imperial.lsds.seep.util.Utils;
 
 public final class DataReference {
 	
@@ -54,7 +55,7 @@ public final class DataReference {
 	}
 	
 	private DataReference(DataStore dataStore, ControlEndPoint endPoint, boolean managed, boolean partitioned, ServeMode serveMode, int partitionId) {
-		this.ownerId = new UID().hashCode();
+		this.ownerId = Utils.SeepUID();
 		this.dataStore = dataStore;
 		this.endPoint = endPoint;
 		this.managed = managed;
@@ -64,7 +65,7 @@ public final class DataReference {
 	}
 	
 	private DataReference(ControlEndPoint endPoint) {
-		this.ownerId = new UID().hashCode();
+		this.ownerId = Utils.SeepUID();
 		this.dataStore = null;
 		this.endPoint = endPoint;
 		this.managed = true;
