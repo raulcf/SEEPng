@@ -12,6 +12,8 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
@@ -32,19 +34,16 @@ import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
-import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
-import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
+import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
-
-import com.esotericsoftware.kryo.Kryo;
 
 public class Conductor {
 
@@ -237,7 +236,7 @@ public class Conductor {
 			int streamId = 0;
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
-			ControlEndPoint cep = new ControlEndPoint(id, myIp.toString(), wc.getInt(WorkerConfig.CONTROL_PORT));
+			ControlEndPoint cep = new ControlEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.CONTROL_PORT));
 			DataReference dr = null;
 			// TODO: is this enough?
 			if(s.getStageType().equals(StageType.SINK_STAGE)) {

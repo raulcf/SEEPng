@@ -357,14 +357,14 @@ public class IOComm implements Comm {
 			k.writeObject(o, co);
 			o.flush(); // this line
 			String ack = in.readLine();
-			if(!ack.equals("ack")){
+			if(!ack.equals("ack")) {
 				in.close();
 				o.close();
 				return false;
 			}
 			o.close();
 			return true;
-		} 
+		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}

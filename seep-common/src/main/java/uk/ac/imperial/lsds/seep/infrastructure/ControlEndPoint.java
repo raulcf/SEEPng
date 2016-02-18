@@ -3,8 +3,13 @@ package uk.ac.imperial.lsds.seep.infrastructure;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ControlEndPoint implements SeepEndPoint {
 
+	final private static Logger LOG = LoggerFactory.getLogger(ControlEndPoint.class);
+	
 	final private int id;
 	final private String ip;
 	final private int port;

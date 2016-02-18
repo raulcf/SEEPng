@@ -32,14 +32,14 @@ public class MasterWorkerAPIImplementation {
 		try {
 			String ipStr = bc.getIp();
 			bootIp = InetAddress.getByName(ipStr);
-		} 
+		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
 		int dataPort = bc.getDataPort();
 		int controlPort = bc.getControlPort();
 		int workerId = Utils.computeIdFromIpAndPort(bootIp, controlPort);
-		LOG.info("New worker [id-> {}] node in {}:{}, dataPort: {}", workerId, bootIp.toString(), controlPort, dataPort);
+		LOG.info("New worker [id-> {}] node in {}:{}, dataPort: {}", workerId, bootIp.getHostAddress(), controlPort, dataPort);
 		ExecutionUnit eu = inf.buildExecutionUnit(bootIp, controlPort, dataPort);
 		inf.addExecutionUnit(eu);
 	}

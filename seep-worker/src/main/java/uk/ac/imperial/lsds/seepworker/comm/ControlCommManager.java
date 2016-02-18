@@ -11,6 +11,8 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,16 +50,19 @@ public class ControlCommManager {
 	
 	private ServerSocket serverSocket;
 	private Kryo k;
+	
 	private Thread listener;
+//	private Thread dispatcher;
+//	private WaitNotify signal;
+//	private BlockingQueue<Command> commandQueue;
 	private boolean working = false;
 	private RuntimeClassLoader rcl;
-	
 	private Conductor c;
 	
 	private InetAddress myIp;
-	
 	private int myPort;
 	
+	// Query specific parameters. FIXME: refactor somewhere
 	private String pathToQueryJar;
 	private String definitionClass;
 	private String[] queryArgs;
@@ -78,13 +83,18 @@ public class ControlCommManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		listener = new Thread(new ControlCommManagerWorker());
-		listener.setName(ControlCommManagerWorker.class.getSimpleName());
+		listener = new Thread(new CommandReceiver());
+//		dispatcher = new Thread(new CommandDispatcher());
+		listener.setName(CommandReceiver.class.getSimpleName());
+//		dispatcher.setName(CommandDispatcher.class.getSimpleName());
+//		this.signal = new WaitNotify();
+//		this.commandQueue = new ArrayBlockingQueue<>(10);
 	}
 	
 	public void start() {
 		this.working = true;
 		this.listener.start();
+//		this.dispatcher.start();
 	}
 	
 	public void stop() {
@@ -92,41 +102,135 @@ public class ControlCommManager {
 		this.working = false;
 	}
 	
-	class ControlCommManagerWorker implements Runnable {
-
+//	class CommandDispatcher implements Runnable {
+//		@Override
+//		public void run() {
+//			while(working) {
+//				Command sc = null;
+//				try {
+//					sc = commandQueue.take();
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				
+//				short familyType = sc.familyType();
+//				if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
+//					handleMasterCommand(((MasterWorkerCommand)sc.getCommand()));
+//				}
+//				else if(familyType == CommandFamilyType.WORKERCOMMAND.ofType()) {
+//					handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()));
+//				}
+//			}
+//		}
+//	}
+//	
+//	class WaitNotify {
+//		public Object lock = new Object();
+//		
+//		public void w() {
+//			synchronized(lock) {
+//				try {
+//					lock.wait();
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//		
+//		public void n() {
+//			synchronized(lock) {
+//				lock.notify();
+//			}
+//		}
+//	}
+	
+	class Task implements Runnable {
+		
+		private Socket incomingSocket;
+		
+		public Task(Socket incomingSocket) {
+			this.incomingSocket = incomingSocket;
+		}
+		
+		public void run() {
+			try {
+				InputStream is = incomingSocket.getInputStream();
+				PrintWriter out = new PrintWriter(incomingSocket.getOutputStream(), true);
+				Input i = new Input(is, 1000000);
+				Command sc = k.readObject(i, Command.class);
+				short familyType = sc.familyType();
+				if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
+					handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
+				}
+				else if(familyType == CommandFamilyType.WORKERCOMMAND.ofType()) {
+					handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()), out);
+				}
+			}
+			catch(IOException io) {
+				io.printStackTrace();
+			}
+			finally {
+				if (incomingSocket != null) {
+					try {
+						incomingSocket.close();
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}	
+		}
+	}
+	
+	class CommandReceiver implements Runnable {
 		@Override
 		public void run() {
 			while(working) {
 				Socket incomingSocket = null;
-				PrintWriter out = null;
-				try {
+				
+//				try {
 					// Blocking call
-					incomingSocket = serverSocket.accept();
-					InputStream is = incomingSocket.getInputStream();
-					out = new PrintWriter(incomingSocket.getOutputStream(), true);
-					Input i = new Input(is, 1000000);
-					Command sc = k.readObject(i, Command.class);
-					if(sc.familyType() == CommandFamilyType.MASTERCOMMAND.ofType()) {
-						handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
-					}
-					else if(sc.familyType() == CommandFamilyType.WORKERCOMMAND.ofType()) {
-						handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()), out);
+					try {
+						incomingSocket = serverSocket.accept();
+					} 
+					catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 					
-				}
-				catch(IOException io) {
-					io.printStackTrace();
-				}
-				finally {
-					if (incomingSocket != null) {
-						try {
-							incomingSocket.close();
-						}
-						catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-				}
+					new Thread(new Task(incomingSocket)).start();
+					
+//					InputStream is = incomingSocket.getInputStream();
+//					out = new PrintWriter(incomingSocket.getOutputStream(), true);
+//					Input i = new Input(is, 1000000);
+//					Command sc = k.readObject(i, Command.class);
+//					short familyType = sc.familyType();
+//					if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
+//						handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
+//					}
+//					else if(familyType == CommandFamilyType.WORKERCOMMAND.ofType()) {
+//						handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()), out);
+//					}
+					
+//					commandQueue.add(sc);
+//					signal.w(); // wait until signal and then send ack
+//					out.println("ack");
+//				}
+//				catch(IOException io) {
+//					io.printStackTrace();
+//				}
+//				finally {
+//					if (incomingSocket != null) {
+//						try {
+//							incomingSocket.close();
+//						}
+//						catch (IOException e) {
+//							e.printStackTrace();
+//						}
+//					}
+//				}
 			}		
 		}	
 	}	
@@ -149,6 +253,7 @@ public class ControlCommManager {
 			String pathToQueryJar = "query.jar";
 			File f = Utils.writeDataToFile(file, pathToQueryJar);
 			out.println("ack");
+//			signal.n();
 			loadCodeToRuntime(f);
 			// Instantiate Seep Logical Query
 			handleQueryInstantiation(queryType, pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
@@ -158,6 +263,7 @@ public class ControlCommManager {
 			LOG.info("RX MATERIALIZED_TASK command");
 			MaterializeTaskCommand mtc = c.getMaterializeTaskCommand();
 			out.println("ack");
+//			signal.n();
 			handleMaterializeTask(mtc);
 		}
 		// SCHEDULE_TASKS command
@@ -165,6 +271,7 @@ public class ControlCommManager {
 			LOG.info("RX SCHEDULE_TASKS command");
 			ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 			out.println("ack");
+//			signal.n();
 			handleScheduleDeploy(sdc);
 		}
 		// SCHEDULE_STAGE command
@@ -172,6 +279,7 @@ public class ControlCommManager {
 			LOG.info("RX SCHEDULE_STAGE command");
 			ScheduleStageCommand esc = c.getScheduleStageCommand();
 			out.println("ack");
+//			signal.n();
 			handleScheduleStage(esc);
 		}
 		// STARTQUERY command
@@ -179,6 +287,7 @@ public class ControlCommManager {
 			LOG.info("RX STARTQUERY command");
 			StartQueryCommand sqc = c.getStartQueryCommand();
 			out.println("ack");
+//			signal.n();
 			handleStartQuery(sqc);
 		}
 		// STOPQUERY command
@@ -186,6 +295,7 @@ public class ControlCommManager {
 			LOG.info("RX STOPQUERY command");
 			StopQueryCommand sqc = c.getStopQueryCommand();
 			out.println("ack");
+//			signal.n();
 			handleStopQuery(sqc);
 		}
 		LOG.debug("Served command of type: {}", cType);
@@ -199,15 +309,18 @@ public class ControlCommManager {
 			LOG.info("RX-> ACK command");
 			
 			out.println("ack");
+//			signal.n();
 		}
 		else if(type == WorkerWorkerProtocolAPI.CRASH.type()){
 			LOG.info("RX-> Crash command");
 			
 			out.println("ack");
+//			signal.n();
 		}
 		else if(type == WorkerWorkerProtocolAPI.REQUEST_DATAREF.type()) {
 			LOG.info("RX -> RequestDataReferenceCommand");
 			out.println("ack");
+//			signal.n();
 			handleRequestDataReferenceCommand(c.getRequestDataReferenceCommand());
 		}
 		LOG.debug("Served WORKER-COMMAND of type: {}", type);

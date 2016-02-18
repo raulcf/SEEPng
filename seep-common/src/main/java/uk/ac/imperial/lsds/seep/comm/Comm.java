@@ -2,11 +2,9 @@ package uk.ac.imperial.lsds.seep.comm;
 
 import java.util.Set;
 
-import uk.ac.imperial.lsds.seep.comm.protocol.CommandType;
-import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
-import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
-
 import com.esotericsoftware.kryo.Kryo;
+
+import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 
 public interface Comm {
 
