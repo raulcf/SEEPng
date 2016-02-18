@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seep.api.data;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 import uk.ac.imperial.lsds.seep.errors.SchemaException;
 
@@ -15,6 +16,7 @@ public abstract class Type {
 	public abstract int sizeOf(Object o);
 	public abstract boolean isVariableSize();
 	public abstract Object defaultValue();
+	public abstract Object randomValue();
 	
 	public enum JavaType{
 		BYTE, SHORT, INT, LONG, STRING, BYTES
@@ -52,6 +54,11 @@ public abstract class Type {
 			return (byte)0;
 		}
 		
+		@Override
+		public Object randomValue() {
+			return (byte)(new Random().nextInt());
+		}
+		
 	};
 	
 	public static final Type SHORT = new Type() {
@@ -84,6 +91,11 @@ public abstract class Type {
 		@Override
 		public Object defaultValue() {
 			return (short)0;
+		}
+		
+		@Override
+		public Object randomValue() {
+			return (short)(new Random().nextInt());
 		}
 	};
 	
@@ -118,6 +130,11 @@ public abstract class Type {
 		public Object defaultValue() {
 			return 0;
 		}
+		
+		@Override
+		public Object randomValue() {
+			return (int)(new Random().nextInt());
+		}
 	};
 	
 	public static final Type LONG = new Type() {
@@ -151,6 +168,10 @@ public abstract class Type {
 		@Override
 		public Object defaultValue() {
 			return (long)0L;
+		}
+		@Override
+		public Object randomValue() {
+			return (long)(new Random().nextLong());
 		}
 	};
 	
@@ -206,6 +227,11 @@ public abstract class Type {
 		public Object defaultValue() {
 			return "string";
 		}
+		
+		@Override
+		public Object randomValue() {
+			return new Integer((new Random().nextInt())).toString();
+		}
 	};
 	
 	public static final Type SHORTSTRING = new Type(){
@@ -242,6 +268,11 @@ public abstract class Type {
 		@Override
 		public Object defaultValue() {
 			return "string";
+		}
+		
+		@Override
+		public Object randomValue() {
+			return new Integer((new Random().nextInt())).toString();
 		}
 		
 	};
@@ -283,6 +314,11 @@ public abstract class Type {
 		
 		@Override
 		public Object defaultValue() {
+			return new byte[1];
+		}
+		
+		@Override
+		public Object randomValue() {
 			return new byte[1];
 		}
 	};

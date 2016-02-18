@@ -28,6 +28,7 @@ public class Map implements SeepTask {
 		value++;
 		
 		byte[] ot = OTuple.create(schema, schema.names(), new Object[]{userId, value});
+		System.out.println("UID: " + userId);
 		api.sendKey(ot, userId);
 	}
 

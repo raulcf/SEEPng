@@ -109,7 +109,18 @@ public class Collector implements API {
 		if(completed && ob instanceof EventBasedOBuffer){
 			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
+	}
+	
+	@Override
+	public void sendKey(byte[] o, int key) {
+		if(NOT_SEND_API) throw new UnsupportedOperationException("Send API not defined, maybe this is a sink?");
+		int id = theRouter.route(key);
+		OBuffer ob = buffers.get(id);
 		
+		boolean completed = ob.write(o);
+		if(completed && ob instanceof EventBasedOBuffer){
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
+		}
 	}
 
 	@Override
@@ -133,19 +144,6 @@ public class Collector implements API {
 		if(ids.size() > 0){
 			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(ids);
 		}
-	}
-
-	@Override
-	public void sendKey(byte[] o, int key) {
-		if(NOT_SEND_API) throw new UnsupportedOperationException("Send API not defined, maybe this is a sink?");
-		int id = theRouter.route(key);
-		OBuffer ob = buffers.get(id);
-		
-		boolean completed = ob.write(o);
-		if(completed && ob instanceof EventBasedOBuffer){
-			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
-		}
-		
 	}
 
 	@Override

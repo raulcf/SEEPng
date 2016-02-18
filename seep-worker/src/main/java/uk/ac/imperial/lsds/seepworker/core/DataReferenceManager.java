@@ -32,7 +32,6 @@ import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
  * keep track of those datasets that correspond to datareferences of type store
  * provide on-demand access to both datasets and datareferences
  * @author ra
- *
  */
 public class DataReferenceManager {
 
@@ -126,6 +125,8 @@ public class DataReferenceManager {
 		// Sanity check
 		if(doesManageDataReference(dr.getId()) == null) {
 			// TODO: throw error
+			LOG.error("Asked to retrieve dataset, but dataset not managed here!");
+			System.exit(0);
 		}
 		return datasets.get(dr.getId());
 	}
@@ -141,7 +142,7 @@ public class DataReferenceManager {
 		boolean goOn = true;
 		int totalTuples = 0;
 		while(goOn) {
-			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
+			byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
 			
 			if(d.position() + tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD <= d.capacity()) {
 				d.putInt(tuple.length);

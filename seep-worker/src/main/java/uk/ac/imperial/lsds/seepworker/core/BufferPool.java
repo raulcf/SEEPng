@@ -17,6 +17,17 @@ public class BufferPool {
 	private final int totalMemAvailableToBufferPool;
 	private Deque<ByteBuffer> allocatedBuffers;
 	
+	public static BufferPool __TEMPORAL_FAKE() {
+		return new BufferPool(-666);
+	}
+	
+	private BufferPool(int a) {
+		this.minBufferSize = 8192;
+		this.totalMemAvailableToBufferPool = (int)(Runtime.getRuntime().totalMemory())/2;
+		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
+		LOG.warn("TEMPORAL-> dangling buffer pools");
+	}
+	
 	private BufferPool(WorkerConfig wc) {
 		this.minBufferSize = wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE);
 		this.totalMemAvailableToBufferPool = wc.getInt(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);

@@ -9,5 +9,5 @@ include \
 	"simple-sourcefile-stateless-query",
 	"simple-kafka-stateless-pipeline",
 	"simple-dag-schedule",
-    "simple-pipeline-scheduledef"
+    "simple-pipeline-scheduledef",
 	"simple-shuffle-query"

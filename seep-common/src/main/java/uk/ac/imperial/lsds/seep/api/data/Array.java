@@ -56,5 +56,10 @@ public class Array extends Type {
 	public Object defaultValue() {
 		return new Object[1];
 	}
+	
+	@Override
+	public Object randomValue() {
+		return new Object[1];
+	}
 
 }

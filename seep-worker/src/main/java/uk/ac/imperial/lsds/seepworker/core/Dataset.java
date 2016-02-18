@@ -30,6 +30,7 @@ public class Dataset implements IBuffer, OBuffer {
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
+//		this.bufferPool = BufferPool.__TEMPORAL_FAKE();
 		this.wPtrToBuffer = bufferPool.borrowBuffer();
 		this.buffers = new LinkedList<>();
 		this.buffers.add(wPtrToBuffer);
@@ -71,6 +72,12 @@ public class Dataset implements IBuffer, OBuffer {
 				// done reading
 				return null;
 			}
+		}
+		
+		// FIXME: This is written to handle the case of having empty dataset
+		// howver, that case should be handled in a more principled way, and before
+		if(! rPtrToBuffer.hasRemaining()) {
+			return null;
 		}
 		
 		int size = rPtrToBuffer.getInt();

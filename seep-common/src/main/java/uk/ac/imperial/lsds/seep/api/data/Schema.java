@@ -181,6 +181,14 @@ public class Schema {
 		return values;
 	}
 	
+	public Object[] randomValues() {
+		Object[] values = new Object[fields.length];
+		for(int i = 0; i < values.length; i++) {
+			values[i] = fields[i].randomValue();
+		}
+		return values;
+	}
+	
 	public SchemaParser getSchemaParser() {
 		return parser;
 	}

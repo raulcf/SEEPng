@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seep.api;
 
-import java.rmi.server.UID;
-
 import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.infrastructure.SeepEndPoint;
 import uk.ac.imperial.lsds.seep.util.Utils;
