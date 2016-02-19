@@ -38,7 +38,7 @@ public class MasterConfig extends Config {
     private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), etc";
     
     public static final String SCHED_STAGE_ASSIGMENT_STRATEGY = "scheduling.stageassignment.type";
-    private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assing work to workers";
+    private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assign work to workers";
     
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";

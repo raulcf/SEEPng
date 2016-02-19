@@ -2,7 +2,8 @@ package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 public enum LoadBalancingStrategyType {
 
-	DATAPARALLELWITHINPUTDATALOCALITY(0, new DataParallelWithInputDataLocalityLoadBalancingStrategy());
+	DATAPARALLELWITHINPUTDATALOCALITY(0, new DataParallelWithInputDataLocalityLoadBalancingStrategy()),
+	LOCALITYSENSITIVE(1, new LocalitySensitiveLoadBalancingStrategy());
 	
 	private int type;
 	private LoadBalancingStrategy strategy;

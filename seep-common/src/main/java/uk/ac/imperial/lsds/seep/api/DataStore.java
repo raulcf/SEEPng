@@ -9,7 +9,13 @@ public class DataStore implements DataStoreDescriptor {
 	private Schema dataSchema;
 	private DataStoreType type;
 	private Properties config;
-
+	
+	public DataStore(DataStoreType emptyType) {
+		if(emptyType != DataStoreType.EMPTY) {
+			// TODO: throw exception, no schema can only mean no input args
+		}
+		this.type = emptyType;
+	}
 	
 	public DataStore(Schema schema, DataStoreType type) {
 		this.dataSchema = schema;

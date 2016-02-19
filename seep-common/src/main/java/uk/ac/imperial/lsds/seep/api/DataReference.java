@@ -9,7 +9,6 @@ public final class DataReference {
 	public enum ServeMode {
 		STREAM,	// When data is meant to be managed by seep in a different place that where it's generated
 		STORE,	// When data is meant to be managed by seep where it is generated
-		EMPTY,	// When the DataReference works as Marker and no data is associated to the DR
 		SINK	// When data is not meant to be managed by seep, i.e. in the case of a sink that externalizes it
 	}
 	
@@ -62,9 +61,9 @@ public final class DataReference {
 		this.partitionId = partitionId;
 	}
 	
-	private DataReference(ControlEndPoint endPoint) {
+	private DataReference(DataStore ds, ControlEndPoint endPoint) {
 		this.ownerId = Utils.SeepUID();
-		this.dataStore = null;
+		this.dataStore = ds;
 		this.endPoint = endPoint;
 		this.managed = true;
 		this.partitioned = false;
@@ -73,7 +72,8 @@ public final class DataReference {
 	}
 	
     public static DataReference makeEmptyDataReference(ControlEndPoint endPoint) {
-        return new DataReference(endPoint);
+    	DataStore ds = new DataStore(DataStoreType.EMPTY);
+        return new DataReference(ds, endPoint);
     }
 
 	public static DataReference makeManagedDataReferenceWithOwner(int ownerId, DataStore dataStore, ControlEndPoint endPoint, ServeMode serveMode) {

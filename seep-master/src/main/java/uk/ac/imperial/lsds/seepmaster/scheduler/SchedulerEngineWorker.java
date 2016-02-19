@@ -88,7 +88,7 @@ public class SchedulerEngineWorker implements Runnable {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
 			
-			// TODO: make this compatible with waiting for multiple parallely schedule stages
+			// TODO: make this compatible with waiting for multiple parallel schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 		}
 	}

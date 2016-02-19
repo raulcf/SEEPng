@@ -42,11 +42,11 @@ public class CoreInputFactory {
 				if(drm.doesManageDataReference(dr.getId()) != null) {
 					ib = drm.getInputBufferFor(dr);
 				}
+				else if(dr.getDataStore().type().equals(DataStoreType.EMPTY)) {
+					ib = FacadeInputBuffer.makeOneFor(wc, dr);
+				}
 				else if(dr.getDataStore().type().equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
 					ib = drm.getSyntheticDataset(dr);
-				}
-				else if(dr.getServeMode().equals(ServeMode.EMPTY)) {
-					ib = FacadeInputBuffer.makeOneFor(wc, dr);
 				}
 				// If not
 				else {

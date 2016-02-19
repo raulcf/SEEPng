@@ -83,7 +83,9 @@ public class ScheduleTracker {
 		// Check whether the new stage makes ready new stages, and propagate results
 		for(Stage downstream : stage.getDependants()) {
 			Set<DataReference> resultsForThisStage = results.get(downstream.getStageId());
-			downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
+			if(resultsForThisStage != null) { // TODO: if the task produced results, add them
+				downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
+			}
 			if(isStageReadyToRun(downstream)) {
 				this.scheduleStatus.put(downstream, StageStatus.READY);
 			}

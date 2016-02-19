@@ -26,6 +26,14 @@ public class ITuple {
 		}
 	}
 	
+	private ITuple() {
+		this.schema = null; // TODO: EmptySchema?
+	}
+	
+	public static ITuple makeEmptyITuple() {
+		return new ITuple();
+	}
+	
 	/** FIXME: temporal solution to allow on-demand ITuple creation **/
 	
 	public ITuple(Schema schema, byte[] data) {

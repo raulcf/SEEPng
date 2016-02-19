@@ -114,7 +114,7 @@ public class InputAdapterFactory {
 	
 	private static InputAdapter buildFacadeInputAdapter(int streamId, IBuffer buffer) {
 		// Check how to pass the return type information
-		InputAdapter ia = new FacadeInputAdapter(streamId, InputAdapterReturnType.ONE);
+		InputAdapter ia = new FacadeInputAdapter(streamId, InputAdapterReturnType.ONE, buffer);
 		return ia;
 	}
 		
