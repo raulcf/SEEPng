@@ -18,6 +18,13 @@ public interface Operator extends Connectable {
 	public List<DownstreamConnection> downstreamConnections();
 	public List<UpstreamConnection> upstreamConnections();
 	
+	/*
+	 * Priority Two-Level Scheduling
+	 */
+	public boolean hasPriority();
+	public int getPriority();
+	public void setPriority(int p);
+	
 	public String toString();
 	
 }

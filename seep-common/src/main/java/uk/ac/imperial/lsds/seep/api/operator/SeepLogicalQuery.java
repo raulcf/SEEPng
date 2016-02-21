@@ -72,6 +72,15 @@ public class SeepLogicalQuery {
 		return null;
 	}
 	
+	/**
+	 * Method used for priority two-level scheduling
+	 * This method can be used by a user when implementing the Base-query class
+	 */
+	public void setOperatorPriority(int opId, int priority){
+		this.getOperatorWithId(opId).setPriority(priority);
+		assert ( this.getOperatorWithId(opId).getPriority() == priority );
+	}
+	
 	public List<SeepState> getAllStates(){
 		return states;
 	}

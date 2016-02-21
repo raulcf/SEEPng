@@ -18,7 +18,12 @@ public class SeepLogicalOperator implements LogicalOperator {
 	private boolean stateful;
 	private SeepTask task;
 	private SeepState state;
+	/**
+	 * Optional Operator priority currently used for Two-level Scheduling
+	 */
+	private int priority = -1;
 	
+
 	private List<DownstreamConnection> downstream = new ArrayList<DownstreamConnection>();
 	private List<UpstreamConnection> upstream = new ArrayList<UpstreamConnection>();
 	
@@ -124,6 +129,24 @@ public class SeepLogicalOperator implements LogicalOperator {
 	private void addUpstream(Operator lo, int streamId, DataStore dataStore, ConnectionType connectionType) {
 		UpstreamConnection uc = new UpstreamConnection(lo, streamId, dataStore, connectionType);
 		this.upstream.add(uc);
+	}
+	
+	public boolean hasPriority(){
+		return this.priority != -1;
+	}
+	
+	/**
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority the priority to set
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 	
 	/* Methods to print info about the operator */

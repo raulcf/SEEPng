@@ -87,4 +87,23 @@ public class MarkerSink implements TaggingSink, Operator {
 		return null;
 	}
 
+	/*
+	 * 
+	 * @see uk.ac.imperial.lsds.seep.api.operator.Operator#hasPriority()
+	 */
+	@Override
+	public boolean hasPriority() {
+		return false;
+	}
+
+	@Override
+	public int getPriority() {
+		return 0;
+	}
+
+	@Override
+	public void setPriority(int p) {
+		// TODO Auto-generated method stub
+	}
+
 }
