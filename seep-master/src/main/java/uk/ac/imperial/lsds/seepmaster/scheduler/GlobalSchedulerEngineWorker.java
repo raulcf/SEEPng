@@ -5,13 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.PriorityBlockingQueue;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryo.Kryo;
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.MasterWorkerCommand;
@@ -23,6 +20,7 @@ import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
+import uk.ac.imperial.lsds.seepmaster.query.GlobalScheduledQueryManager;
 
 /**
  * @author pg1712@ic.ac.uk
@@ -37,7 +35,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	private ScheduleTracker tracker;
 	
 	private Set<Connection> localSchedulerConnections;
-
+	private  GlobalScheduledQueryManager gsm;
 
 	private Comm comm;
 	private Kryo k;
@@ -48,12 +46,13 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	 * TODO: Create a generic abstract class for SchedulerEngineWorkers in general??  LocalEngineWorker and GlobalSchedulerEngineWorker could use this abstraction
 	 */
 	
-	public GlobalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k) {
+	public GlobalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, GlobalScheduledQueryManager gsm) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
 		this.comm = comm;
 		this.k = k;
+		this.gsm =gsm;
 	}
 
 	public void stop() {
@@ -66,30 +65,40 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	
 	@Override
 	public void run() {
+		GlobalScheduledQueryManager se = gsm;
 		LOG.info("[START GLOBAL JOB]");
 		while(work) {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
-			if(nextStage == null) {
+
+			if(nextStage.getStageType().equals(StageType.SINK_STAGE)) {
 				// TODO: means the computation finished, do something
-				if(tracker.isScheduledFinished()) {
-					LOG.info("TODO: 1-Schedule has finished at this point");
-					work = false;
-					continue;
-				}
+				se.__reset_schedule();
+				se.__initializeEverything();
+				nextStage = se.__get_next_stage_to_schedule_fot_test();
+//				if(tracker.isScheduledFinished()) {
+//					LOG.info("TODO: 1-Schedule has finished at this point");
+//					work = false;
+//					continue;
+//				}
 			}
 			
 			Set<Connection> euInvolved = this.getLocalSchedulersInvolvedInStage(nextStage);
 			trackStageCompletionAsync(nextStage, euInvolved);
 			
-			// TODO: READ PRIORITY FROM TASK DEFINITION
 			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved, 1);
 			LOG.info("[START] GLOBAL SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
-			
+//			tracker.setFinished(nextStage, null);
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -170,17 +179,17 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	}
 	
 	
-//	/** Methods to facilitate testing **/
-//	
-//	public ScheduleTracker __tracker_for_testing(){
-//		return tracker;
-//	}
-//	
-//	public Stage __next_stage_scheduler(){
-//		return schedulingStrategy.next(tracker);
-//	}
-//	
-//	public void __reset_schedule() {
-//		tracker.resetAllStagesTo(StageStatus.WAITING);
-//	}
+	/** Methods to facilitate GlobalScheduler testing **/
+	
+	public ScheduleTracker __tracker_for_testing(){
+		return tracker;
+	}
+	
+	public Stage __next_stage_scheduler(){
+		return schedulingStrategy.next(tracker);
+	}
+	
+	public void __reset_schedule() {
+		tracker.resetAllStagesTo(StageStatus.WAITING);
+	}
 }

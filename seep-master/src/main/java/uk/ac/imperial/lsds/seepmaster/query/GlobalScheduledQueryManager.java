@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.scheduler.engine.ScheduleTracker;
 import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategyType;
 import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
@@ -108,10 +110,16 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		
 		// Initialize the Global SchedulerThread
 		seWorker = new GlobalSchedulerEngineWorker(this.scheduleDescription,
-				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), this.comm, this.k);
+				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), this.comm, this.k, this);
 		this.globalscheduledEngineWorkerThread = new Thread(seWorker);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
+		Set<Stage> stages  = scheduleDescription.getStages();
+		for(Iterator<Stage> i = stages.iterator(); i.hasNext(); ) {
+		    Stage s = i.next();
+		    LOG.info("Stage: "+ s.toString());
+		}
+		
 		
 		this.lifecycleManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		return true;
@@ -330,6 +338,12 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 				if(op == null || op.downstreamConnections().size() > 1) {
 					finishesStage = true;
 				}
+				// has priorty
+				if( op.hasPriority() ){
+					stage.setPriority(op.getPriority());
+					LOG.debug("Setting Stage {} Priority {} ", stage.getStageId(), stage.getPriority());
+					// TODO: MAKE SURE SINKS AND SOURCES DONT GET PRIORITY!!!
+				}
 			}
 			
 			// Get next operator
@@ -417,4 +431,23 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		StageStatusCommand.Status status = ssc.getStatus();
 		seWorker.newStageStatus(stageId, euId, results, status);
 	}
+	
+	/** Methods to facilitate GlobalScheduler testing **/
+	
+	public void __initializeEverything(){
+		seWorker.prepareForStart(this.getLocalSchedulersConnections());
+	}
+	
+	public ScheduleTracker __tracker_for_test(){
+		return seWorker.__tracker_for_testing();
+	}
+	
+	public Stage __get_next_stage_to_schedule_fot_test(){
+		return seWorker.__next_stage_scheduler();
+	}
+	
+	public void __reset_schedule() {
+		seWorker.__reset_schedule();
+	}
+	
 }
