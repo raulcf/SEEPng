@@ -338,9 +338,9 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 				if(op == null || op.downstreamConnections().size() > 1) {
 					finishesStage = true;
 				}
-				// has priorty
+				// has priorty - make sure to sum
 				if( op.hasPriority() ){
-					stage.setPriority(op.getPriority());
+					stage.setPriority(stage.getPriority() + op.getPriority());
 					LOG.debug("Setting Stage {} Priority {} ", stage.getStageId(), stage.getPriority());
 					// TODO: MAKE SURE SINKS AND SOURCES DONT GET PRIORITY!!!
 				}

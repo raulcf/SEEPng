@@ -71,7 +71,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
 
-			if(nextStage.getStageType().equals(StageType.SINK_STAGE)) {
+			if(nextStage == null || nextStage.getStageType().equals(StageType.SINK_STAGE)) {
 				// TODO: means the computation finished, do something
 				se.__reset_schedule();
 				se.__initializeEverything();
@@ -91,10 +91,11 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 			}
-//			tracker.setFinished(nextStage, null);
-			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			tracker.setFinished(nextStage, null);
+//			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

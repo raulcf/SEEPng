@@ -85,11 +85,13 @@ public class ScheduleTracker {
 			LOG.warn("TODO: what to do with results in this case");
 		}
 		// Check whether the new stage makes ready new stages, and propagate results
-		for(Stage downstream : stage.getDependants()) {
-			Set<DataReference> resultsForThisStage = results.get(downstream.getStageId());
-			downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
-			if(isStageReadyToRun(downstream)) {
-				this.scheduleStatus.put(downstream, StageStatus.READY);
+		if(results != null ){
+			for(Stage downstream : stage.getDependants()) {
+				Set<DataReference> resultsForThisStage = results.get(downstream.getStageId());
+				downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
+				if(isStageReadyToRun(downstream)) {
+					this.scheduleStatus.put(downstream, StageStatus.READY);
+				}
 			}
 		}
 		return true;
@@ -126,7 +128,7 @@ public class ScheduleTracker {
 	
 	public void trackWorkersAndBlock(Stage stage, Set<Integer> euInvolved) {
 		currentStageTracker = new StageTracker(stage.getStageId(), euInvolved);
-		currentStageTracker.waitForStageToFinish();
+		//currentStageTracker.waitForStageToFinish();
 	}
 	
 	public void waitForFinishedStageAndCompleteBookeeping(Stage stage) {
@@ -143,7 +145,8 @@ public class ScheduleTracker {
 	}
 
 	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results) {
-		currentStageTracker.notifyOk(euId, stageId, results);
+		if(currentStageTracker != null)
+			currentStageTracker.notifyOk(euId, stageId, results);
 	}
 	
 }
