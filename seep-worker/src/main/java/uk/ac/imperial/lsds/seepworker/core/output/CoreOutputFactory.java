@@ -23,7 +23,9 @@ public class CoreOutputFactory {
 
 	final private static Logger LOG = LoggerFactory.getLogger(CoreOutputFactory.class);
 	
-	public static CoreOutput buildCoreOutputFor(WorkerConfig wc, DataReferenceManager drm, Map<Integer, Set<DataReference>> output) {
+	public static CoreOutput buildCoreOutputFor(WorkerConfig wc, 
+			DataReferenceManager drm, 
+			Map<Integer, Set<DataReference>> output) {
 		LOG.info("Building coreOutput...");
 		Map<Integer, OBuffer> oBuffers = new HashMap<>();
 		Map<Integer, List<OBuffer>> streamId_To_OBuffers = new HashMap<>();

@@ -176,7 +176,11 @@ public class Conductor {
 		}
 		
 		coreInput = CoreInputFactory.buildCoreInputFor(wc, drm, input, connTypeInformation);
-		if(output.size() == 0) {
+		if(output.size() == 0) { // FIXME:
+			// FIXME: output should arrive from scheduler, that knows about downstream.
+			// if 0 then it means we do not have output
+			// FIXME: at the very least is should come with the indexed downstream ids
+			// then DataReference can be created here if any difficulty of doing so at master
 			Schema expectedSchema = input.entrySet().iterator().next().getValue().iterator().next().getDataStore().getSchema();
 			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
 			output = createOutputForTask(s, expectedSchema);
@@ -218,7 +222,7 @@ public class Conductor {
 			// create a DR per partition, that are managed
 			// TODO: how to get the number of partitions
 			int numPartitions = wc.getInt(WorkerConfig.SHUFFLE_NUM_PARTITIONS);
-			int streamId = 0;
+			int streamId = -1; // FIXME: this is a bug, output should be indexed on downstream stage ids
 			Set<DataReference> drefs = new HashSet<>();
 			// TODO: create a DR per partition and assign the partitionSeqId
 			for(int i = 0; i < numPartitions; i++) {
@@ -233,7 +237,7 @@ public class Conductor {
 		}
 		else {
 			// create a single DR, that is managed
-			int streamId = 0;
+			int streamId = -1; // FIXME: BUG, should be indexed on downstream stage id
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
 			ControlEndPoint cep = new ControlEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.CONTROL_PORT));

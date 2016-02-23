@@ -70,6 +70,8 @@ public class ScheduleTracker {
 	}
 	
 	public boolean setFinished(Stage stage, Map<Integer, Set<DataReference>> results) {
+		// results contains the DataReferences for downstream stages, indexed by
+		// downstream stage id
 		LOG.info("[FINISH] SCHEDULING Stage {}", stage.getStageId());
 		// Set finish
 		this.scheduleStatus.put(stage, StageStatus.FINISHED);
