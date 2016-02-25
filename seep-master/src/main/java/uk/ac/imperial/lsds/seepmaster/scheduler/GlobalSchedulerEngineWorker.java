@@ -71,7 +71,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			// Get next stage
 			Stage nextStage = schedulingStrategy.next(tracker);
 
-			if(nextStage == null || nextStage.getStageType().equals(StageType.SINK_STAGE)) {
+			if(nextStage == null ) {
 				// TODO: means the computation finished, do something
 				se.__reset_schedule();
 				se.__initializeEverything();
@@ -84,9 +84,10 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 			}
 			
 			Set<Connection> euInvolved = this.getLocalSchedulersInvolvedInStage(nextStage);
-			trackStageCompletionAsync(nextStage, euInvolved);
+//			trackStageCompletionAsync(nextStage, euInvolved);
 			
-			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved, 1);
+			List<CommandToNode> commands = this.assignWorkToLocalSchedulers(nextStage, euInvolved);
+			nextStage.setStageTimestamp(System.currentTimeMillis());
 			LOG.info("[START] GLOBAL SCHEDULING Stage {}", nextStage.getStageId());
 			for(CommandToNode ctn : commands) {
 				boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
@@ -95,7 +96,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 //			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 			
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -112,16 +113,15 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 		public Connection c;
 	}
 	
-	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns, int priority) {
+	private List<CommandToNode> assignWorkToLocalSchedulers(Stage nextStage, Set<Connection> conns) {
 		// All input data references to process during next stage
 		int nextStageId = nextStage.getStageId();
-		Stage priorityStage = new Stage(nextStage, priority);
 		
 		List<CommandToNode> commands = new ArrayList<>();
 		for(Connection c : conns) {
 			MasterWorkerCommand esc = null;
 			Set<Stage> toSend = new HashSet<>();
-			toSend.add(priorityStage);
+			toSend.add(nextStage);
 			esc = ProtocolCommandFactory.buildLocalSchedulerStageCommand(nextStageId, toSend);
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
