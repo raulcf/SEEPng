@@ -15,7 +15,7 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
  */
 public class FibCalculator implements SeepTask{
 	
-	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
+	Schema schema = SchemaBuilder.getInstance().newField(Type.LONG, "processTime").newField(Type.LONG, "timestamp").build();
 	
 	public static BigInteger fib(BigInteger n) {
 	    if (n.compareTo(BigInteger.ONE) == -1 || n.compareTo(BigInteger.ONE) == 0 ) return n;
@@ -29,18 +29,20 @@ public class FibCalculator implements SeepTask{
 	}
 	
 
-
 	@Override
 	public void processData(ITuple data, API api) {
-		int userId = data.getInt("userId");		
-		long start = data.getLong("value");
-		BigInteger tmp = fib(new BigInteger("25"));
-		assert( tmp.compareTo(new BigInteger("102334155")) == 0 );
+//		long processTime = data.getLong("processTime");		
+		long ts = data.getLong("timestamp");
+		
+		
+		long start = System.currentTimeMillis();
+		BigInteger tmp = fib(new BigInteger("10"));
+		//assert( tmp.compareTo(new BigInteger("102334155")) == 0 );
 		long end = System.currentTimeMillis();
 		
-//		System.out.println("[Calculator] userId:"+ userId + "end: "+ end + " start: "+ start);
-		
-		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, (end-start)});
+//		System.out.println("[Fib Calculator] took:" + (end - start) + " value:" + 10 + " streamID:" + data.getStreamId());
+
+		byte[] processedData = OTuple.create(schema, new String[]{"processTime", "timestamp"},  new Object[]{(end-start), ts});
 		api.send(processedData);	
 	}
 

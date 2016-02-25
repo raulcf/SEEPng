@@ -15,10 +15,9 @@ public class Base implements QueryComposer {
 	@Override
 	public SeepLogicalQuery compose() {
 		
-		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
+		Schema schema = SchemaBuilder.getInstance().newField(Type.LONG, "processTime").newField(Type.LONG, "timestamp").build();
 		
 		SyntheticSource synSrc = SyntheticSource.newSource(0, null);
-//		LogicalOperator synSrc = queryAPI.newStatelessSource(new Src(), 0);
 		LogicalOperator fibOne = queryAPI.newStatelessOperator(new FibCalculator(), 1);
 		LogicalOperator fibTwo = queryAPI.newStatelessOperator(new FibCalculator(), 2);
 		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 3);

@@ -11,16 +11,15 @@ import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 
 public class Branch1 implements SeepTask {
 
-	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
+	Schema schema = SchemaBuilder.getInstance().newField(Type.LONG, "processTime").newField(Type.LONG, "timestamp").build();
 	
 	@Override
 	public void processData(ITuple data, API api) {
-		int userId = data.getInt("userId");
-		long value = System.currentTimeMillis();
-		long newvalue = System.currentTimeMillis();
+		long processTime = data.getLong("processTime");
+		long timestamp = data.getLong("timestamp");
 		
-		System.out.println("Branch 1 oldVal "+ value + " new value: "+ newvalue);
-		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
+//		System.out.println("[Brach 1] => TS: " + (System.currentTimeMillis()-timestamp) +" Processing: "+ processTime);
+		byte[] processedData = OTuple.create(schema, new String[]{"processTime", "timestamp"},  new Object[]{processTime, timestamp});
 		api.send(processedData);
 	}
 
