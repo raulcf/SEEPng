@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.scheduler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,35 +72,71 @@ public class LocalSchedulerEngineWorker implements Runnable {
 		this.work = false;
 	}
 	
+	int stageCountA=0;
+	int stageCountB=0;
+	ArrayList<Integer> latencyStageA = new ArrayList<Integer>();
+	ArrayList<Integer> latencyStageB = new ArrayList<Integer>();
+	ArrayList<Integer> throughput = new ArrayList<Integer>();
+	ArrayList<Integer> queueSize = new ArrayList<Integer>();
+	ArrayList<Integer> computation = new ArrayList<Integer>();
+	long init = 0;
 	@Override
 	public void run() {
 		LOG.info("[START JOB]");
 		while (work) {
-			System.out.println("=> LOCAL QUEUE SIZE "+ this.queue.size());
 			// Get next stage
 			try {
 				Stage nextStage = queue.poll();
-				LOG.debug("NEXT STAGE IS: {}", nextStage);
-				
-				if (nextStage == null) {
-					// TODO: means the computation finished, do something
-					if (tracker.isScheduledFinished()) {
-						LOG.info("TODO: 1-Schedule has finished at this point");
-						work = false;
-						continue;
-					}
+				if(nextStage == null ){
+					Thread.sleep(10);
+					continue;
 				}
-
+				LOG.debug("NEXT STAGE IS: {} Queue Size: ", nextStage, this.queue.size());
+				
+//				if (nextStage == null) {
+//					// TODO: means the computation finished, do something
+//					if (tracker.isScheduledFinished()) {
+//						LOG.info("TODO: 1-Schedule has finished at this point");
+//						work = false;
+//						continue;
+//					}
+//				}
+				
+				
+				
+				long start = System.currentTimeMillis();
+				
 				Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
 				trackStageCompletionAsync(nextStage, euInvolved);
 				List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
 
-				LOG.info("[START] SCHEDULING Stage {}", nextStage.getStageId());
+				LOG.info("[START] SCHEDULING Stage {} with Priority {} Queue Size {} ", nextStage.getStageId(), nextStage.getPriority(), queue.size());
 				for (CommandToNode ctn : commands) {
 					boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 				}
 				
 				tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+				long end = System.currentTimeMillis();
+				
+				if(nextStage.getStageId() == 1){
+					stageCountA++;
+					latencyStageA.add((int) (System.currentTimeMillis() - nextStage.getStageTimestamp()));
+				}
+				else if(nextStage.getStageId() == 2){
+					stageCountB++;
+					latencyStageB.add((int) (System.currentTimeMillis() - nextStage.getStageTimestamp()));
+				}
+				
+				if ((System.currentTimeMillis() - init) > 1000) {
+					throughput.add((stageCountA+stageCountB));
+					queueSize.add(queue.size());
+					computation.add((int)(end-start));
+					LOG.info("[STATISTICS] Avg Stages/sec {} stage1 {} stage2 {} Avg Computation {} ", throughput.stream().mapToInt(i -> i).average().orElse(0), stageCountA, stageCountB, computation.stream().mapToInt(i->i).average().orElse(0));
+					LOG.info("[STATISTICS] Stage1 Latency {} Stage2 Latency {} Avg qSize {}", latencyStageA.stream().mapToInt(i -> i).average().orElse(0), latencyStageB.stream().mapToInt(i -> i).average().orElse(0), queueSize.stream().mapToInt(i->i).average().orElse(0) ); 
+					stageCountA=0;
+					stageCountB=0;
+					init = System.currentTimeMillis();
+				}
 				
 			} catch (Exception e) {
 				LOG.error(e.getMessage());

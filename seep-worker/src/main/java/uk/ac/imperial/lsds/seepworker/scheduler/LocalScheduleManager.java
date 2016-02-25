@@ -69,7 +69,8 @@ public class LocalScheduleManager {
 
 	public void handleLocalStageCommand(LocalSchedulerStagesCommand lssc){
 		int stageId = lssc.getStageId();
-		LOG.debug("Local Scheduler Received StageID: {} Stages: {}", stageId, lssc.getStages());
+		LOG.debug("Local Scheduler Received StageID: {} with Priority: {}", stageId, lssc.getStages().iterator().next().getPriority());
+//		LOG.debug("Stages INFO {}"+ lssc.getStages());
 		seWorker.prepareForNewStageLocal(this.getWorkerConnection(), lssc.getStages(), slq);
 		if(!worker.isAlive())
 			this.handleStartQuery();

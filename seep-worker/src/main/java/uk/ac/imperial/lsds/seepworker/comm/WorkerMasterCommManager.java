@@ -165,7 +165,7 @@ public class WorkerMasterCommManager {
 					}
 					// LOCAL SCHEDULER STAGE command
 					else if(cType == MasterWorkerProtocolAPI.LOCAL_SCHEDULE.type()){
-						LOG.info("RX LOCAL SCHEDULER STAGE command");
+						LOG.debug("RX LOCAL SCHEDULER STAGE command");
 						LocalSchedulerStagesCommand lssc = c.getLocalSchedulerStageCommand();
 						out.println("ack");
 						lsm.handleLocalStageCommand(lssc);

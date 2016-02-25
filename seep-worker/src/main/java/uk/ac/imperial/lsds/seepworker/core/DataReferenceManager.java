@@ -140,7 +140,7 @@ public class DataReferenceManager {
 		boolean goOn = true;
 		int totalTuples = 0;
 		while(goOn) {
-			byte[] tuple = OTuple.create(s, s.names(), s.defaultValues());
+			byte[] tuple = OTuple.create(s, s.names(), s.defaultTimestamptedValues());
 			
 			if(d.position() + tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD <= d.capacity()) {
 				d.putInt(tuple.length);
