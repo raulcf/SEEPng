@@ -47,7 +47,7 @@ public class StageTracker {
 	public void notifyOk(int euId, int stageId, Map<Integer, Set<DataReference>> newResults) {
 		if(this.stageId != stageId) {
 			System.out.println("ERROR, notifying for non-current stage");
-//			System.exit(-1);
+			System.exit(-1);
 		}
 		boolean wasNotPresent = completed.add(euId);
 		if(! wasNotPresent) {
