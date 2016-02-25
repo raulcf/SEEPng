@@ -48,6 +48,7 @@ public class Stage implements Comparable<Stage>{
 	 * Optional Stage priority used for Two-level Scheduling
 	 */
 	int priority = -1;
+	long stageTimestamp=0;
 	
 
 	public Stage(int stageId){
@@ -190,6 +191,20 @@ public class Stage implements Comparable<Stage>{
 	@Override
 	public int hashCode(){
 		return stageId;
+	}
+	
+	/**
+	 * @return the stageTimestamp
+	 */
+	public long getStageTimestamp() {
+		return stageTimestamp;
+	}
+
+	/**
+	 * @param stageTimestamp the stageTimestamp to set
+	 */
+	public void setStageTimestamp(long stageTimestamp) {
+		this.stageTimestamp = stageTimestamp;
 	}
 	
 	@Override

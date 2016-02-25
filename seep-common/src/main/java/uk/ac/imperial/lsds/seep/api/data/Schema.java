@@ -175,5 +175,19 @@ public class Schema {
 		}
 		return values;
 	}
+	/*
+	 * Two level scheduler Measure Timestamps
+	 */
+	public Object[] defaultTimestamptedValues() {
+		Object[] values = new Object[fields.length];
+		for(int i = 0; i < values.length; i++) {
+			if( getFieldPosition("timestamp") == i){
+				values[i] = (long) System.currentTimeMillis();
+			}
+			else
+				values[i] = fields[i].defaultValue();
+		}
+		return values;
+	}
 	
 }
