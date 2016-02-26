@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import static com.codahale.metrics.MetricRegistry.name;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -7,6 +9,9 @@ import java.util.Deque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.Counter;
+
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class BufferPool {
@@ -17,6 +22,13 @@ public class BufferPool {
 	private final int totalMemAvailableToBufferPool;
 	private Deque<ByteBuffer> allocatedBuffers;
 	
+	// Metrics
+	// usedMemory is allocated memory that is currently used by some Dataset
+	// Note that the total memory usage may be higher, as buffers are pooled and not
+	// released immediately. However, effectively, the total memory available would be
+	// the total_memory_available - usedMemory
+	final private Counter usedMemory;
+	
 	public static BufferPool __TEMPORAL_FAKE() {
 		return new BufferPool(-666);
 	}
@@ -26,6 +38,8 @@ public class BufferPool {
 		this.totalMemAvailableToBufferPool = (int)(Runtime.getRuntime().totalMemory())/2;
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.warn("TEMPORAL-> dangling buffer pools");
+		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
+		usedMemory.inc(minBufferSize);
 	}
 	
 	private BufferPool(WorkerConfig wc) {
@@ -33,6 +47,8 @@ public class BufferPool {
 		this.totalMemAvailableToBufferPool = wc.getInt(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
+		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
+		usedMemory.inc(minBufferSize);
 	}
 	
 	public static BufferPool createBufferPool(WorkerConfig wc) {
@@ -43,15 +59,18 @@ public class BufferPool {
 		if(allocatedBuffers.size() > 0 ) {
 			ByteBuffer bb = allocatedBuffers.pop();
 			bb.clear();
+			usedMemory.inc(minBufferSize);
 			return bb;
 		}
 		else {
 			// TODO: at some point we'll need to set up a ceiling here, for now just let it die...
+			usedMemory.inc(minBufferSize);
 			return ByteBuffer.allocate(minBufferSize);
 		}
 	}
 	
 	public void returnBuffer(ByteBuffer buffer) {
+		usedMemory.dec(minBufferSize);
 		allocatedBuffers.add(buffer);
 	}
 
