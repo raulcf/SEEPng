@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -320,8 +321,8 @@ public class Conductor {
 			return continuousTask;
 		}
 
-		public void notifyOk() {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput);
+		public void notifyOk(List<RuntimeEvent> runtimeEvents) {
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents);
 		}
 		
 	}

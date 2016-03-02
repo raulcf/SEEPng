@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.junit.Test;
 
+import uk.ac.imperial.lsds.seep.api.RuntimeEventFactory;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -39,7 +40,7 @@ public class OutputBufferPerformanceTest {
 			public void run() {
 				while(true) {
 					// Write tuple to the output buffer
-					ob.write(srcData);
+					ob.write(srcData, null);
 				}
 			}
 		});

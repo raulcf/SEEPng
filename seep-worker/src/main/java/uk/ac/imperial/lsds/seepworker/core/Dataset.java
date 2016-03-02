@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Queue;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
@@ -112,12 +113,13 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	@Override
-	public boolean write(byte[] data) {
+	public boolean write(byte[] data, RuntimeEventRegister reg) {
 		
 		int dataSize = data.length;
 		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
 			// Borrow a new buffer and add to the collection
 			this.wPtrToBuffer = bufferPool.borrowBuffer();
+			// TODO: did we run out of memory? register event when so
 			this.buffers.add(wPtrToBuffer);
 		}
 		

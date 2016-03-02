@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
@@ -65,7 +66,7 @@ public class FileOutputBuffer implements OBuffer {
 	}
 
 	@Override
-	public boolean write(byte[] data) {
+	public boolean write(byte[] data, RuntimeEventRegister reg) {
 		// write that data to the output stream
 		try {			
 			stream.write(data);

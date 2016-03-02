@@ -1,12 +1,22 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventFactory;
 
 public class SimpleCollector implements API {
 
 	private byte[] mem;
 	
-	public SimpleCollector() { }
+	// Attributes for RuntimeEvent
+	private List<RuntimeEvent> rEvents;
+	
+	public SimpleCollector() { 
+		this.rEvents = new ArrayList<>();
+	}
 	
 	@Override
 	public int id() {
@@ -75,6 +85,37 @@ public class SimpleCollector implements API {
 	
 	public byte[] collect() {
 		return mem;
+	}
+
+	@Override
+	public void exception(String message) {
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void datasetSpilledToDisk(int datasetId) {
+		RuntimeEvent re = RuntimeEventFactory.makeSpillToDiskRuntimeEvent(datasetId);
+		this.rEvents.add(re);
+	}
+
+	@Override
+	public void failure() {
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public List<RuntimeEvent> getRuntimeEvents() {
+		return rEvents;
 	}
 
 }
