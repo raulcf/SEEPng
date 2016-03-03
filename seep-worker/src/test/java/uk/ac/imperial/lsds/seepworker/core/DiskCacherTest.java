@@ -11,10 +11,11 @@ import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
+import uk.ac.imperial.lsds.seepworker.core.DataReferenceManager;
+import uk.ac.imperial.lsds.seepworker.core.Dataset;
 
 public class DiskCacherTest {
 	Schema s = Schema.SchemaBuilder.getInstance().newField(Type.INT, "counter").build();
-	int ownerCounter = 0;
 
 	private WorkerConfig buildWorkerConfig() {
 		Properties p = new Properties();
@@ -35,10 +36,10 @@ public class DiskCacherTest {
 	public void testInMemCall() {
 		//make new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
-		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(ownerCounter++, null, null, ServeMode.STORE);
+		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
 		Dataset testDataset = (Dataset) drm.manageNewDataReference(dataRef);
 		//new Datasets should reside in memory.
-		assert(drm.datasetIsInMem(testDataset.id()) == true);
+		assert(drm.datasetIsInMem(testDataset.id()) == true): "Dataset did not start in memory";
 		//cache the Dataset and check that the in memory tracker is updated
 		try {
 			drm.sendDatasetToDisk(testDataset.id());
@@ -46,10 +47,10 @@ public class DiskCacherTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert(drm.datasetIsInMem(testDataset.id()) == false);
+		assert(drm.datasetIsInMem(testDataset.id()) == false):"Dataset was sent to disk, but inMem did not update";
 		//return the Dataset to memory and check that the in memory tracker is updated again
 		drm.retrieveDatasetFromDisk(testDataset.id());
-		assert(drm.datasetIsInMem(testDataset.id()) == true);
+		assert(drm.datasetIsInMem(testDataset.id()) == true):"Dataset returned to memory, but inMem did not update";
 	}
 
 	/***
@@ -64,7 +65,7 @@ public class DiskCacherTest {
 	public void testMemToDisk() {
 		//make and populate a new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
-		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(ownerCounter++, null, null, ServeMode.STORE);
+		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
 		Dataset testDataset = (Dataset) drm.manageNewDataReference(dataRef);
 		for (int x = 0; x < 10; x++) {
 			ByteBuffer writeData = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) * 2);
@@ -79,16 +80,19 @@ public class DiskCacherTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert(testDataset.consumeData() == null);
+		assert(testDataset.consumeData() == null):"Data was consumed from a Dataset residing on disk";
 		//uncache dataset and check everything reappeared (and nothing else)
 		drm.retrieveDatasetFromDisk(testDataset.id());
 		for (int x = 0; x < 10; x++) {
-			ByteBuffer readData = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) * 2);
-			readData.put(testDataset.consumeData());
+	        byte[] content = testDataset.consumeData();
+	        assert(content != null):"Not all data was successfully returned to memory";
+			ByteBuffer readData = ByteBuffer.allocate(content.length);
+			readData.put(content);
+			readData.flip();
 			readData.getInt();
-			assert(readData.getInt() == x);
+			assert(readData.getInt() == x):"The order of the Dataset appears to have been altered by the cache/return process";
 		}
-		assert(testDataset.consumeData() == null);
+		assert(testDataset.consumeData() == null):"New data was generated during the cache/return process";
 	}
 
 
@@ -104,7 +108,7 @@ public class DiskCacherTest {
 	public void testFutureToDisk() {
 		//make, cache, and populate a new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
-		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(ownerCounter++, null, null, ServeMode.STORE);
+		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
 		Dataset testDataset = (Dataset) drm.manageNewDataReference(dataRef);
 		try {
 			drm.sendDatasetToDisk(testDataset.id());
@@ -119,16 +123,18 @@ public class DiskCacherTest {
 			testDataset.write(writeData.array());
 		}
 		//check the caching was successful
-		assert(testDataset.consumeData() == null);
+		assert(testDataset.consumeData() == null):"Data was consumed from a Dataset residing on disk";
 		//uncache dataset and check everything reappeared (and nothing else)
 		drm.retrieveDatasetFromDisk(testDataset.id());
 		for (int x = 0; x < 10; x++) {
-			ByteBuffer readData = ByteBuffer.allocate((Integer.SIZE/Byte.SIZE) * 2);
-			readData.put(testDataset.consumeData());
+	        byte[] content = testDataset.consumeData();
+	        assert(content != null):"Not all data was successfully returned to memory";
+			ByteBuffer readData = ByteBuffer.allocate(content.length);
+			readData.put(content);
+			readData.flip();
 			readData.getInt();
-			assert(readData.getInt() == x);
+			assert(readData.getInt() == x):"The order of the Dataset appears to have been altered by the cache/return process";
 		}
-		assert(testDataset.consumeData() == null);
+		assert(testDataset.consumeData() == null):"New data was generated during the cache/return process";
 	}
-
 }
