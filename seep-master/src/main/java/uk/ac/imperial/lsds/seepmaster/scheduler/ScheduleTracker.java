@@ -1,7 +1,9 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -22,6 +25,10 @@ public class ScheduleTracker {
 	private Stage sink;
 	private Map<Stage, StageStatus> scheduleStatus;
 	private StageTracker currentStageTracker;
+	
+	// RuntimeEvents piggybacked with the status of the last stage executed
+	private boolean runtimeEventsInLastStageExecution = false;
+	private Map<Integer, List<RuntimeEvent>> lastStageRuntimeEvents = null;
 	
 	public ScheduleTracker(Set<Stage> stages) {
 		this.stages = stages;
@@ -40,6 +47,15 @@ public class ScheduleTracker {
 			}
 			scheduleStatus.put(stage, StageStatus.WAITING);
 		}
+		this.lastStageRuntimeEvents = new HashMap<>();
+	}
+	
+	public boolean didLastStageGenerateRuntimeEvents() {
+		return this.runtimeEventsInLastStageExecution;
+	}
+	
+	public Map<Integer, List<RuntimeEvent>> getRuntimeEventsOfLastStageExecution() {
+		return this.lastStageRuntimeEvents;
 	}
 	
 	public boolean isScheduledFinished() {
@@ -141,7 +157,16 @@ public class ScheduleTracker {
 		}
 	}
 
-	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results) {
+	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results, List<RuntimeEvent> runtimeEvents) {
+		// Keep runtimeEvents of last executed Stage
+		if(runtimeEvents.size() > 0) {
+			this.runtimeEventsInLastStageExecution = true;
+			this.lastStageRuntimeEvents.put(euId, runtimeEvents); // Store runtimeEvents on a per node basis (eu -> execution unit)
+		}
+		else {
+			this.runtimeEventsInLastStageExecution = false;
+		}
+		// Then notify the stageTracker that the stage was successful
 		currentStageTracker.notifyOk(euId, stageId, results);
 	}
 	

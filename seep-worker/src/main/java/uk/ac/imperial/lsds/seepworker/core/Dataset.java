@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.core.OBuffer;
 public class Dataset implements IBuffer, OBuffer {
 
 	private int id;
+	private DataReferenceManager drm;
 	private DataReference dataReference;
 	private BufferPool bufferPool;
 	
@@ -27,21 +28,25 @@ public class Dataset implements IBuffer, OBuffer {
 	private ByteBuffer wPtrToBuffer;
 	private ByteBuffer rPtrToBuffer;
 
-	public Dataset(DataReference dataReference, BufferPool bufferPool) {
+	public Dataset(DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm) {
+		this.drm = drm;
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
-//		this.bufferPool = BufferPool.__TEMPORAL_FAKE();
 		this.wPtrToBuffer = bufferPool.borrowBuffer();
+		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		this.buffers = new LinkedList<>();
 		this.buffers.add(wPtrToBuffer);
 	}
 	
 	public Dataset(int id, byte[] syntheticData, DataReference dr, BufferPool bufferPool) {
+		// This method does not need the DataReferenceManager as it's only used for producing data
+		// one cannot write to it
 		this.dataReference = dr;
 		this.id = id;
 		this.bufferPool = bufferPool;
 		this.wPtrToBuffer = bufferPool.borrowBuffer();
+		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);
 		this.buffers = new LinkedList<>();
@@ -114,18 +119,23 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	@Override
 	public boolean write(byte[] data, RuntimeEventRegister reg) {
-		
 		int dataSize = data.length;
 		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
 			// Borrow a new buffer and add to the collection
 			this.wPtrToBuffer = bufferPool.borrowBuffer();
-			// TODO: did we run out of memory? register event when so
-			this.buffers.add(wPtrToBuffer);
+			if(this.wPtrToBuffer == null) {
+				// Notify DRM we run out of memory and get ids of spilled to disk datasets
+				List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
+				for(int spilledDatasetId : spilledDatasets) {
+					reg.datasetSpilledToDisk(spilledDatasetId);
+				}
+			}
+			else {
+				this.buffers.add(wPtrToBuffer);
+			}
 		}
-		
 		wPtrToBuffer.putInt(dataSize);
 		wPtrToBuffer.put(data);
-		
 		return true;
 	}
 	

@@ -12,6 +12,7 @@ import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
@@ -57,6 +58,11 @@ public class SchedulerEngineWorker implements Runnable {
 	public void run() {
 		LOG.info("[START JOB]");
 		while(work) {
+			// Check whether the last executed stage generated runtime events that need to be handled here
+			if(tracker.didLastStageGenerateRuntimeEvents()) {
+				tracker.getRuntimeEventsOfLastStageExecution();
+				// TODO: handle this somehow, or give it to someone that knows what to do with it
+			}
 			// Get next stage
 			// TODO: make next return a List of next stages
 			Stage nextStage = schedulingStrategy.next(tracker);
@@ -153,11 +159,14 @@ public class SchedulerEngineWorker implements Runnable {
 		s.addInputDataReference(streamId, refs);
 	}
 	
-	public void newStageStatus(int stageId, int euId, Map<Integer, Set<DataReference>> results, StageStatusCommand.Status status) {
+	public void newStageStatus(int stageId, int euId, 
+			Map<Integer, Set<DataReference>> results, 
+			StageStatusCommand.Status status,
+			List<RuntimeEvent> runtimeEvents) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);
-			tracker.finishStage(euId, stageId, results);
+			tracker.finishStage(euId, stageId, results, runtimeEvents);
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);

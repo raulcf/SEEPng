@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +69,7 @@ public class DataReferenceManager {
 			LOG.info("Start managing new DataReference, id -> {}", id);
 			catalogue.put(id, dataRef);
 			// TODO: will become more complex...
-			newDataset = new Dataset(dataRef, bufferPool);
+			newDataset = new Dataset(dataRef, bufferPool, this);
 			datasets.put(id, newDataset);
 		}
 		else {
@@ -171,6 +172,18 @@ public class DataReferenceManager {
 		for(Entry<Integer, DataReference> entry : catalogue.entrySet()) {
 			System.out.println("id: " + entry.getKey()+ " val: " + entry.getValue().getPartitionId());
 		}
+	}
+
+	public List<Integer> spillDatasetsToDisk(int datasetId) {
+		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
+		List<Integer> spilledDatasets = new ArrayList<>();
+		
+		// TODO: plug in (compose for PL extremists) something that implements the strategy to spill datasets
+		// FIXME: for now we just spill the current one
+		// TODO: spill current one [pending on merge diskcacher]
+		spilledDatasets.add(datasetId);
+		
+		return spilledDatasets;
 	}
 	
 }

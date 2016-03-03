@@ -117,7 +117,7 @@ public class WorkerConfig extends Config {
 				.define(REPORT_METRICS_JMX, Type.INT, 1, Importance.MEDIUM, REPORT_METRICS_JMX_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
 				.define(BUFFERPOOL_MIN_BUFFER_SIZE, Type.INT, 8192, Importance.MEDIUM, BUFFERPOOL_MIN_BUFFER_SIZE_DOC)
-				.define(BUFFERPOOL_MAX_MEM_AVAILABLE, Type.INT, (int)(availableMemoryBytes/2), Importance.HIGH, BUFFERPOOL_MAX_MEM_AVAILABLE_DOC)
+				.define(BUFFERPOOL_MAX_MEM_AVAILABLE, Type.LONG, (int)(availableMemoryBytes/2), Importance.HIGH, BUFFERPOOL_MAX_MEM_AVAILABLE_DOC)
 				.define(SHUFFLE_NUM_PARTITIONS, Type.INT, (int)8, Importance.MEDIUM, SHUFFLE_NUM_PARTITIONS_DOC);
 	}
 	
