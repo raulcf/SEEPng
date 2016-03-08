@@ -134,12 +134,12 @@ public class SourceCodeHandler {
 				/*
 				 * New Code
 				 */
-				else if(line.contains("@Schema")){
-					line_sdgAnnotation.put(lineNumber, SDGAnnotation.SCHEMA);
-				}
-				else if(line.contains("@Network")){
-					line_sdgAnnotation.put(lineNumber, SDGAnnotation.NETWORK);
-				}
+//				else if(line.contains("@Schema")){
+//					line_sdgAnnotation.put(lineNumber, SDGAnnotation.SCHEMA);
+//				}
+//				else if(line.contains("@Network")){
+//					line_sdgAnnotation.put(lineNumber, SDGAnnotation.NETWORK);
+//				}
 				else if(line.contains("@File")){
 					line_sdgAnnotation.put(lineNumber, SDGAnnotation.FILE);
 				}

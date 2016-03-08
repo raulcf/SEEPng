@@ -11,5 +11,37 @@
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
 public enum SDGAnnotation{
-	PARTITIONED, PARTIAL_STATE, GLOBAL_WRITE, GLOBAL_READ, COLLECTION, LOCAL, FILE, NETWORK, CONSOLESINK, SCHEMA
+	PARTITIONED ("Partitioned"), 
+	PARTIAL_STATE ("PartialState"), 
+	PARTIAL_DATA ("PartialData"), 
+	GLOBAL ("Global"),
+	GLOBAL_WRITE ("GlobalWrite"),
+	GLOBAL_READ ("GlobalRead"),
+	COLLECTION ("Collection"),
+	LOCAL ("Local"),
+	FILE ("File"),
+	NETWORKSOURCE ("NetworkSource"),
+	CONSOLESINK ("ConsoleSink");
+	
+	
+	private final String value;
+	
+	private SDGAnnotation(String v) {
+		value = v;
+	}
+	
+	public String getValue(){
+		return value;
+	}
+	
+	public static SDGAnnotation getAnnotation(String value) {
+		if(value.equalsIgnoreCase("Partial"))
+			return SDGAnnotation.PARTIAL_STATE;
+		
+        for(SDGAnnotation v : values())
+            if(v.getValue().equalsIgnoreCase(value)) 
+            	return v;
+        throw new IllegalArgumentException();
+    }
+	
 }

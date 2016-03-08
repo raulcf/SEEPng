@@ -8,12 +8,10 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.output;
+package uk.ac.imperial.lsds.java2sdg.api;
 
-import java.util.List;
+public interface SeepProgram {
 
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
-
-public interface SDGExporter {
-	public void export(List<OperatorBlock> sdg, String filename);
+	public SeepProgramConfiguration configure();
+		
 }

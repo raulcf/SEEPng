@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.OperatorBlock;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.Stream;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
+import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.Stream;
 
 public class DOTExporter implements SDGExporter{
 

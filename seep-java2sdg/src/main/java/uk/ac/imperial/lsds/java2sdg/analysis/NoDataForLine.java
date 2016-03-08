@@ -8,12 +8,10 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.output;
+package uk.ac.imperial.lsds.java2sdg.analysis;
 
-import java.util.List;
+public class NoDataForLine extends Exception {
 
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
+	private static final long serialVersionUID = 1L;
 
-public interface SDGExporter {
-	public void export(List<OperatorBlock> sdg, String filename);
 }

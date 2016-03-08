@@ -16,11 +16,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElementNature;
-import uk.ac.imperial.lsds.java2sdg.bricks.TaskElement.TaskElementBuilder;
-import uk.ac.imperial.lsds.java2sdg.flowanalysis.LiveVariableAnalysis;
-import uk.ac.imperial.lsds.java2sdg.flowanalysis.TEBoundaryAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.TEBoundaryAnalysis;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
+import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement.TaskElementBuilder;
 import uk.ac.imperial.lsds.java2sdg.input.SourceCodeHandler;
 
 public class SDGAssembler {	

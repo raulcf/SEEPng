@@ -10,33 +10,35 @@
  ******************************************************************************/
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
-import soot.SootClass;
+import org.codehaus.janino.Java.Type;
 
 public class InternalStateRepr {
 
-	public enum StateLabel{
-		PARTITIONED, PARTIAL
-	}
-	
 	private final int seId;
-	private final SootClass stateClass;
-	private final StateLabel stateLabel;
+	private final String name; 
+	private final Type stateClass;
+	private final SDGAnnotation annotationType;
 	
-	public InternalStateRepr(SootClass stateClass, StateLabel stateLabel, int seId){
-		this.seId = seId;
-		this.stateClass = stateClass;
-		this.stateLabel = stateLabel;
+	public InternalStateRepr(int stateId, Type stateType, String name, SDGAnnotation annotationType){
+		this.seId = stateId;
+		this.name = name;
+		this.stateClass = stateType;
+		this.annotationType = annotationType;
 	}
 	
-	public int getSeId(){
+	public int getStateId(){
 		return seId;
 	}
 	
-	public SootClass getStateClass(){
+	public String getName(){
+		return name;
+	}
+	
+	public Type getStateType(){
 		return stateClass;
 	}
 	
-	public StateLabel getStateLabel(){
-		return stateLabel;
+	public SDGAnnotation getStateAnnotation(){
+		return annotationType;
 	}
 }

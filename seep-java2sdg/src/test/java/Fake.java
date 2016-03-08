@@ -1,14 +1,46 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
+import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
+import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.annotations.Collection;
 import uk.ac.imperial.lsds.seep.api.annotations.Global;
-import uk.ac.imperial.lsds.seep.api.annotations.NetworkSource;
+import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
+import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.data.Type;
+import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 
-public class Fake {
+public class Fake implements SeepProgram {
 
 	@Partitioned
 	private int iteration;
+	
+	@Partial
+	private List<Double> weights;
+	
+	@Override
+	public SeepProgramConfiguration configure(){
+		
+		SeepProgramConfiguration spc = new SeepProgramConfiguration();
+		
+		// declare train workflow
+		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+		
+		DataStore trainSrc = new DataStore(DataStoreType.NETWORK);
+		spc.newWorkflow("train", trainSrc, sch);
+		
+		// declare test workflow
+		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+		DataStore testSrc = new DataStore(DataStoreType.NETWORK);
+		DataStore testSnk = new DataStore(DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
+		spc.newWorkflow("test", testSrc, sch2, testSnk, sch2); // input and output schema are the same
+
+		return spc;
+	}
 	
 	public double train(){
 		iteration = 5;
@@ -21,9 +53,13 @@ public class Fake {
 		return weights.get(0);
 	}
 	
-	public void test(float ogt){
+	public void test(float data){
 		int a = 0;
-		@NetworkSource(endpoint="kafka://localhost:5555")
 		int b = 1;
+	}
+	
+	@Collection
+	public void merge(List<Integer> numbers){
+		
 	}
 }

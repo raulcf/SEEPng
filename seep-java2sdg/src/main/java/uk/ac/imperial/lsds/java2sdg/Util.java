@@ -25,6 +25,7 @@ import soot.tagkit.Tag;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 
 public class Util {
 
@@ -55,11 +56,12 @@ public class Util {
 				InternalStateRepr stateRepr = null;
 				// System.out.println("TestTag : "+rawAnnotationData );
 				if (rawAnnotationData.contains("Partitioned")) {
-					stateRepr = new InternalStateRepr(sc, InternalStateRepr.StateLabel.PARTITIONED, seId);
+					
+					stateRepr = new InternalStateRepr(seId, null, "", SDGAnnotation.PARTITIONED);
 					seId++;
 				} 
 				else if (rawAnnotationData.contains("Partial")) {
-					stateRepr = new InternalStateRepr(sc, InternalStateRepr.StateLabel.PARTIAL, seId);
+					stateRepr = new InternalStateRepr(seId, null, "", SDGAnnotation.PARTIAL_STATE);
 					seId++;
 				}
 				if (stateRepr != null) {
