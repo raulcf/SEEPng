@@ -62,6 +62,9 @@ examples/simple-pipeline-scheduledef/build/
 examples/simple-shuffle-query/.gitignore
 examples/simple-shuffle-query/.settings/
 examples/simple-shuffle-query/build/
+examples/simple-dag-memorymng/.gitignore
+examples/simple-dag-memorymng/.settings/
+examples/simple-dag-memorymng/build/
 
 deploy/
 dist/
