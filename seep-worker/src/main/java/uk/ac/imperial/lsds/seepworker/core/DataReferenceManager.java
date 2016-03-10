@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class DataReferenceManager {
 	private Map<Integer, DataReference> catalogue;
 	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
+	private DiskCacher cacher;
 	
 	private int syntheticDatasetGenerator;
 	
@@ -53,6 +55,7 @@ public class DataReferenceManager {
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
 		this.bufferPool = BufferPool.createBufferPool(wc);
+		this.cacher = DiskCacher.makeDiskCacher();
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -120,6 +123,25 @@ public class DataReferenceManager {
 			if(dss.type() == type) return dss;
 		}
 		return null;
+	}
+	
+	public void sendDatasetToDisk(int datasetId) throws IOException {
+		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
+		cacher.cacheToDisk(datasets.get(datasetId));
+		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+	}
+	
+	public int retrieveDatasetFromDisk(int datasetId) {
+		try {
+			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
+			return cacher.retrieveFromDisk(datasets.get(datasetId));
+		} finally {
+			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
+		}
+	}
+	
+	public boolean datasetIsInMem(int datasetId) {
+		return cacher.inMem(datasets.get(datasetId));
 	}
 
 	public IBuffer getInputBufferFor(DataReference dr) {
