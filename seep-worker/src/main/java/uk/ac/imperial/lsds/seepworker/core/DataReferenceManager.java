@@ -201,9 +201,13 @@ public class DataReferenceManager {
 		List<Integer> spilledDatasets = new ArrayList<>();
 		
 		// TODO: plug in (compose for PL extremists) something that implements the strategy to spill datasets
-		// FIXME: for now we just spill the current one
-		// TODO: spill current one [pending on merge diskcacher]
-		spilledDatasets.add(datasetId);
+		try {
+			sendDatasetToDisk(datasetId);
+			spilledDatasets.add(datasetId);
+		} catch (IOException e) {
+			LOG.error("While trying to spill dataset: {} to disk", datasetId);
+			e.printStackTrace();
+		}
 		
 		return spilledDatasets;
 	}

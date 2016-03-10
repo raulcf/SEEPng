@@ -11,12 +11,18 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /***
  * Class to move Datasets between disk and memory, as requested (by the DataReferenceManager).
  * @author iv
  *
  */
 public class DiskCacher {
+	
+	final private Logger LOG = LoggerFactory.getLogger(DiskCacher.class.getName());
+	
 	private Map<Integer, String> filenames;
 	private static DiskCacher instance;
 	
@@ -65,6 +71,7 @@ public class DiskCacher {
 				cacheStream.write(record);
 				cachedRecords++;
 			}
+			LOG.debug("Cached records: {}", cachedRecords);
 			cacheStream.flush();
 			cacheStream.close();
 			//Setting this late makes the implementation thread safe-ish. Any writes to the Dataset will
@@ -73,6 +80,7 @@ public class DiskCacher {
 			//A second call to cacheToDisk can solve this, although data might be reordered if Dataset.write
 			//is called in the meantime.
 			data.setCachedLocation(cacheFileName);
+			LOG.debug("Content is spilled to: {}", cacheFileName);
 		} catch (FileNotFoundException fnfe) {
 			cacheFileName = "";
 			fnfe.printStackTrace();

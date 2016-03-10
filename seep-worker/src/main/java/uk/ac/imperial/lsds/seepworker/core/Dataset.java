@@ -31,6 +31,9 @@ public class Dataset implements IBuffer, OBuffer {
 	private Iterator<ByteBuffer> readerIterator;
 	private ByteBuffer wPtrToBuffer;
 	private ByteBuffer rPtrToBuffer;
+	
+	// FIXME: this guy should not have this info. Instead, put this along with the 
+	// dataset in a helper class, and do the management outside this. Open issue for this.
 	private String cacheFileName = "";
 
 	public Dataset(DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm) {
@@ -141,6 +144,26 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	@Override
 	public boolean write(byte[] data, RuntimeEventRegister reg) {
+		
+		// Check whether we have memory space to write data
+		// if not try to borrow buffer, if this fails, spill to disk
+		int dataSize = data.length;
+		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
+			// Borrow a new buffer and add to the collection
+			this.wPtrToBuffer = bufferPool.borrowBuffer();
+			if(this.wPtrToBuffer == null) {
+				// Notify DRM we run out of memory and get ids of spilled to disk datasets
+				List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
+				for(int spilledDatasetId : spilledDatasets) {
+					reg.datasetSpilledToDisk(spilledDatasetId);
+				}
+			}
+			else {
+				this.buffers.add(wPtrToBuffer);
+			}
+		}
+		
+		// Check if dataset was spilled to disk, in which case we need to write there
 		if (!cacheFileName.equals("")) {
 			//If this dataset has been cached to disk write the data there instead of using up memory
 			try {
@@ -160,21 +183,7 @@ public class Dataset implements IBuffer, OBuffer {
 			return false;
 		}
 
-		int dataSize = data.length;
-		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
-			// Borrow a new buffer and add to the collection
-			this.wPtrToBuffer = bufferPool.borrowBuffer();
-			if(this.wPtrToBuffer == null) {
-				// Notify DRM we run out of memory and get ids of spilled to disk datasets
-				List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
-				for(int spilledDatasetId : spilledDatasets) {
-					reg.datasetSpilledToDisk(spilledDatasetId);
-				}
-			}
-			else {
-				this.buffers.add(wPtrToBuffer);
-			}
-		}
+		// If dataset is living in memory we write it directly
 		wPtrToBuffer.putInt(dataSize);
 		wPtrToBuffer.put(data);
 		return true;
