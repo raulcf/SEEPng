@@ -4,6 +4,8 @@ mainClassName = 'uk.ac.imperial.lsds.seepworker.Main'
 dependencies {
 	compile project(':seep-common')
 	compile project(':seep-contrib')
+	compile "org.apache.hadoop:hadoop-hdfs:2.7.1"
+	compile "org.apache.hadoop:hadoop-common:2.7.1"
 }
 
 task distStandaloneJar(type: Jar){

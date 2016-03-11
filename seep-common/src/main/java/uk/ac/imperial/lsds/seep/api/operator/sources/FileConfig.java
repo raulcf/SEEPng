@@ -26,11 +26,19 @@ public class FileConfig extends Config {
 	public static final String CHARACTER_SET = "character.set";
 	private static final String CHARACTER_SET_DOC = "Which character set to use for text input. Defaults to Charset.defaultCharset() (JVM default).";
 	
+	public static final String HDFS_SOURCE = "hdfs.source";
+	private static final String HDFS_SOURCE_DOC = "True if the source file resides on HDFS.";
+	
+	public static final String HDFS_URI = "hdfs.uri";
+	private static final String HDFS_URI_DOC = "URI with the hostname, port, and path of the HDFS deployment."; 
+	
 	static {
 		config = new ConfigDef().define(FILE_PATH, Type.STRING, Importance.HIGH, FILE_PATH_DOC)
 								.define(SERDE_TYPE, Type.INT, 0, Importance.HIGH, SERDE_TYPE_DOC)
 								.define(TEXT_SOURCE, Type.BOOLEAN, false, Importance.MEDIUM, TEXT_SOURCE_DOC)
-								.define(CHARACTER_SET, Type.STRING, Charset.defaultCharset().name(), Importance.LOW, CHARACTER_SET_DOC);
+								.define(CHARACTER_SET, Type.STRING, Charset.defaultCharset().name(), Importance.LOW, CHARACTER_SET_DOC)
+								.define(HDFS_SOURCE, Type.BOOLEAN, false, Importance.MEDIUM, HDFS_SOURCE_DOC)
+								.define(HDFS_URI, Type.STRING, Importance.MEDIUM, HDFS_URI_DOC);
 	}
 	
 	public FileConfig(Map<? extends Object, ? extends Object> originals) {
