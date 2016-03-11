@@ -122,6 +122,7 @@ public class FileSelector implements DataStoreSelector {
 					FileSystem fs = FileSystem.get(hdfsPath.toUri(), new Configuration());
 					LOG.info("Created URI to HDFS resource: {}", hdfsPath.toUri());
 					FSDataInputStream hdfsInput = fs.open(hdfsPath);
+					LOG.info("Configuring file channel: {}", hdfsInput.toString());
 					ReadableByteChannel sbc = Channels.newChannel(hdfsInput);
 					channels.put(sbc, e.getKey());
 				} else {
@@ -129,7 +130,7 @@ public class FileSelector implements DataStoreSelector {
 					LOG.info("Created URI to local resource: {}", uri.toString());
 					Path resource = Paths.get(uri);
 					defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
-					LOG.info("Configuring file channel: {} as binary input", resource.toString());
+					LOG.info("Configuring file channel: {}", resource.toString());
 					ReadableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
 					channels.put(sbc, e.getKey());
 				}
