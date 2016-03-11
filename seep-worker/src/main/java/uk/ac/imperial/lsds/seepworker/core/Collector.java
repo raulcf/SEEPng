@@ -240,6 +240,12 @@ public class Collector implements API {
 		}
 	}
 
+	@Override
+	public void notifyEndOfLoop() {
+		RuntimeEvent re = RuntimeEventFactory.makeNotifyEndOfLoop();
+		this.rEvents.add(re);
+	}
+
 	
 
 }

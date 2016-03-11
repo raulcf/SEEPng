@@ -9,4 +9,6 @@ public interface RuntimeEventRegister {
 	public void datasetSpilledToDisk(int datasetId);
 	public void failure();
 	
+	public void notifyEndOfLoop();
+	
 }

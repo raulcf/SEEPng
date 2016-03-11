@@ -58,14 +58,19 @@ public class SchedulerEngineWorker implements Runnable {
 	public void run() {
 		LOG.info("[START JOB]");
 		while(work) {
+			Map<Integer, List<RuntimeEvent>> rEvents = null;
 			// Check whether the last executed stage generated runtime events that need to be handled here
 			if(tracker.didLastStageGenerateRuntimeEvents()) {
-				tracker.getRuntimeEventsOfLastStageExecution();
+				rEvents = tracker.getRuntimeEventsOfLastStageExecution();
 				// TODO: handle this somehow, or give it to someone that knows what to do with it
+				// The current events here can be:
+				
+				// OutOfMemory a dataset was spilled to disk, update any info that exists here about that
+				// A loop was finished, bear that in mind to choose the next stage to schedule
 			}
 			// Get next stage
 			// TODO: make next return a List of next stages
-			Stage nextStage = schedulingStrategy.next(tracker);
+			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
 				if(tracker.isScheduledFinished()) {
@@ -185,7 +190,7 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	public Stage __next_stage_scheduler(){
-		return schedulingStrategy.next(tracker);
+		return schedulingStrategy.next(tracker, null);
 	}
 	
 	public void __reset_schedule() {

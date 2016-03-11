@@ -8,4 +8,10 @@ public class RuntimeEventFactory {
 		return re;
 	}
 
+	public static RuntimeEvent makeNotifyEndOfLoop() {
+		NotifyEndOfLoopRuntimeEvent e = new NotifyEndOfLoopRuntimeEvent();
+		RuntimeEvent re = new RuntimeEvent(e);
+		return re;
+	}
+
 }
