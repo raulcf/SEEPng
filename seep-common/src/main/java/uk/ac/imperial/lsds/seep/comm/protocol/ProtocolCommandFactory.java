@@ -57,8 +57,8 @@ public class ProtocolCommandFactory {
 		return co;
 	}
 
-	public static SeepCommand buildScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut) {
-		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId, input, ouptut);
+	public static SeepCommand buildScheduleStageCommand(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> ouptut, List<Integer> rankedDatasets) {
+		ScheduleStageCommand sdc = new ScheduleStageCommand(stageId, input, ouptut, rankedDatasets);
 		MasterWorkerCommand c = new MasterWorkerCommand(sdc);
 		Command co = new Command(c);
 		return co;
@@ -74,8 +74,8 @@ public class ProtocolCommandFactory {
 		return co;
 	}
 
-	public static SeepCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents) {
-		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents);
+	public static SeepCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<Integer> managedDatasets) {
+		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents, managedDatasets);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
 		Command co = new Command(c);
 		return co;

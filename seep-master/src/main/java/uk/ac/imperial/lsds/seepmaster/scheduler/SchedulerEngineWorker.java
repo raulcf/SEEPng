@@ -62,9 +62,7 @@ public class SchedulerEngineWorker implements Runnable {
 			// Check whether the last executed stage generated runtime events that need to be handled here
 			if(tracker.didLastStageGenerateRuntimeEvents()) {
 				rEvents = tracker.getRuntimeEventsOfLastStageExecution();
-				// TODO: handle this somehow, or give it to someone that knows what to do with it
-				// The current events here can be:
-				
+				// CURRENT EVENTS:
 				// OutOfMemory a dataset was spilled to disk, update any info that exists here about that
 				// A loop was finished, bear that in mind to choose the next stage to schedule
 			}
@@ -81,7 +79,7 @@ public class SchedulerEngineWorker implements Runnable {
 			}
 			
 			// TODO: (parallel sched) make this receive a list of stages
-			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf);
+			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
 			// we should have a tracker entity that receives progressively what to track, and then we 
@@ -167,11 +165,12 @@ public class SchedulerEngineWorker implements Runnable {
 	public void newStageStatus(int stageId, int euId, 
 			Map<Integer, Set<DataReference>> results, 
 			StageStatusCommand.Status status,
-			List<RuntimeEvent> runtimeEvents) {
+			List<RuntimeEvent> runtimeEvents,
+			Set<Integer> managedDatasets) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);
-			tracker.finishStage(euId, stageId, results, runtimeEvents);
+			tracker.finishStage(euId, stageId, results, runtimeEvents, managedDatasets);
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);

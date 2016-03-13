@@ -2,7 +2,6 @@ package uk.ac.imperial.lsds.seepmaster.scheduler;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 
 
 public class StageTracker {

@@ -7,5 +7,5 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManage
 
 public interface LoadBalancingStrategy {
 
-	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf);
+	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf, ClusterDatasetRegistry cdr);
 }

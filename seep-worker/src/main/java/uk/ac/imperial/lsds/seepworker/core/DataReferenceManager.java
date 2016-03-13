@@ -43,6 +43,14 @@ public class DataReferenceManager {
 	private Map<Integer, DataReference> catalogue;
 	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
+	
+	/**
+	 * This list keeps datasets ordered by priority of staying in memory. Such order 
+	 * is determined by the master and used by DRM to choose which datasets to evict to disk
+	 * and which datasets to load from disk.
+	 */
+	private List<Integer> rankedDatasets;
+	
 	private DiskCacher cacher;
 	
 	private int syntheticDatasetGenerator;
@@ -63,6 +71,16 @@ public class DataReferenceManager {
 			instance = new DataReferenceManager(wc);
 		}
 		return instance;
+	}
+	
+	public void updateRankedDatasets(List<Integer> rankedDatasets) {
+		this.rankedDatasets = rankedDatasets;
+		
+		// TODO: Trigger enforcement policy now??
+	}
+	
+	public Set<Integer> getManagedDatasets() {
+		return this.datasets.keySet();
 	}
 	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
@@ -189,18 +207,12 @@ public class DataReferenceManager {
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
 	}
-	
-	public void printCatalogue() {
-		for(Entry<Integer, DataReference> entry : catalogue.entrySet()) {
-			System.out.println("id: " + entry.getKey()+ " val: " + entry.getValue().getPartitionId());
-		}
-	}
 
 	public List<Integer> spillDatasetsToDisk(int datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
 		List<Integer> spilledDatasets = new ArrayList<>();
 		
-		// TODO: plug in (compose for PL extremists) something that implements the strategy to spill datasets
+		// TODO: USE THE RANKED datasets, if available, to make the decision here
 		try {
 			sendDatasetToDisk(datasetId);
 			spilledDatasets.add(datasetId);
@@ -210,6 +222,12 @@ public class DataReferenceManager {
 		}
 		
 		return spilledDatasets;
+	}
+	
+	public void printCatalogue() {
+		for(Entry<Integer, DataReference> entry : catalogue.entrySet()) {
+			System.out.println("id: " + entry.getKey()+ " val: " + entry.getValue().getPartitionId());
+		}
 	}
 	
 }

@@ -373,7 +373,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
 		List<RuntimeEvent> runtimeEvents = ssc.getRuntimeEvents();
-		seWorker.newStageStatus(stageId, euId, results, status, runtimeEvents);
+		Set<Integer> managedDatasets = ssc.getManagedDatasets();
+		seWorker.newStageStatus(stageId, euId, results, status, runtimeEvents, managedDatasets);
 	}
 	
 	/** Methods to facilitate testing **/

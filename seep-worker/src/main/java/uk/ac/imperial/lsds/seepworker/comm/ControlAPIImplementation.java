@@ -51,8 +51,8 @@ public class ControlAPIImplementation {
 		LOG.info("Sending bye message to master...OK");
 	}
 	
-	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents) {
-		SeepCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents);
+	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<Integer> managedDatasets) {
+		SeepCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents, managedDatasets);
 		LOG.debug("Send stage {} status {} to master...", stageId, status.toString());
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 	}

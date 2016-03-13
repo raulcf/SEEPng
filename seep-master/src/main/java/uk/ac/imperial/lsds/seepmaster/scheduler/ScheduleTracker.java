@@ -1,6 +1,5 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +25,9 @@ public class ScheduleTracker {
 	private Map<Stage, StageStatus> scheduleStatus;
 	private StageTracker currentStageTracker;
 	
+	// The registry of all the datasets in the cluster
+	private ClusterDatasetRegistry clusterDatasetRegistry;
+	
 	// RuntimeEvents piggybacked with the status of the last stage executed
 	private boolean runtimeEventsInLastStageExecution = false;
 	private Map<Integer, List<RuntimeEvent>> lastStageRuntimeEvents = null;
@@ -48,6 +50,11 @@ public class ScheduleTracker {
 			scheduleStatus.put(stage, StageStatus.WAITING);
 		}
 		this.lastStageRuntimeEvents = new HashMap<>();
+		this.clusterDatasetRegistry = new ClusterDatasetRegistry();
+	}
+	
+	public ClusterDatasetRegistry getClusterDatasetRegistry() {
+		return clusterDatasetRegistry;
 	}
 	
 	public boolean didLastStageGenerateRuntimeEvents() {
@@ -157,7 +164,11 @@ public class ScheduleTracker {
 		}
 	}
 
-	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results, List<RuntimeEvent> runtimeEvents) {
+	public void finishStage(int euId, 
+			int stageId, 
+			Map<Integer, Set<DataReference>> results, 
+			List<RuntimeEvent> runtimeEvents,
+			Set<Integer> managedDatasets) {
 		// Keep runtimeEvents of last executed Stage
 		if(runtimeEvents.size() > 0) {
 			this.runtimeEventsInLastStageExecution = true;
@@ -166,6 +177,10 @@ public class ScheduleTracker {
 		else {
 			this.runtimeEventsInLastStageExecution = false;
 		}
+		
+		// Update DatasetRegistry 
+		clusterDatasetRegistry.updateDatasetsForNode(euId, managedDatasets);
+		
 		// Then notify the stageTracker that the stage was successful
 		currentStageTracker.notifyOk(euId, stageId, results);
 	}

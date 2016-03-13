@@ -165,10 +165,15 @@ public class Conductor {
 		}
 	}
 	
-	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {
+	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, 
+			Map<Integer, Set<DataReference>> output,
+			List<Integer> rankedDatasets) {
 		Stage s = sd.getStageWithId(stageId);
 		ScheduleTask task = this.scheduleTasks.get(s);
 		LOG.info("Scheduling Stage:Task -> {}:{}", s.getStageId(), task.getEuId());
+		
+		drm.updateRankedDatasets(rankedDatasets);
+		// TODO: Decide when to trigger the enforcement policy (and how to do it in parallel)
 		
 		// TODO: fix this, how useful is to configure this?
 		Map<Integer, ConnectionType> connTypeInformation = new HashMap<>();
@@ -322,7 +327,7 @@ public class Conductor {
 		}
 
 		public void notifyOk(List<RuntimeEvent> runtimeEvents) {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents);
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasets());
 		}
 		
 	}
