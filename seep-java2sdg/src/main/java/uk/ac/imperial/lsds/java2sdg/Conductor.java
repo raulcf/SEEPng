@@ -7,6 +7,8 @@ import org.codehaus.janino.Java;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.minlog.Log;
+
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.CoarseGrainedTEAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis;
@@ -79,13 +81,19 @@ public class Conductor {
 		String outputName = cc.getString(CompilerConfig.OUTPUT_FILE);
 		switch(ot){
 		case DOT:
+			LOG.info("Exporting SDG to DOT file..");
 			
+			LOG.info("Exporting SDG to DOT file...OK");
 			break;
 		case GEXF:
+			LOG.info("Exporting SDG to GEXF file...");
 			
+			LOG.info("Exporting SDG to GEXF file...OK");
 			break;
 		case X_JAR:
+			LOG.info("Exporting SDG to SEEP runnable query JAR...");
 			
+			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;
 		default:
 			
