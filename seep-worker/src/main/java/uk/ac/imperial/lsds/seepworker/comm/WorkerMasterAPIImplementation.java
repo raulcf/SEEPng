@@ -51,8 +51,10 @@ public class WorkerMasterAPIImplementation {
 	
 	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
 		MasterWorkerCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput);
-		LOG.debug("Send stage {} status {} to master...", stageId, status.toString());
+		LOG.info("====> Send stage {} status {} to master...", stageId, status.toString());
+		// When scheduling in fast pace - notification can be out of order in Async???
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
+		LOG.info("====> Send stage {} status {} to master... OK!!", stageId, status.toString());
 	}
 	
 }

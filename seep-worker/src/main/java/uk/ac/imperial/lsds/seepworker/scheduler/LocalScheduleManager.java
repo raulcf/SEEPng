@@ -39,7 +39,7 @@ public class LocalScheduleManager {
 	
 	// Local Scheduler machinery
 	private ScheduleDescription scheduleDescription;
-	private LocalSchedulerEngineWorker seWorker;
+	private LocalScheduler seWorker;
 	private Thread worker;
 	private int myPort;
 
@@ -83,7 +83,7 @@ public class LocalScheduleManager {
 		LOG.info("Group Scheduled deploy done: {}. Waiting for Global scheduler Stages...", suc);
 		
 		// Initialize the schedulerThread
-		seWorker = new LocalSchedulerEngineWorker(scheduleDescription,
+		seWorker = new LocalScheduler(scheduleDescription,
 				SchedulingStrategyType.clazz(0), comm, KryoFactory.buildKryoForMasterWorkerProtocol(), this.getWorkerConnection());
 		worker = new Thread(seWorker);
 		worker.setName("LocalScheduleManager");

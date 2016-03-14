@@ -183,7 +183,7 @@ public class Conductor {
 		
 		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
-				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(stageId, id, output));
+				s.getStageId(), task, state, coreInput, coreOutput, makeConductorCallbackForScheduleStage(s.getStageId(), id, output));
 		engine.start();
 	}
 	
@@ -279,7 +279,7 @@ public class Conductor {
 		}
 
 		public void notifyOk() {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput);
+			masterApi.scheduleTaskStatus(masterConn, this.stageId, this.euId, Status.OK, this.refToProducedOutput);
 		}
 		
 	}
@@ -312,9 +312,9 @@ public class Conductor {
 		this.masterConn = masterConn;
 	}
 	
-	public void propagateStageStatus(StageStatusCommand s){
-		masterApi.scheduleTaskStatus(masterConn,s.getStageId(), s.getEuId(), s.getStatus(), s.getResultDataReference());
-	}
+//	public void propagateStageStatus(StageStatusCommand s){
+//		masterApi.scheduleTaskStatus(masterConn,s.getStageId(), s.getEuId(), s.getStatus(), s.getResultDataReference());
+//	}
 
 		
 }

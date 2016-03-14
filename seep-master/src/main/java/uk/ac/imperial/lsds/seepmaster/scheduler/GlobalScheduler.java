@@ -26,9 +26,9 @@ import uk.ac.imperial.lsds.seepmaster.query.GlobalScheduledQueryManager;
  * @author pg1712@ic.ac.uk
  *
  */
-public class GlobalSchedulerEngineWorker implements Runnable {
+public class GlobalScheduler implements Runnable {
 
-	final private Logger LOG = LoggerFactory.getLogger(GlobalSchedulerEngineWorker.class);
+	final private Logger LOG = LoggerFactory.getLogger(GlobalScheduler.class);
 	
 	private ScheduleDescription scheduleDescription;
 	private SchedulingStrategy schedulingStrategy;
@@ -46,7 +46,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	 * TODO: Create a generic abstract class for SchedulerEngineWorkers in general??  LocalEngineWorker and GlobalSchedulerEngineWorker could use this abstraction
 	 */
 	
-	public GlobalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, GlobalScheduledQueryManager gsm) {
+	public GlobalScheduler(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, GlobalScheduledQueryManager gsm) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
@@ -65,7 +65,7 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 	
 	@Override
 	public void run() {
-		GlobalScheduledQueryManager se = gsm;
+		
 		LOG.info("[START GLOBAL JOB]");
 		while(work) {
 			// Get next stage
@@ -73,9 +73,9 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 
 			if(nextStage == null ) {
 				// TODO: means the computation finished, do something
-				se.__reset_schedule();
-				se.__initializeEverything();
-				nextStage = se.__get_next_stage_to_schedule_fot_test();
+//				se.__reset_schedule();
+				gsm.__initializeEverything();
+				nextStage = gsm.__get_next_stage_to_schedule_fot_test();
 //				if(tracker.isScheduledFinished()) {
 //					LOG.info("TODO: 1-Schedule has finished at this point");
 //					work = false;
@@ -135,19 +135,19 @@ public class GlobalSchedulerEngineWorker implements Runnable {
 		return cons;
 	}
 	
-	private void trackStageCompletionAsync(Stage stage, Set<Connection> euInvolved) {
-		// Just start the tracker async
-		new Thread(new Runnable() {
-			public void run() {
-				// Wait until stage is completed
-				Set<Integer> euIds = new HashSet<>();
-				for(Connection c : euInvolved) {
-					euIds.add(c.getId());
-				}
-				tracker.trackWorkersAndBlock(stage, euIds);
-			}
-		}).start();
-	}
+//	private void trackStageCompletionAsync(Stage stage, Set<Connection> euInvolved) {
+//		// Just start the tracker async
+//		new Thread(new Runnable() {
+//			public void run() {
+//				// Wait until stage is completed
+//				Set<Integer> euIds = new HashSet<>();
+//				for(Connection c : euInvolved) {
+//					euIds.add(c.getId());
+//				}
+//				tracker.trackWorkersAndBlock(stage, euIds);
+//			}
+//		}).start();
+//	}
 	
 	public boolean prepareForStart(Set<Connection> connections) {
 		// Set initial connections in worker

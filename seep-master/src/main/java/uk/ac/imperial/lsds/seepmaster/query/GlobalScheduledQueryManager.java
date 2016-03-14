@@ -36,39 +36,39 @@ import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnitGroup;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.GlobalSchedulerEngineWorker;
+import uk.ac.imperial.lsds.seepmaster.scheduler.GlobalScheduler;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 
-public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManager{
-	
+public class GlobalScheduledQueryManager implements QueryManager, ScheduleManager {
+
 	final private Logger LOG = LoggerFactory.getLogger(GlobalScheduledQueryManager.class);
-	
+
 	private MasterConfig mc;
 	private static GlobalScheduledQueryManager tlsqm;
 	private SeepLogicalQuery slq;
-	
+
 	private String pathToQueryJar;
 	private String definitionClassName;
 	private String[] queryArgs;
 	private String composeMethodName;
-	
+
 	private InfrastructureManager inf;
 	private Comm comm;
 	private Kryo k;
 	private LifecycleManager lifecycleManager;
-	
+
 	// Global Scheduler variables
 	private ScheduleDescription scheduleDescription;
 	private Thread globalscheduledEngineWorkerThread;
-	private GlobalSchedulerEngineWorker seWorker;
-	
-	// Local Scheduler variables 
+	private GlobalScheduler gs;
+
+	// Local Scheduler variables
 	private Set<ExecutionUnitGroup> workerGroups;
 	Set<Integer> allInvolvedEUIds;
 	// Group of tasks ? possibly
-	
-	
-	public GlobalScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager, MasterConfig mc){
+
+	public GlobalScheduledQueryManager(InfrastructureManager inf, Comm comm, LifecycleManager lifeManager,
+			MasterConfig mc) {
 		LOG.info("Initialising TwoLevelScheduled QueryManager");
 		this.mc = mc;
 		this.inf = inf;
@@ -77,22 +77,22 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
 		allInvolvedEUIds = new HashSet<>();
 	}
-	
+
 	// Static Singleton Access
-	public static GlobalScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm, 
-			LifecycleManager lifeManager, MasterConfig mc){
-		if(tlsqm == null)
+	public static GlobalScheduledQueryManager getInstance(InfrastructureManager inf, Comm comm,
+			LifecycleManager lifeManager, MasterConfig mc) {
+		if (tlsqm == null)
 			return new GlobalScheduledQueryManager(inf, comm, lifeManager, mc);
-		else 
+		else
 			return tlsqm;
 	}
-	
+
 	/** QueryManager interface Implementation **/
 	@Override
 	public boolean loadQueryFromParameter(SeepLogicalQuery slq, String pathToQueryJar, String definitionClass,
 			String[] queryArgs, String composeMethod) {
 		boolean allowed = this.lifecycleManager.canTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
-		if(!allowed){
+		if (!allowed) {
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
@@ -101,103 +101,105 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		this.definitionClassName = definitionClass;
 		this.queryArgs = queryArgs;
 		this.composeMethodName = composeMethod;
-		
+
 		LOG.debug("Logical query loaded: {}", slq.toString());
-		
+
 		// Create Scheduler Engine and build scheduling plan for the given query
-		// TODO: Refactor => Some duplicate methods with plain ScheduledQueryManager 
+		// TODO: Refactor => Some duplicate methods with plain
+		// ScheduledQueryManager
 		this.scheduleDescription = this.buildSchedulingPlanForQuery(slq);
-		
+
 		// Initialize the Global SchedulerThread
-		seWorker = new GlobalSchedulerEngineWorker(this.scheduleDescription,
+		gs = new GlobalScheduler(this.scheduleDescription,
 				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)), this.comm, this.k, this);
-		this.globalscheduledEngineWorkerThread = new Thread(seWorker);
+		this.globalscheduledEngineWorkerThread = new Thread(gs);
 		LOG.info("Schedule Description:");
 		LOG.info(scheduleDescription.toString());
-		Set<Stage> stages  = scheduleDescription.getStages();
-		for(Iterator<Stage> i = stages.iterator(); i.hasNext(); ) {
-		    Stage s = i.next();
-		    LOG.info("Stage: "+ s.toString());
+		Set<Stage> stages = scheduleDescription.getStages();
+		for (Iterator<Stage> i = stages.iterator(); i.hasNext();) {
+			Stage s = i.next();
+			LOG.info("Stage: " + s.toString());
 		}
-		
-		
+
 		this.lifecycleManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_SUBMITTED);
 		return true;
 	}
 
 	@Override
-	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs, String composeMethod) {
+	public boolean loadQueryFromFile(String pathToQueryJar, String definitionClass, String[] queryArgs,
+			String composeMethod) {
 		throw new NotImplementedException("TwoLevelScheduledQueryManager.loadQueryFromFile not implemented yet !!");
 	}
 
 	@Override
 	public boolean deployQueryToNodes() {
 		boolean allowed = this.lifecycleManager.canTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
-		if(!allowed) {
+		if (!allowed) {
 			LOG.error("Attempt to violate application lifecycle");
 			return false;
 		}
 		// Check that there is at least one resource available
-		// Need at least two nodes - One Local scheduler and a worker 
-		if (! (inf.executionUnitsAvailable() > 1)) {
+		// Need at least two nodes - One Local scheduler and a worker
+		if (!(inf.executionUnitsAvailable() > 1)) {
 			LOG.warn("Cannot deploy query, not enough nodes. Available: {} - Need at least 2!",
 					inf.executionUnitsAvailable());
 			return false;
 		}
 
 		this.workerGroups = createExecutionUnitGroups();
-		//Elect Local Scheduler Node per Group and Send Command
+		// Elect Local Scheduler Node per Group and Send Command
 		LOG.info("Electing local schedulers");
 		this.sendSchedulerElectCommand(workerGroups);
 		LOG.info("Electing local schedulers...OK");
-		
-		//Send query to all nodes (could be a wise choice)
+
+		// Send query to all nodes (could be a wise choice)
 		Set<Connection> connections = this.getAllExecutionUnitsConnections();
 		LOG.info("Sending query to {} nodes", connections.size());
-		sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
+		this.sendQueryToNodes(connections, definitionClassName, queryArgs, composeMethodName);
 		LOG.info("Sending query to nodes...OK");
-		
+
 		// Send Schedule only to Local Schedulers
 		connections = this.getLocalSchedulersConnections();
 		LOG.info("Sending schedule to {} nodes", connections.size());
-		sendScheduleToNodes(connections);
-		LOG.info("Sending schedule to {} nodes...OK", connections.size() );
-		
+		this.sendScheduleToNodes(connections);
+		LOG.info("Sending schedule to {} nodes...OK", connections.size());
+
 		// TODO: Prepare scheduling engine - define Group-Tasks
-		LOG.info("Prepare scheduler engine...");
-		seWorker.prepareForStart(connections);
-		LOG.info("Prepare scheduler engine...OK");
-		
+		LOG.info("Prepare GScheduler engine...");
+		gs.prepareForStart(connections);
+		LOG.info("Prepare GScheduler engine...OK");
+
 		// For now just forward all stages to local scheduler
-		
+
 		this.lifecycleManager.tryTransitTo(LifecycleManager.AppStatus.QUERY_DEPLOYED);
 		return true;
 	}
-	
-	public void sendSchedulerElectCommand(Set<ExecutionUnitGroup> executionGroups){
+
+	public void sendSchedulerElectCommand(Set<ExecutionUnitGroup> executionGroups) {
 		for (ExecutionUnitGroup eug : executionGroups) {
 			eug.localSchedulerElect();
 			Set<Integer> involvedEUId = new HashSet<>();
 			involvedEUId.add(eug.getLocal_scheduler().getId());
 			Set<Connection> connections = inf.getConnectionsTo(involvedEUId);
 			LOG.debug("Sending Local Scheduler Elect to {} nodes", involvedEUId);
-			MasterWorkerCommand scheduleElect = ProtocolCommandFactory.buildLocalSchedulerElectCommand(eug.getWorkerEndpoints());
+			MasterWorkerCommand scheduleElect = ProtocolCommandFactory
+					.buildLocalSchedulerElectCommand(eug.getWorkerEndpoints());
 			comm.send_object_sync(scheduleElect, connections, k);
 		}
 	}
-	
-	public Set<Connection> getAllExecutionUnitsConnections(){
+
+	public Set<Connection> getAllExecutionUnitsConnections() {
 		return this.inf.getConnectionsTo(allInvolvedEUIds);
 	}
-	
-	public Set<Connection> getLocalSchedulersConnections(){
+
+	public Set<Connection> getLocalSchedulersConnections() {
 		Set<Integer> involvedEUId = new HashSet<>();
-		for(ExecutionUnitGroup eug : this.workerGroups){
+		for (ExecutionUnitGroup eug : this.workerGroups) {
 			involvedEUId.add(eug.getLocal_scheduler().getId());
 		}
 		return this.inf.getConnectionsTo(involvedEUId);
 	}
-	
+
 	// Could be moved to a separate class - Called just once every time
 	public Set<ExecutionUnitGroup> createExecutionUnitGroups() {
 		Set<ExecutionUnitGroup> toreturn = new HashSet<ExecutionUnitGroup>();
@@ -212,8 +214,9 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 				g.addToExecutionGroup(eu);
 				toreturn.add(g);
 			} else {
-				for (ExecutionUnitGroup g: toreturn) {
-					LOG.debug("Worker {} with ID {} belogs to group {}",eu.getEndPoint().getIp(), eu.getId(), g.belognsToGroup(eu));
+				for (ExecutionUnitGroup g : toreturn) {
+					LOG.debug("Worker {} with ID {} belogs to group {}", eu.getEndPoint().getIp(), eu.getId(),
+							g.belognsToGroup(eu));
 					if (g.belognsToGroup(eu)) {
 						g.addToExecutionGroup(eu);
 						addedToGroup = true;
@@ -221,31 +224,32 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 					}
 				}
 				// Could not find a suitable group
-				if(!addedToGroup){
+				if (!addedToGroup) {
 					ExecutionUnitGroup tmp = new ExecutionUnitGroup(eu.getEndPoint().getIpString());
 					toreturn.add(tmp);
 				}
 			}
 		}
-		
+
 		LOG.debug("Current ExecutionUnit Groups: {}", toreturn.size());
-		for(ExecutionUnitGroup eug: toreturn)
+		for (ExecutionUnitGroup eug : toreturn)
 			LOG.debug(eug.toString());
 		return toreturn;
 	}
-	
+
 	public ScheduleDescription buildSchedulingPlanForQuery(SeepLogicalQuery slq) {
 		Set<Integer> opsAlreadyInSchedule = new HashSet<>();
 		// Start building from sink
 		SeepLogicalOperator op = (SeepLogicalOperator) slq.getSink();
-		// Recursive method, with opsAlreadyInSchedule to detect already incorporated stages
+		// Recursive method, with opsAlreadyInSchedule to detect already
+		// incorporated stages
 		Set<Stage> stages = new HashSet<>();
 		int stageId = 0;
-		buildScheduleFromStage(null, op,  opsAlreadyInSchedule, slq, stages, stageId);
+		buildScheduleFromStage(null, op, opsAlreadyInSchedule, slq, stages, stageId);
 		ScheduleDescription sd = new ScheduleDescription(stages);
 		return sd;
 	}
-	
+
 	private void buildScheduleFromStage(Stage parent, SeepLogicalOperator slo, Set<Integer> opsAlreadyInSchedule,
 			SeepLogicalQuery slq, Set<Stage> stages, int stageId) {
 		// Check whether this op has already been incorporated to a stage and
@@ -290,21 +294,22 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 			buildScheduleFromStage(stage, upstreamOp, opsAlreadyInSchedule, slq, stages, stageId);
 		}
 	}
-	
+
 	private Stage stageResponsibleFor(int opId) {
-		for(Stage s : scheduleDescription.getStages()) {
-			if(s.responsibleFor(opId)) {
+		for (Stage s : scheduleDescription.getStages()) {
+			if (s.responsibleFor(opId)) {
 				return s;
 			}
-		} 
+		}
 		return null;
 	}
-	
-	private Stage createStageFromLogicalOperator(Stage stage, Set<Integer> opsAlreadyInSchedule, SeepLogicalOperator slo) {
+
+	private Stage createStageFromLogicalOperator(Stage stage, Set<Integer> opsAlreadyInSchedule,
+			SeepLogicalOperator slo) {
 		StageType type = null;
 		boolean containsSinkOperator = false;
 		boolean containsSourceOperator = false;
-		
+
 		boolean finishesStage = false;
 		do {
 			// get opId of current op
@@ -312,53 +317,55 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 			// Add opId to stage
 			stage.add(opId);
 			opsAlreadyInSchedule.add(opId);
-			if (isSink(slo)) containsSinkOperator = true;
-			if (isSource(slo)) containsSourceOperator = true;
+			if (isSink(slo))
+				containsSinkOperator = true;
+			if (isSource(slo))
+				containsSourceOperator = true;
 			// Check if it terminates stage
 			// has partitioned state?
-			if(slo.isStateful()) {
-				if(slo.getState().getDMS().equals(DistributedMutableState.PARTITIONED)) {
+			if (slo.isStateful()) {
+				if (slo.getState().getDMS().equals(DistributedMutableState.PARTITIONED)) {
 					stage.setHasPartitionedState();
 					finishesStage = true;
 				}
 			}
 			// has multiple inputs?
-			if(slo.upstreamConnections().size() > 1) {
+			if (slo.upstreamConnections().size() > 1) {
 				stage.setRequiresMultipleInput();
 				finishesStage = true;
 			}
 			// is source operator?
-			if(containsSourceOperator) {
+			if (containsSourceOperator) {
 				finishesStage = true;
 			}
 			// if not source op, then...
 			else {
 				// has upstream downstreams other than me?
 				Operator op = slo.upstreamConnections().get(0).getUpstreamOperator();
-				if(op == null || op.downstreamConnections().size() > 1) {
+				if (op == null || op.downstreamConnections().size() > 1) {
 					finishesStage = true;
 				}
 				// has priorty - make sure to sum
-				if( op.hasPriority() ){
+				if (op.hasPriority()) {
 					stage.setPriority(stage.getPriority() + op.getPriority());
 					LOG.debug("Setting Stage {} Priority {} ", stage.getStageId(), stage.getPriority());
 					// TODO: MAKE SURE SINKS AND SOURCES DONT GET PRIORITY!!!
 				}
 			}
-			
+
 			// Get next operator
-			if(!finishesStage){
-				slo = (SeepLogicalOperator)slo.upstreamConnections().get(0).getUpstreamOperator();
+			if (!finishesStage) {
+				slo = (SeepLogicalOperator) slo.upstreamConnections().get(0).getUpstreamOperator();
 			}
-			
-		} while(!finishesStage);
-		
+
+		} while (!finishesStage);
+
 		// Set stage type
-		if(containsSourceOperator && containsSinkOperator) {
+		if (containsSourceOperator && containsSinkOperator) {
 			type = StageType.UNIQUE_STAGE;
-		} else if(containsSourceOperator) {
+		} else if (containsSourceOperator) {
 			type = StageType.SOURCE_STAGE;
-		} else if(containsSinkOperator) {
+		} else if (containsSinkOperator) {
 			type = StageType.SINK_STAGE;
 		} else {
 			type = StageType.INTERMEDIATE_STAGE;
@@ -366,39 +373,43 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		stage.setStageType(type);
 		return stage;
 	}
-	
+
 	private boolean isSink(SeepLogicalOperator slo) {
-		if(slo.getSeepTask() instanceof Sink) {
+		if (slo.getSeepTask() instanceof Sink) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	private boolean isSource(SeepLogicalOperator slo) {
-		// Source if the op is a Source itself, or if its unique upstream is null. 
+		// Source if the op is a Source itself, or if its unique upstream is
+		// null.
 		// Null indicates that it's a tagging operator
-		if(slo.getSeepTask() instanceof Source || slo.upstreamConnections().get(0).getUpstreamOperator() == null) {
+		if (slo.getSeepTask() instanceof Source || slo.upstreamConnections().get(0).getUpstreamOperator() == null) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	// FIXME: this code is repeated in materialisedQueryManager. please refactor
 	// FIXME: in particular, consider moving this to
 	// MasterWorkerAPIImplementation (that already handles a comm and k)
-	private void sendQueryToNodes(Set<Connection> connections, String definitionClassName, String[] queryArgs, String composeMethodName) {
+	private void sendQueryToNodes(Set<Connection> connections, String definitionClassName, String[] queryArgs,
+			String composeMethodName) {
 		// Send data file to nodes
 		byte[] queryFile = Utils.readDataFromFile(pathToQueryJar);
 		LOG.info("Sending query file of size: {} bytes", queryFile.length);
-		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs, composeMethodName);
+		MasterWorkerCommand code = ProtocolCommandFactory.buildCodeCommand(queryFile, definitionClassName, queryArgs,
+				composeMethodName);
 		comm.send_object_sync(code, connections, k);
 		LOG.info("Sending query file...DONE!");
 	}
-	
-	private boolean sendScheduleToNodes(Set<Connection> connections){
+
+	private boolean sendScheduleToNodes(Set<Connection> connections) {
 		LOG.info("Sending Schedule Deploy Command");
 		// Send physical query to all nodes
-		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq, scheduleDescription);
+		MasterWorkerCommand scheduleDeploy = ProtocolCommandFactory.buildScheduleDeployCommand(slq,
+				scheduleDescription);
 		boolean success = comm.send_object_sync(scheduleDeploy, connections, k);
 		return success;
 	}
@@ -415,13 +426,12 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		LOG.info("Stop scheduling");
 		try {
 			globalscheduledEngineWorkerThread.join();
-		} 
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		return true;
 	}
-	
+
 	/** ScheduleManager interface Implementation **/
 	@Override
 	public void notifyStageStatus(StageStatusCommand ssc) {
@@ -429,25 +439,26 @@ public class GlobalScheduledQueryManager implements  QueryManager, ScheduleManag
 		int euId = ssc.getEuId();
 		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
-		seWorker.newStageStatus(stageId, euId, results, status);
+		gs.newStageStatus(stageId, euId, results, status);
 	}
-	
+
 	/** Methods to facilitate GlobalScheduler testing **/
-	
-	public void __initializeEverything(){
-		seWorker.prepareForStart(this.getLocalSchedulersConnections());
+
+	public void __initializeEverything() {
+		gs.prepareForStart(this.getLocalSchedulersConnections());
 	}
-	
-	public ScheduleTracker __tracker_for_test(){
-		return seWorker.__tracker_for_testing();
+
+	public Stage __get_next_stage_to_schedule_fot_test() {
+		return gs.__next_stage_scheduler();
 	}
-	
-	public Stage __get_next_stage_to_schedule_fot_test(){
-		return seWorker.__next_stage_scheduler();
-	}
-	
-	public void __reset_schedule() {
-		seWorker.__reset_schedule();
-	}
-	
+
+	// public ScheduleTracker __tracker_for_test(){
+	// return gs.__tracker_for_testing();
+	// }
+	//
+	//
+	// public void __reset_schedule() {
+	// gs.__reset_schedule();
+	// }
+
 }

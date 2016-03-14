@@ -37,7 +37,9 @@ public class StageTracker {
 	
 	public void waitForStageToFinish() {
 		try {
+			LOG.info("countDown SLEEEPING");
 			countDown.await();
+			LOG.info("countDown AWAKEN!!!!!!!");
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -66,8 +68,16 @@ public class StageTracker {
 		}
 	}
 
+	/*
+	 * Local Scheduling can be much more complicated
+	 * Clear the list after every Stage completion
+	 */
 	public boolean finishedSuccessfully() {
-		return completed.containsAll(euInvolved);
+		boolean tmp = completed.containsAll(euInvolved);
+		//Solves ContDown inconsistency issues - LS
+		completed.clear();
+		//TODO: FIND A BETTER SOLUTION
+		return true;
 	}
 
 }

@@ -148,7 +148,7 @@ public class WorkerMasterCommManager {
 					}
 					// SCHEDULE_STAGE command
 					else if(cType == MasterWorkerProtocolAPI.SCHEDULE_STAGE.type()) {
-						LOG.info("RX SCHEDULE_STAGE command");
+						LOG.info("\n========================= RX SCHEDULE_STAGE command =========================\n");
 						ScheduleStageCommand esc = c.getScheduleStageCommand();
 						out.println("ack");
 						handleScheduleStage(esc);
@@ -178,9 +178,9 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						//update local status tracker
 						lsm.notifyStageStatus(ssc);
-						//And then Notify Global scheduler
-						ssc.setEuId(Utils.computeIdFromIpAndPort(myIp, myPort));
-						WorkerMasterCommManager.this.c.propagateStageStatus(ssc);
+						//TODO: Notify Global scheduler 
+//						ssc.setEuId(Utils.computeIdFromIpAndPort(myIp, myPort));
+//						WorkerMasterCommManager.this.c.propagateStageStatus(ssc);
 					}
 					/**
 					 * UP TO HERE - TWO LEVEL SCHEDULING SPECIFIC 
@@ -203,7 +203,7 @@ public class WorkerMasterCommManager {
 						out.println("ack");
 						handleStopQuery(sqc);
 					}
-					LOG.debug("Served command of type: {}", cType);
+					LOG.debug("Served command of type: {} ", cType);
 				}
 				catch(IOException io) {
 					io.printStackTrace();

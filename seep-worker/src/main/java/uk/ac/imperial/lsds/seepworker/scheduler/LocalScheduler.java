@@ -36,13 +36,13 @@ import uk.ac.imperial.lsds.seep.scheduler.engine.SchedulingStrategy;
  * @author pg1712@ic.ac.uk
  *
  */
-public class LocalSchedulerEngineWorker implements Runnable {
+public class LocalScheduler implements Runnable {
 
-	final private Logger LOG = LoggerFactory.getLogger(LocalSchedulerEngineWorker.class);
+	final private Logger LOG = LoggerFactory.getLogger(LocalScheduler.class);
 	
 	private ScheduleDescription scheduleDescription;
 //	private SchedulingStrategy schedulingStrategy;
-	private ScheduleTracker tracker;
+	private ScheduleTracker schedTracker;
 	
 	private Set<Connection> connections;
 	
@@ -55,10 +55,10 @@ public class LocalSchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	public LocalSchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, Set<Connection> workerConnections) {
+	public LocalScheduler(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, Comm comm, Kryo k, Set<Connection> workerConnections) {
 		this.scheduleDescription = sdesc;
 //		this.schedulingStrategy = schedulingStrategy;
-		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
+		this.schedTracker = new ScheduleTracker(scheduleDescription.getStages());
 		this.comm = comm;
 		this.k = k;
 		this.workerConnections = workerConnections;
@@ -78,7 +78,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 	ArrayList<Integer> latencyStageB = new ArrayList<Integer>();
 	ArrayList<Integer> throughput = new ArrayList<Integer>();
 	ArrayList<Integer> queueSize = new ArrayList<Integer>();
-	ArrayList<Integer> computation = new ArrayList<Integer>();
+	ArrayList<Long> computation = new ArrayList<Long>();
 	long init = 0;
 	@Override
 	public void run() {
@@ -88,7 +88,10 @@ public class LocalSchedulerEngineWorker implements Runnable {
 			try {
 				Stage nextStage = queue.poll();
 				if(nextStage == null ){
-					Thread.sleep(10);
+					/*
+					 * Sleep needed to avoid getting stuck when polling too fast
+					 */
+					Thread.sleep(1);
 					continue;
 				}
 				LOG.debug("NEXT STAGE IS: {} Queue Size: ", nextStage, this.queue.size());
@@ -107,6 +110,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 				long start = System.currentTimeMillis();
 				
 				Set<Connection> euInvolved = getWorkersInvolvedInStage(nextStage);
+				//this.schedTracker.addNewStage(nextStage);
 				trackStageCompletionAsync(nextStage, euInvolved);
 				List<CommandToNode> commands = assignWorkToWorkers(nextStage, euInvolved);
 
@@ -115,7 +119,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 					boolean success = comm.send_object_sync(ctn.command, ctn.c, k);
 				}
 				
-				tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+				schedTracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 				long end = System.currentTimeMillis();
 				
 				if(nextStage.getStageId() == 1){
@@ -130,8 +134,8 @@ public class LocalSchedulerEngineWorker implements Runnable {
 				if ((System.currentTimeMillis() - init) > 1000) {
 					throughput.add((stageCountA+stageCountB));
 					queueSize.add(queue.size());
-					computation.add((int)(end-start));
-					LOG.info("[STATISTICS] Avg Stages/sec {} stage1 {} stage2 {} Avg Computation {} ", throughput.stream().mapToInt(i -> i).average().orElse(0), stageCountA, stageCountB, computation.stream().mapToInt(i->i).average().orElse(0));
+					computation.add(end-start);
+					LOG.info("[STATISTICS] Avg Stages/sec {} stage1 {} stage2 {} Avg Stage Comp {} ", throughput.stream().mapToInt(i -> i).average().orElse(0), stageCountA, stageCountB, computation.stream().mapToLong(i->i).average().orElse(0));
 					LOG.info("[STATISTICS] Stage1 Latency {} Stage2 Latency {} Avg qSize {}", latencyStageA.stream().mapToInt(i -> i).average().orElse(0), latencyStageB.stream().mapToInt(i -> i).average().orElse(0), queueSize.stream().mapToInt(i->i).average().orElse(0) ); 
 					stageCountA=0;
 					stageCountB=0;
@@ -225,7 +229,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 				for(Connection c : euInvolved) {
 					euIds.add(c.getId());
 				}
-				tracker.trackWorkersAndBlock(stage, euIds);
+				schedTracker.trackWorkersAndBlock(stage, euIds);
 			}
 		}).start();
 	}
@@ -238,12 +242,11 @@ public class LocalSchedulerEngineWorker implements Runnable {
 		for(Stage stage : stages) {
 			if(stage.getStageType().equals(StageType.UNIQUE_STAGE) || stage.getStageType().equals(StageType.SOURCE_STAGE)) {
 				configureInputForInitialStage(connections, stage, slq);
-				boolean changed = tracker.setReady(stage);
+				boolean changed = schedTracker.setReady(stage);
 				success = success && changed;
 			}
 			//configure and then add to queue
 			this.queue.add(stage);
-			this.tracker.addNewStage(stage);
 		}
 		return success;
 	}
@@ -266,7 +269,7 @@ public class LocalSchedulerEngineWorker implements Runnable {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);
-			tracker.finishStage(euId, stageId, results);
+			schedTracker.finishStage(euId, stageId, results);
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);

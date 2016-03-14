@@ -20,14 +20,14 @@ public class ScheduleTracker {
 	private Set<Stage> stages;
 	private ScheduleStatus status;
 	private Stage sink;
-	private Map<Stage, StageStatus> scheduleStatus;
+	private Map<Stage, StageStatus> stageMonitor;
 	private StageTracker currentStageTracker;
 	
 	public ScheduleTracker(Set<Stage> stages) {
 		this.stages = stages;
 		status = ScheduleStatus.NON_INITIALIZED;
 		// Keep track of overall schedule
-		scheduleStatus = new HashMap<>();
+		stageMonitor = new HashMap<>();
 		for(Stage stage : stages) {
 			if(stage.getStageId() == 0) {
 				// sanity check
@@ -38,12 +38,12 @@ public class ScheduleTracker {
 				}
 				sink = stage;
 			}
-			scheduleStatus.put(stage, StageStatus.WAITING);
+			stageMonitor.put(stage, StageStatus.WAITING);
 		}
 	}
 	
 	public void addNewStage(Stage stage){
-		this.scheduleStatus.put(stage, StageStatus.WAITING);
+		this.stageMonitor.put(stage, StageStatus.WAITING);
 	}
 	
 	public boolean isScheduledFinished() {
@@ -55,11 +55,11 @@ public class ScheduleTracker {
 	}
 	
 	public Map<Stage, StageStatus> stages() {
-		return scheduleStatus;
+		return stageMonitor;
 	}
 	
 	public boolean setReady(Stage stage) {
-		this.scheduleStatus.put(stage, StageStatus.READY);
+		this.stageMonitor.put(stage, StageStatus.READY);
 		return true;
 	}
 	
@@ -76,7 +76,7 @@ public class ScheduleTracker {
 	public boolean setFinished(Stage stage, Map<Integer, Set<DataReference>> results) {
 		LOG.info("[FINISH] SCHEDULING Stage {}", stage.getStageId());
 		// Set finish
-		this.scheduleStatus.put(stage, StageStatus.FINISHED);
+		this.stageMonitor.put(stage, StageStatus.FINISHED);
 		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
 			// Finished schedule
 			this.status = ScheduleStatus.FINISHED;
@@ -90,7 +90,7 @@ public class ScheduleTracker {
 				Set<DataReference> resultsForThisStage = results.get(downstream.getStageId());
 				downstream.addInputDataReference(stage.getStageId(), resultsForThisStage);
 				if(isStageReadyToRun(downstream)) {
-					this.scheduleStatus.put(downstream, StageStatus.READY);
+					this.stageMonitor.put(downstream, StageStatus.READY);
 				}
 			}
 		}
@@ -98,20 +98,20 @@ public class ScheduleTracker {
 	}
 	
 	public boolean isStageReady(Stage stage) {
-		return this.scheduleStatus.get(stage).equals(StageStatus.READY);
+		return this.stageMonitor.get(stage).equals(StageStatus.READY);
 	}
 	
 	public boolean isStageWaiting(Stage stage) {
-		return this.scheduleStatus.get(stage).equals(StageStatus.WAITING);
+		return this.stageMonitor.get(stage).equals(StageStatus.WAITING);
 	}
 	
 	public boolean isStageFinished(Stage stage) {
-		return this.scheduleStatus.get(stage).equals(StageStatus.FINISHED);
+		return this.stageMonitor.get(stage).equals(StageStatus.FINISHED);
 	}
 	
 	public boolean resetAllStagesTo(StageStatus newStatus) {
-		for(Stage st : this.scheduleStatus.keySet()) {
-			this.scheduleStatus.put(st, newStatus);
+		for(Stage st : this.stageMonitor.keySet()) {
+			this.stageMonitor.put(st, newStatus);
 		}
 		this.status = ScheduleStatus.READY;
 		return true;
@@ -119,7 +119,7 @@ public class ScheduleTracker {
 	
 	private boolean isStageReadyToRun(Stage stage) {
 		for(Stage st : stage.getDependencies()) {
-			if( (scheduleStatus.get(st) == null) || (!scheduleStatus.get(st).equals(StageStatus.FINISHED))) {
+			if( (stageMonitor.get(st) == null) || (!stageMonitor.get(st).equals(StageStatus.FINISHED))) {
 				return false;
 			}
 		}
@@ -145,7 +145,9 @@ public class ScheduleTracker {
 	}
 
 	public void finishStage(int euId, int stageId, Map<Integer, Set<DataReference>> results) {
-		if(currentStageTracker != null)
+		if(currentStageTracker == null)
+			LOG.warn("STAGE TRACKER NULL => GS");
+		else
 			currentStageTracker.notifyOk(euId, stageId, results);
 	}
 	
