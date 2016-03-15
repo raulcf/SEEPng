@@ -14,4 +14,10 @@ public class RuntimeEventFactory {
 		return re;
 	}
 
+	public static RuntimeEvent makeEvaluateResults(Object obj) {
+		EvaluateResultsRuntimeEvent e = new EvaluateResultsRuntimeEvent(obj);
+		RuntimeEvent re = new RuntimeEvent(e);
+		return re;
+	}
+
 }

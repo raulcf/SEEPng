@@ -246,6 +246,13 @@ public class Collector implements API {
 		this.rEvents.add(re);
 	}
 
+	@Override
+	public void storeEvaluateResults(Object obj) {
+		RuntimeEvent re = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.rEvents.add(re);
+		
+	}
+
 	
 
 }

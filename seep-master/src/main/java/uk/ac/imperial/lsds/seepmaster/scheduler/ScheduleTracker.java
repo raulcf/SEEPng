@@ -172,7 +172,8 @@ public class ScheduleTracker {
 		// Keep runtimeEvents of last executed Stage
 		if(runtimeEvents.size() > 0) {
 			this.runtimeEventsInLastStageExecution = true;
-			this.lastStageRuntimeEvents.put(euId, runtimeEvents); // Store runtimeEvents on a per node basis (eu -> execution unit)
+			// Store runtimeEvents on a per node basis (eu -> execution unit)
+			this.lastStageRuntimeEvents.put(euId, runtimeEvents);
 		}
 		else {
 			this.runtimeEventsInLastStageExecution = false;

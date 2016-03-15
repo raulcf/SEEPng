@@ -3,7 +3,8 @@ package uk.ac.imperial.lsds.seep.api;
 public enum RuntimeEventTypes {
 	
 	DATASET_SPILL_TO_DISK(0),
-	NOTIFY_END_LOOP(1);
+	NOTIFY_END_LOOP(1),
+	EVALUATE_RESULT(2);
 	
 	private int type;
 	
@@ -11,7 +12,7 @@ public enum RuntimeEventTypes {
 		this.type = type;
 	}
 	
-	int ofType() {
+	public int ofType() {
 		return type;
 	}
 }

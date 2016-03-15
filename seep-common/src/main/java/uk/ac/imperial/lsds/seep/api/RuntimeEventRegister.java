@@ -11,4 +11,6 @@ public interface RuntimeEventRegister {
 	
 	public void notifyEndOfLoop();
 	
+	public void storeEvaluateResults(Object obj);
+	
 }

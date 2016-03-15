@@ -123,5 +123,12 @@ public class SimpleCollector implements API {
 		RuntimeEvent re = RuntimeEventFactory.makeNotifyEndOfLoop();
 		this.rEvents.add(re);
 	}
+	
+	@Override
+	public void storeEvaluateResults(Object obj) {
+		RuntimeEvent re = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.rEvents.add(re);
+		
+	}
 
 }

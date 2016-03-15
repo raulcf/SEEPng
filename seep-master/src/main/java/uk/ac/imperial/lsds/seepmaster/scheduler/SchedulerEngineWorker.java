@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,9 @@ import com.esotericsoftware.kryo.Kryo;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventType;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventTypes;
+import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
@@ -40,6 +44,13 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
+	/**
+	 *  CHOOSE Specific logic. State across stages
+	 */
+	private int currentChooseStageUpstreamCount;
+	private int totalStageProcessedForCurrentChoose;
+	private Map<Integer, List<Object>> evaluatedResults;
+	
 	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
@@ -58,6 +69,12 @@ public class SchedulerEngineWorker implements Runnable {
 	public void run() {
 		LOG.info("[START JOB]");
 		while(work) {
+			
+			// At the end of one iteration the worker will have populated the commands that need to be sent to the cluster
+			// Some of these commands are schedule stage commands. Other are about evicting datasets, etc.
+			List<CommandToNode> commands = new ArrayList<>();
+			
+			
 			Map<Integer, List<RuntimeEvent>> rEvents = null;
 			// Check whether the last executed stage generated runtime events that need to be handled here
 			if(tracker.didLastStageGenerateRuntimeEvents()) {
@@ -79,7 +96,8 @@ public class SchedulerEngineWorker implements Runnable {
 			}
 			
 			// TODO: (parallel sched) make this receive a list of stages
-			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
+			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
+			commands.addAll(schedCommands); // append scheduling commands to the commands necessary to send to the cluster
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
 			// we should have a tracker entity that receives progressively what to track, and then we 
@@ -99,6 +117,40 @@ public class SchedulerEngineWorker implements Runnable {
 			
 			// TODO: make this compatible with waiting for multiple parallel schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			
+			// STORE EVALUATED RESULTS FOR CURRENT STAGE
+			if( ! nextStage.getDependants().isEmpty()) {
+				if(nextStage.getDependants().iterator().next().getStageType() == StageType.CHOOSE_STAGE) {
+					Stage chooseStage = nextStage.getDependants().iterator().next();
+					this.currentChooseStageUpstreamCount = chooseStage.getDependencies().size();
+					int seepChooseTaskId = chooseStage.getWrappedOperators().iterator().next();
+					SeepChooseTask sct = (SeepChooseTask) scheduleDescription.getOperatorWithId(seepChooseTaskId).getSeepTask();
+					
+					rEvents = tracker.getRuntimeEventsOfLastStageExecution();
+					List<Object> evalResult = new ArrayList<>();
+					for(List<RuntimeEvent> re : rEvents.values()) {
+						for(RuntimeEvent r : re) {
+							if(r.type() == RuntimeEventTypes.EVALUATE_RESULT.ofType()) {
+								evalResult.add(r.getEvaluateResultsRuntimeEvent().getEvaluateResults());
+							}
+						}
+					}
+					evaluatedResults.put(nextStage.getStageId(), evalResult);
+					// Update total stages of choose processed so far
+					totalStageProcessedForCurrentChoose++;
+					// Evaluate choose and get list of stages whose values are still useful
+					List<Integer> goOn = sct.choose(evaluatedResults);
+					
+					
+					// TODO: difference between evaluatedResults and goOn are datasets to evict
+					
+					
+					// Check whether we have finished the choose stage and we can go ahead
+					if(totalStageProcessedForCurrentChoose == currentChooseStageUpstreamCount) {
+						// TODO: make tracker propagate the results of the winning stage to the next stage to schedule
+					}
+				}
+			}
 		}
 	}
 	
