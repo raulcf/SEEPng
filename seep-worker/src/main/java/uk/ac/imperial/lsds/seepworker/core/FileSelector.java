@@ -118,7 +118,7 @@ public class FileSelector implements DataStoreSelector {
 				if (isHDFS) {
 					//We have two Path types in this file, and the other is imported, so
 					//fully qualify this one.
-					org.apache.hadoop.fs.Path hdfsPath = new org.apache.hadoop.fs.Path(config.getString(FileConfig.HDFS_URI));
+					org.apache.hadoop.fs.Path hdfsPath = new org.apache.hadoop.fs.Path(config.getString(FileConfig.HDFS_URI) + absPath);
 					FileSystem fs = FileSystem.get(hdfsPath.toUri(), new Configuration());
 					LOG.info("Created URI to HDFS resource: {}", hdfsPath.toUri());
 					FSDataInputStream hdfsInput = fs.open(hdfsPath);

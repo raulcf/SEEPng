@@ -38,7 +38,7 @@ public class FileConfig extends Config {
 								.define(TEXT_SOURCE, Type.BOOLEAN, false, Importance.MEDIUM, TEXT_SOURCE_DOC)
 								.define(CHARACTER_SET, Type.STRING, Charset.defaultCharset().name(), Importance.LOW, CHARACTER_SET_DOC)
 								.define(HDFS_SOURCE, Type.BOOLEAN, false, Importance.MEDIUM, HDFS_SOURCE_DOC)
-								.define(HDFS_URI, Type.STRING, Importance.MEDIUM, HDFS_URI_DOC);
+								.define(HDFS_URI, Type.STRING, "", Importance.MEDIUM, HDFS_URI_DOC);
 	}
 	
 	public FileConfig(Map<? extends Object, ? extends Object> originals) {

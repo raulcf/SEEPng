@@ -42,12 +42,13 @@ public class FileOutputBuffer implements OBuffer {
 	
 	private BufferedOutputStream createOutputFile(int batchSize) {
 		String path = dr.getDataStore().getConfig().getProperty(FileConfig.FILE_PATH);
+		String pathAndFilename = path + id;
 		Boolean isHDFS = new Boolean(dr.getDataStore().getConfig().getProperty(FileConfig.HDFS_SOURCE));
 		if (isHDFS) {
 			String hdfsUri = dr.getDataStore().getConfig().getProperty(FileConfig.HDFS_URI);
 			//We have two Path types in this file, and the other is imported, so
 			//fully qualify this one.
-			org.apache.hadoop.fs.Path hdfsPath = new org.apache.hadoop.fs.Path(hdfsUri);
+			org.apache.hadoop.fs.Path hdfsPath = new org.apache.hadoop.fs.Path(hdfsUri + pathAndFilename);
 			try {
 				FileSystem fs = FileSystem.get(hdfsPath.toUri(), new Configuration());
 				FSDataOutputStream hdfsOutput;
@@ -74,7 +75,6 @@ public class FileOutputBuffer implements OBuffer {
 				return null;
 			}
 		} else {
-			String pathAndFilename = path + id;
 			Path p = FileSystems.getDefault().getPath(pathAndFilename);
 			File outputFile = p.toFile();
 			BufferedOutputStream bws = null;
