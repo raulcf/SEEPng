@@ -19,7 +19,7 @@ public abstract class Type {
 	public abstract Object randomValue();
 	
 	public enum JavaType{
-		BYTE, SHORT, INT, LONG, STRING, BYTES, FLOAT
+		BYTE, SHORT, INT, LONG, STRING, BYTES, FLOAT, DOUBLE
 	}
 	
 	public static final Type BYTE = new Type() {
@@ -358,6 +358,44 @@ public abstract class Type {
 		@Override
 		public Object randomValue() {
 			return (float)(new Random().nextFloat());
+		}
+	};
+
+	public static final Type DOUBLE = new Type() {
+
+		public String toString(){
+			return "DOUBLE";
+		}
+
+		@Override
+		public void write(ByteBuffer buffer, Object o) {
+			buffer.putDouble((double)o);
+		}
+
+		@Override
+		public Object read(ByteBuffer buffer) {
+			return buffer.getDouble();
+
+		}
+
+		@Override
+		public int sizeOf(Object o) {
+			return Double.BYTES;
+		}
+
+		@Override
+		public boolean isVariableSize() {
+			return false;
+		}
+
+		@Override
+		public Object defaultValue() {
+			return 0.0f;
+		}
+
+		@Override
+		public Object randomValue() {
+			return (double)(new Random().nextDouble());
 		}
 	};
 }
