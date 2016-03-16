@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventTypes;
 import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
@@ -32,11 +34,23 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 		if(nextToSchedule.getStageType() == StageType.CHOOSE_STAGE) {
 			// Check whether we have finished the choose stage and we can go ahead
 			// TODO: pick stage according to the currentBestCandidate
+			Set<Stage> upstream = nextToSchedule.getDependencies();
+			Map<Integer, Set<DataReference>> outputOfUpstream = null;
+			for(Stage s : upstream) {
+				if(s.getStageId() == currentBestCandidate) {
+					 outputOfUpstream = s.getOutputDataReferences();
+				}
+			}
 			
+			// Say that choose is done and assign results to its downstream stages
+			tracker.setFinished(nextToSchedule, outputOfUpstream);
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
 			currentBestCandidate = -1;
+			
+			// Call recursively to next so that we give worker a stage to schedule
+			next(tracker, null);
 		}
 		
 		return nextToSchedule;
@@ -102,10 +116,11 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				
 				// TODO: difference between evaluatedResults and goOn are datasets to evict
 				for(int stageId : evaluatedResults.keySet()) {
+					List<Integer> stagesToEvict = new ArrayList<>();
 					if(stageId != currentBestCandidate) {
-						
-						// TODO: create a command to evict all these datasets that is then returned to the worker
-						
+						stagesToEvict.add(stageId);
+						// get upstream of CHOOSE (which is my downstream), then go over output results and get all the
+						// datasets Id, which together in a list are the payload of an eviction command.
 					}
 				}
 			}
