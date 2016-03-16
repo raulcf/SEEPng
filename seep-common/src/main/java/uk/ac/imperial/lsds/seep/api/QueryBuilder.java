@@ -7,6 +7,7 @@ import java.util.Set;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
@@ -136,6 +137,12 @@ public class QueryBuilder implements QueryAPI {
 		}
 		usedIds.add(opId);
 		qp.setInitialPhysicalInstancesPerLogicalOperator(opId, numInstances);
+	}
+
+	@Override
+	public LogicalOperator newChooseOperator(SeepChooseTask choose, int opId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

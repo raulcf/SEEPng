@@ -16,18 +16,19 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManage
 public class LocalitySensitiveLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	@Override
-	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf) {
+	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf, ClusterDatasetRegistry cdr) {
 		List<CommandToNode> ctns = new ArrayList<>();
 		
 		// Simply get locality information from Stage
 		ControlEndPoint cep = stage.getStageLocation();
 		Connection cToWorker = new Connection(cep);
+		int euId = cToWorker.getId();
 		
 		int stageId = stage.getStageId();
 		Map<Integer, Set<DataReference>> input = stage.getInputDataReferences();
 		Map<Integer, Set<DataReference>> output = stage.getOutputDataReferences();
 		SeepCommand esc = ProtocolCommandFactory.buildScheduleStageCommand(stageId, 
-				input, output);
+				input, output, cdr.getRankedDatasetForNode(euId));
 		CommandToNode ctn = new CommandToNode(esc, cToWorker);
 		ctns.add(ctn);
 		return ctns;

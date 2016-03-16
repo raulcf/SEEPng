@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import uk.ac.imperial.lsds.seep.api.API;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventFactory;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
@@ -18,6 +20,7 @@ import uk.ac.imperial.lsds.seepworker.core.output.routing.RouterFactory;
 
 public class Collector implements API {
 
+	// Attributes for CommAPI
 	private final boolean NOT_SEND_API;
 	private final boolean SINGLE_SEND_NOT_DEFINED;
 	private final boolean MULTIPLE_STREAMID;
@@ -31,7 +34,12 @@ public class Collector implements API {
 	private Router theRouter;
 	private OBuffer theOBuffer;
 	
+	// Attributes for RuntimeEvent
+	private List<RuntimeEvent> rEvents;
+	
 	public Collector(int id, CoreOutput coreOutput) {
+		this.rEvents = new ArrayList<>();
+		
 		this.id = id;
 		this.streamId_To_OBuffer = coreOutput.getStreamIdToBuffers();
 		this.buffers = coreOutput.getBuffers();
@@ -97,16 +105,16 @@ public class Collector implements API {
 	public void send(byte[] o) {
 		OBuffer ob = theOBuffer;
 		if(NOT_SEND_API) throw new UnsupportedOperationException("Send API not defined, maybe this is a sink?");
-		if(MULTIPLE_STREAMID){
+		if(MULTIPLE_STREAMID) {
 			throw new NotEnoughRoutingInformation("There are more than one streamId downstream; you must specify where "
 					+ "you are sending to");
 		}
-		if(SINGLE_SEND_NOT_DEFINED){
+		if(SINGLE_SEND_NOT_DEFINED) {
 			int id = theRouter.route();
 			ob = buffers.get(id);
 		}
-		boolean completed = ob.write(o);
-		if(completed && ob instanceof EventBasedOBuffer){
+		boolean completed = ob.write(o, this);
+		if(completed && ob instanceof EventBasedOBuffer) {
 			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
 	}
@@ -117,8 +125,8 @@ public class Collector implements API {
 		int id = theRouter.route(key);
 		OBuffer ob = buffers.get(id);
 		
-		boolean completed = ob.write(o);
-		if(completed && ob instanceof EventBasedOBuffer){
+		boolean completed = ob.write(o, this);
+		if(completed && ob instanceof EventBasedOBuffer) {
 			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
 	}
@@ -136,7 +144,7 @@ public class Collector implements API {
 		for(Entry<Integer, OBuffer> entry : buffers.entrySet()){
 			int id = entry.getKey();
 			ob = entry.getValue();
-			boolean completed = ob.write(o);
+			boolean completed = ob.write(o, this);
 			if(completed && ob instanceof EventBasedOBuffer) {
 				ids.add(id);
 			}
@@ -160,8 +168,8 @@ public class Collector implements API {
 		Router r = streamId_To_Router.get(streamId);
 		int id = r.route();
 		OBuffer ob = buffers.get(id);
-		boolean completed = ob.write(o);
-		if(completed && ob instanceof EventBasedOBuffer){
+		boolean completed = ob.write(o, this);
+		if(completed && ob instanceof EventBasedOBuffer) {
 			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
 		}
 	}
@@ -194,5 +202,57 @@ public class Collector implements API {
 	public void send_opid(int opId, byte[] o) {
 		throw new DoYouKnowWhatYouAreDoingException("You seem to know too much about the topology of this dataflow...");
 	}
+	
+	/**
+	 * Implement RuntimeEvent interface
+	 */
+	
+	@Override
+	public List<RuntimeEvent> getRuntimeEvents() {
+		return rEvents;
+	}
+
+	@Override
+	public void exception(String message) {
+		// TODO: implement
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void datasetSpilledToDisk(int datasetId) {
+		RuntimeEvent re = RuntimeEventFactory.makeSpillToDiskRuntimeEvent(datasetId);
+		this.rEvents.add(re);
+	}
+
+	@Override
+	public void failure() {
+		// TODO: implement
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void notifyEndOfLoop() {
+		RuntimeEvent re = RuntimeEventFactory.makeNotifyEndOfLoop();
+		this.rEvents.add(re);
+	}
+
+	@Override
+	public void storeEvaluateResults(Object obj) {
+		RuntimeEvent re = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.rEvents.add(re);
+		
+	}
+
+	
 
 }

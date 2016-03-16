@@ -6,6 +6,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
@@ -83,7 +84,7 @@ public class OutputBuffer implements EventBasedOBuffer {
 	}
 
 	@Override
-	public boolean write(byte[] data) {
+	public boolean write(byte[] data, RuntimeEventRegister reg) {
 		if(completed.get()){
 			waitHere(); // block
 		}

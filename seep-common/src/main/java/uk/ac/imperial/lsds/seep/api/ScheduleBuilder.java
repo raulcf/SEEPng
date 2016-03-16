@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.sinks.Sink;
 import uk.ac.imperial.lsds.seep.api.operator.sources.Source;
 import uk.ac.imperial.lsds.seep.api.state.SeepState;
@@ -114,6 +115,11 @@ public class ScheduleBuilder implements ScheduleAPI {
 	@Override
 	public LogicalOperator newStatelessSink(Sink seepTask, int opId) {
 		return queryAPI.newStatelessSink(seepTask, opId);
+	}
+	
+	@Override
+	public Operator newChooseOperator(SeepChooseTask choose, int opId) {
+		return queryAPI.newChooseOperator(choose, opId);
 	}
 
 	@Override

@@ -9,11 +9,9 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +50,6 @@ public class ControlCommManager {
 	private Kryo k;
 	
 	private Thread listener;
-//	private Thread dispatcher;
-//	private WaitNotify signal;
-//	private BlockingQueue<Command> commandQueue;
 	private boolean working = false;
 	private RuntimeClassLoader rcl;
 	private Conductor c;
@@ -102,50 +97,6 @@ public class ControlCommManager {
 		this.working = false;
 	}
 	
-//	class CommandDispatcher implements Runnable {
-//		@Override
-//		public void run() {
-//			while(working) {
-//				Command sc = null;
-//				try {
-//					sc = commandQueue.take();
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				
-//				short familyType = sc.familyType();
-//				if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
-//					handleMasterCommand(((MasterWorkerCommand)sc.getCommand()));
-//				}
-//				else if(familyType == CommandFamilyType.WORKERCOMMAND.ofType()) {
-//					handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()));
-//				}
-//			}
-//		}
-//	}
-//	
-//	class WaitNotify {
-//		public Object lock = new Object();
-//		
-//		public void w() {
-//			synchronized(lock) {
-//				try {
-//					lock.wait();
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//		
-//		public void n() {
-//			synchronized(lock) {
-//				lock.notify();
-//			}
-//		}
-//	}
-	
 	class Task implements Runnable {
 		
 		private Socket incomingSocket;
@@ -189,48 +140,16 @@ public class ControlCommManager {
 		public void run() {
 			while(working) {
 				Socket incomingSocket = null;
+				// Blocking call
+				try {
+					incomingSocket = serverSocket.accept();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
-//				try {
-					// Blocking call
-					try {
-						incomingSocket = serverSocket.accept();
-					} 
-					catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					new Thread(new Task(incomingSocket)).start();
-					
-//					InputStream is = incomingSocket.getInputStream();
-//					out = new PrintWriter(incomingSocket.getOutputStream(), true);
-//					Input i = new Input(is, 1000000);
-//					Command sc = k.readObject(i, Command.class);
-//					short familyType = sc.familyType();
-//					if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
-//						handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
-//					}
-//					else if(familyType == CommandFamilyType.WORKERCOMMAND.ofType()) {
-//						handleWorkerCommand(((WorkerWorkerCommand)sc.getCommand()), out);
-//					}
-					
-//					commandQueue.add(sc);
-//					signal.w(); // wait until signal and then send ack
-//					out.println("ack");
-//				}
-//				catch(IOException io) {
-//					io.printStackTrace();
-//				}
-//				finally {
-//					if (incomingSocket != null) {
-//						try {
-//							incomingSocket.close();
-//						}
-//						catch (IOException e) {
-//							e.printStackTrace();
-//						}
-//					}
-//				}
+				new Thread(new Task(incomingSocket)).start();
 			}		
 		}	
 	}	
@@ -387,7 +306,8 @@ public class ControlCommManager {
 		int stageId = esc.getStageId();
 		Map<Integer, Set<DataReference>> input = esc.getInputDataReferences();
 		Map<Integer, Set<DataReference>> output = esc.getOutputDataReference();
-		c.scheduleTask(stageId, input, output);
+		List<Integer> rankedDatasets = esc.getRankedDatasets();
+		c.scheduleTask(stageId, input, output, rankedDatasets);
 	}
 	
 	private void loadCodeToRuntime(File pathToCode){

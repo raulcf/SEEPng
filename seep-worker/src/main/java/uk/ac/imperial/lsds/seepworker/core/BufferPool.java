@@ -19,7 +19,7 @@ public class BufferPool {
 	final private Logger LOG = LoggerFactory.getLogger(BufferPool.class.getName());
 	
 	private final int minBufferSize;
-	private final int totalMemAvailableToBufferPool;
+	private final long totalMemAvailableToBufferPool;
 	private Deque<ByteBuffer> allocatedBuffers;
 	
 	// Metrics
@@ -44,7 +44,7 @@ public class BufferPool {
 	
 	private BufferPool(WorkerConfig wc) {
 		this.minBufferSize = wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE);
-		this.totalMemAvailableToBufferPool = wc.getInt(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);
+		this.totalMemAvailableToBufferPool = wc.getLong(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
@@ -55,8 +55,14 @@ public class BufferPool {
 		return new BufferPool(wc);
 	}
 	
+	/**
+	 * Will return a ByteBuffer from the pool if available. If not, it will try to allocate a new ByteBuffer,
+	 * an operation that will succeed if there is enough memory available. If there is not enough memory
+	 * available, the method returns null
+	 * @return
+	 */
 	public synchronized ByteBuffer borrowBuffer() {
-		if(allocatedBuffers.size() > 0 ) {
+		if(allocatedBuffers.size() > 0) {
 			ByteBuffer bb = allocatedBuffers.pop();
 			bb.clear();
 			usedMemory.inc(minBufferSize);
@@ -64,14 +70,27 @@ public class BufferPool {
 		}
 		else {
 			// TODO: at some point we'll need to set up a ceiling here, for now just let it die...
-			usedMemory.inc(minBufferSize);
-			return ByteBuffer.allocate(minBufferSize);
+			if(enoughMemoryAvailable()){
+				usedMemory.inc(minBufferSize);
+				return ByteBuffer.allocate(minBufferSize);
+			}
+			else {
+				return null;
+			}
 		}
 	}
 	
 	public void returnBuffer(ByteBuffer buffer) {
 		usedMemory.dec(minBufferSize);
 		allocatedBuffers.add(buffer);
+	}
+	
+	private boolean enoughMemoryAvailable() {
+		// Any headroom should have been incorporated on bufferPool creation (e.g. aprox. constant mem usage on steady state)
+		if(usedMemory.getCount() + minBufferSize >= totalMemAvailableToBufferPool) {
+			return false;
+		}
+		return true;
 	}
 
 }

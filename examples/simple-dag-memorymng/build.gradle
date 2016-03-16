@@ -1,0 +1,34 @@
+
+apply plugin:'java'
+apply plugin:'eclipse'
+
+repositories {
+	flatDir {
+		dirs '../../seep-common/build/libs'
+	}	
+	mavenCentral()
+}
+
+dependencies {
+	compile name: 'seep-common-0.1' 
+}
+
+
+task seep(type: Jar){
+	description "Builds and creates one Fat Jar that includes all \
+	necessary dependencies for a self-deployment"
+        from { 
+    		configurations.compile.collect { 
+			it.isDirectory() ? it : zipTree(it) 
+	    	} 
+	} 
+	{
+		exclude 'META-INF/*.RSA'
+		exclude 'META-INF/*.SF'
+		exclude 'META-INF/*.DSA'
+	}
+	with jar 
+	manifest {
+		attributes 'Main-Class': 'Base'
+	}
+}

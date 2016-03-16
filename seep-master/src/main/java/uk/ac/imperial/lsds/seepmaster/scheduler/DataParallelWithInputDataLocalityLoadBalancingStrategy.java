@@ -20,7 +20,7 @@ import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManage
 public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	@Override
-	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, InfrastructureManager inf) {
+	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, InfrastructureManager inf, ClusterDatasetRegistry cdr) {
 		// moved in from previously external method
 		Set<Connection> conns = getWorkersInvolvedInStage(nextStage, inf);
 		
@@ -63,8 +63,9 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 				currentWorker++;
 			}
 			// FIXME: what is outputdatareferences
+			int euId = c.getId();
 			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-					perWorker, nextStage.getOutputDataReferences());
+					perWorker, nextStage.getOutputDataReferences(), cdr.getRankedDatasetForNode(euId));
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
 		}

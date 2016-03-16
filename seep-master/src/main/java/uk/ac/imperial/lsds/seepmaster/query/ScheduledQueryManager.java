@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.query;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
@@ -370,7 +372,9 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		int euId = ssc.getEuId();
 		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
-		seWorker.newStageStatus(stageId, euId, results, status);
+		List<RuntimeEvent> runtimeEvents = ssc.getRuntimeEvents();
+		Set<Integer> managedDatasets = ssc.getManagedDatasets();
+		seWorker.newStageStatus(stageId, euId, results, status, runtimeEvents, managedDatasets);
 	}
 	
 	/** Methods to facilitate testing **/

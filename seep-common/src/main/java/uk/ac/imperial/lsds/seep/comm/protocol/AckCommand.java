@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.seep.comm.protocol;
 
-public class AckCommand implements CommandType{
+public class AckCommand implements CommandType {
 
 	public AckCommand(){}
 	

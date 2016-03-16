@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -8,20 +9,22 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.kryo.Kryo;
-
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+
+import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
 
@@ -43,7 +46,7 @@ public class SchedulerEngineWorker implements Runnable {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.loadBalancingStrategy = loadBalancingStrategy;
-		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
+		this.tracker = new ScheduleTracker(scheduleDescription);
 		this.inf = inf;
 		this.comm = comm;
 		this.k = k;
@@ -57,9 +60,23 @@ public class SchedulerEngineWorker implements Runnable {
 	public void run() {
 		LOG.info("[START JOB]");
 		while(work) {
+			
+			// At the end of one iteration the worker will have populated the commands that need to be sent to the cluster
+			// Some of these commands are schedule stage commands. Other are about evicting datasets, etc.
+			List<CommandToNode> commands = new ArrayList<>();
+			
+			
+			Map<Integer, List<RuntimeEvent>> rEvents = null;
+			// Check whether the last executed stage generated runtime events that need to be handled here
+			if(tracker.didLastStageGenerateRuntimeEvents()) {
+				rEvents = tracker.getRuntimeEventsOfLastStageExecution();
+				// CURRENT EVENTS:
+				// OutOfMemory a dataset was spilled to disk, update any info that exists here about that
+				// A loop was finished, bear that in mind to choose the next stage to schedule
+			}
 			// Get next stage
 			// TODO: make next return a List of next stages
-			Stage nextStage = schedulingStrategy.next(tracker);
+			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
 				if(tracker.isScheduledFinished()) {
@@ -70,7 +87,8 @@ public class SchedulerEngineWorker implements Runnable {
 			}
 			
 			// TODO: (parallel sched) make this receive a list of stages
-			List<CommandToNode> commands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf);
+			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
+			commands.addAll(schedCommands); // append scheduling commands to the commands necessary to send to the cluster
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
 			// we should have a tracker entity that receives progressively what to track, and then we 
@@ -90,6 +108,14 @@ public class SchedulerEngineWorker implements Runnable {
 			
 			// TODO: make this compatible with waiting for multiple parallel schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
+			
+			// Call the post processing event
+			List<Command> postCommands = schedulingStrategy.postCompletion(nextStage, tracker);
+			
+			if(! commands.isEmpty()) {
+				
+			}
+			
 		}
 	}
 	
@@ -153,11 +179,15 @@ public class SchedulerEngineWorker implements Runnable {
 		s.addInputDataReference(streamId, refs);
 	}
 	
-	public void newStageStatus(int stageId, int euId, Map<Integer, Set<DataReference>> results, StageStatusCommand.Status status) {
+	public void newStageStatus(int stageId, int euId, 
+			Map<Integer, Set<DataReference>> results, 
+			StageStatusCommand.Status status,
+			List<RuntimeEvent> runtimeEvents,
+			Set<Integer> managedDatasets) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);
-			tracker.finishStage(euId, stageId, results);
+			tracker.finishStage(euId, stageId, results, runtimeEvents, managedDatasets);
 			break;
 		case FAIL:
 			LOG.info("EU {} has failed executing stage {}", euId, stageId);
@@ -176,7 +206,7 @@ public class SchedulerEngineWorker implements Runnable {
 	}
 	
 	public Stage __next_stage_scheduler(){
-		return schedulingStrategy.next(tracker);
+		return schedulingStrategy.next(tracker, null);
 	}
 	
 	public void __reset_schedule() {

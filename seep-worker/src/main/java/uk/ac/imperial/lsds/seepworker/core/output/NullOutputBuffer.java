@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seepworker.core.output;
 import java.nio.channels.WritableByteChannel;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
 public class NullOutputBuffer implements OBuffer {
@@ -26,7 +27,7 @@ public class NullOutputBuffer implements OBuffer {
 	}
 
 	@Override
-	public boolean write(byte[] data) {
+	public boolean write(byte[] data, RuntimeEventRegister reg) {
 		// TODO Auto-generated method stub
 		return false;
 	}
