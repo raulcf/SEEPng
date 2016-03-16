@@ -23,6 +23,9 @@ public interface QueryAPI {
 	public Operator newStatefulSink(Sink seepTask, SeepState state, int opId);
 	public Operator newStatelessSink(Sink seepTask, int opId);
 	
+	// FIXME: MDF API -- refactor outside
+	public Operator newChooseOperator(SeepChooseTask choose, int opId);
+	
 	public void setInitialPhysicalInstancesForLogicalOperator(int opId, int numInstances);
 	
 	public String toString();

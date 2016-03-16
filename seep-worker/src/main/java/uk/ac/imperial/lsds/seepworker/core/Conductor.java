@@ -19,6 +19,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.StatefulSeepTask;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -164,10 +165,15 @@ public class Conductor {
 		}
 	}
 	
-	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, Map<Integer, Set<DataReference>> output) {
+	public void scheduleTask(int stageId, Map<Integer, Set<DataReference>> input, 
+			Map<Integer, Set<DataReference>> output,
+			List<Integer> rankedDatasets) {
 		Stage s = sd.getStageWithId(stageId);
 		ScheduleTask task = this.scheduleTasks.get(s);
 		LOG.info("Scheduling Stage:Task -> {}:{}", s.getStageId(), task.getEuId());
+		
+		drm.updateRankedDatasets(rankedDatasets);
+		// TODO: Decide when to trigger the enforcement policy (and how to do it in parallel)
 		
 		// TODO: fix this, how useful is to configure this?
 		Map<Integer, ConnectionType> connTypeInformation = new HashMap<>();
@@ -320,8 +326,8 @@ public class Conductor {
 			return continuousTask;
 		}
 
-		public void notifyOk() {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput);
+		public void notifyOk(List<RuntimeEvent> runtimeEvents) {
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasets());
 		}
 		
 	}

@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.comm;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
@@ -49,8 +51,8 @@ public class ControlAPIImplementation {
 		LOG.info("Sending bye message to master...OK");
 	}
 	
-	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput) {
-		SeepCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput);
+	public void scheduleTaskStatus(Connection masterConn, int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<Integer> managedDatasets) {
+		SeepCommand command = ProtocolCommandFactory.buildStageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents, managedDatasets);
 		LOG.debug("Send stage {} status {} to master...", stageId, status.toString());
 		comm.send_object_async(command, masterConn, k, retriesToMaster, retryBackOffMs);
 	}

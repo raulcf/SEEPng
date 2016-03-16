@@ -39,7 +39,7 @@ public class OutputBufferTest {
 			public void run() {
 				while(tuples > 0) {
 					// Write tuple to the output buffer
-					ob.write(srcData);
+					ob.write(srcData, null);
 					tuples--;
 				}
 			}

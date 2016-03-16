@@ -59,9 +59,9 @@ public class DatasetInputAdapterTest {
 		uid = 3;
 		ts = 3;
 		byte[] ot3 = OTuple.create(schema, new String[]{"uid", "ts"}, new Object[]{uid,ts});
-		ob.write(ot1);
-		ob.write(ot2);
-		ob.write(ot3);
+		ob.write(ot1, null);
+		ob.write(ot2, null);
+		ob.write(ot3, null);
 		
 		// to read from
 		IBuffer ib = drm.getInputBufferFor(dr);
@@ -116,7 +116,7 @@ public class DatasetInputAdapterTest {
 		long ts = 1;
 		for(int i = 0; i < numTuplesToWrite; i++) {
 			byte[] ot1 = OTuple.create(schema, new String[]{"uid", "ts"}, new Object[]{uid,ts});
-			ob.write(ot1);
+			ob.write(ot1, null);
 			uid++;
 			ts++;
 		}
@@ -164,7 +164,7 @@ public class DatasetInputAdapterTest {
 		long startW = System.currentTimeMillis();
 		for(int i = 0; i < numTuplesToWrite; i++) {
 			byte[] ot1 = OTuple.create(schema, new String[]{"uid", "ts"}, new Object[]{uid,ts});
-			ob.write(ot1);
+			ob.write(ot1, null);
 			uid++;
 			ts++;
 		}
@@ -218,7 +218,7 @@ public class DatasetInputAdapterTest {
 		byte[] ot1 = OTuple.create(schema, new String[]{"uid", "ts"}, new Object[]{uid,ts});
 		long startW = System.currentTimeMillis();
 		for(int i = 0; i < numTuplesToWrite; i++) {
-			ob.write(ot1);
+			ob.write(ot1, null);
 		}
 		long endW = System.currentTimeMillis();
 		

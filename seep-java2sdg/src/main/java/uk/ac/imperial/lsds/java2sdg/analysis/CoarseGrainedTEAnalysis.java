@@ -9,12 +9,12 @@ import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
 
 /**
- * Dumb analysis that simply create a TE per workflow. There will then be as many TEs as workflows defined in the input program.
- * In particular, this class does not do any splitting at all.
+ * Dumb analysis that simply create a TE per workflow. There will then be as many TEs as workflows defined in the 
+ * input program.
  * @author ra
  *
  */
@@ -36,7 +36,9 @@ public class CoarseGrainedTEAnalysis {
 			// check what are the live variables in the last line
 			List<VariableRepr> outputVariables = lvInfo.getLiveVarsAt(code.getEndLine());
 			// check the input and outputschema
-			
+			// TODO:
+			PartialSDGRepr psdg = PartialSDGRepr.makePartialSDGRepr(workflowName, ter, inputVariables, outputVariables);
+			partialSDGs.add(psdg);
 		}
 		
 		return partialSDGs;

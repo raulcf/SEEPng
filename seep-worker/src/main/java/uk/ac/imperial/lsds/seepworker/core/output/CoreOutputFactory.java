@@ -69,4 +69,24 @@ public class CoreOutputFactory {
 		return cOutput;
 	}
 	
+	public static CoreOutput buildCoreOutputForTestingOneDatasetOutput(WorkerConfig wc, 
+			DataReferenceManager drm) {
+		Map<Integer, OBuffer> oBuffers = new HashMap<>();
+		Map<Integer, List<OBuffer>> streamId_To_OBuffers = new HashMap<>();
+		Map<Integer, Set<DataReference>> output = new HashMap<>();
+		
+		DataReference dr = DataReference.makeEmptyDataReference(null);
+		OBuffer o = drm.manageNewDataReference(dr);
+		
+		oBuffers.put(dr.getId(), o); // dr.id -> obuffer
+		List<OBuffer> buffers = new ArrayList<>();
+		buffers.add(o);
+		
+		streamId_To_OBuffers.put(333, buffers);
+		
+		CoreOutput cOutput = new CoreOutput(output, streamId_To_OBuffers, oBuffers);
+		return cOutput;
+		
+	}
+	
 }

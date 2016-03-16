@@ -10,4 +10,6 @@ include \
 	"simple-kafka-stateless-pipeline",
 	"simple-dag-schedule",
     "simple-pipeline-scheduledef",
-	"simple-shuffle-query"
+	"simple-shuffle-query",
+	"simple-dag-memorymng",
+	"simple-mdf-schedule"

@@ -84,7 +84,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 		state = null;
 	}
 	
-	private class Worker implements Runnable{
+	private class Worker implements Runnable {
 
 		@Override
 		public void run() {
@@ -133,7 +133,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 					}
 					if(! callback.isContinuousTask()) {
 						if(allStreamsFinished(trackFinishedStreams)) {
-							callback.notifyOk();
+							callback.notifyOk(api.getRuntimeEvents()); // notify and pass all generated runtime events
 							working = false;
 							// FIXME: hack -> just exhaust the iterator to force out of the loop
 							while(it.hasNext()) it.next();

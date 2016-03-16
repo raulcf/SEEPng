@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
+package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 
 import uk.ac.imperial.lsds.seep.api.data.Type;
 

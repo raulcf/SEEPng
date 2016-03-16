@@ -1,6 +1,8 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +44,15 @@ public class DataReferenceManager {
 	private Map<Integer, Dataset> datasets;
 	private List<DataStoreSelector> dataStoreSelectors;
 	
+	/**
+	 * This list keeps datasets ordered by priority of staying in memory. Such order 
+	 * is determined by the master and used by DRM to choose which datasets to evict to disk
+	 * and which datasets to load from disk.
+	 */
+	private List<Integer> rankedDatasets;
+	
+	private DiskCacher cacher;
+	
 	private int syntheticDatasetGenerator;
 	
 	private BufferPool bufferPool;
@@ -52,6 +63,7 @@ public class DataReferenceManager {
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
 		this.bufferPool = BufferPool.createBufferPool(wc);
+		this.cacher = DiskCacher.makeDiskCacher();
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -61,6 +73,16 @@ public class DataReferenceManager {
 		return instance;
 	}
 	
+	public void updateRankedDatasets(List<Integer> rankedDatasets) {
+		this.rankedDatasets = rankedDatasets;
+		
+		// TODO: Trigger enforcement policy now??
+	}
+	
+	public Set<Integer> getManagedDatasets() {
+		return this.datasets.keySet();
+	}
+	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
 		int id = dataRef.getId();
 		Dataset newDataset = null;
@@ -68,7 +90,7 @@ public class DataReferenceManager {
 			LOG.info("Start managing new DataReference, id -> {}", id);
 			catalogue.put(id, dataRef);
 			// TODO: will become more complex...
-			newDataset = new Dataset(dataRef, bufferPool);
+			newDataset = new Dataset(dataRef, bufferPool, this);
 			datasets.put(id, newDataset);
 		}
 		else {
@@ -120,6 +142,25 @@ public class DataReferenceManager {
 		}
 		return null;
 	}
+	
+	public void sendDatasetToDisk(int datasetId) throws IOException {
+		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
+		cacher.cacheToDisk(datasets.get(datasetId));
+		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+	}
+	
+	public int retrieveDatasetFromDisk(int datasetId) {
+		try {
+			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
+			return cacher.retrieveFromDisk(datasets.get(datasetId));
+		} finally {
+			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
+		}
+	}
+	
+	public boolean datasetIsInMem(int datasetId) {
+		return cacher.inMem(datasets.get(datasetId));
+	}
 
 	public IBuffer getInputBufferFor(DataReference dr) {
 		// Sanity check
@@ -165,6 +206,22 @@ public class DataReferenceManager {
 		// Store in catalogue and return it for use
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
+	}
+
+	public List<Integer> spillDatasetsToDisk(int datasetId) {
+		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
+		List<Integer> spilledDatasets = new ArrayList<>();
+		
+		// TODO: USE THE RANKED datasets, if available, to make the decision here
+		try {
+			sendDatasetToDisk(datasetId);
+			spilledDatasets.add(datasetId);
+		} catch (IOException e) {
+			LOG.error("While trying to spill dataset: {} to disk", datasetId);
+			e.printStackTrace();
+		}
+		
+		return spilledDatasets;
 	}
 	
 	public void printCatalogue() {
