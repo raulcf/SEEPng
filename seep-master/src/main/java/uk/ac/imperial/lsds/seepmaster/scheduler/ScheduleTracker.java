@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
@@ -19,6 +20,7 @@ public class ScheduleTracker {
 
 	final private Logger LOG = LoggerFactory.getLogger(ScheduleTracker.class);
 	
+	private ScheduleDescription scheduleDescription;
 	private Set<Stage> stages;
 	private ScheduleStatus status;
 	private Stage sink;
@@ -32,8 +34,9 @@ public class ScheduleTracker {
 	private boolean runtimeEventsInLastStageExecution = false;
 	private Map<Integer, List<RuntimeEvent>> lastStageRuntimeEvents = null;
 	
-	public ScheduleTracker(Set<Stage> stages) {
-		this.stages = stages;
+	public ScheduleTracker(ScheduleDescription scheduleDescription) {
+		this.scheduleDescription = scheduleDescription;
+		this.stages = this.scheduleDescription.getStages();
 		status = ScheduleStatus.NON_INITIALIZED;
 		// Keep track of overall schedule
 		scheduleStatus = new HashMap<>();
@@ -53,6 +56,10 @@ public class ScheduleTracker {
 		this.clusterDatasetRegistry = new ClusterDatasetRegistry();
 	}
 	
+	public ScheduleDescription getScheduleDescription() {
+		return scheduleDescription;
+	}
+ 	
 	public ClusterDatasetRegistry getClusterDatasetRegistry() {
 		return clusterDatasetRegistry;
 	}

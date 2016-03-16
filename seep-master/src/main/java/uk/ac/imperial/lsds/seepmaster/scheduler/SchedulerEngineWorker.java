@@ -9,24 +9,22 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.kryo.Kryo;
-
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
-import uk.ac.imperial.lsds.seep.api.RuntimeEventType;
-import uk.ac.imperial.lsds.seep.api.RuntimeEventTypes;
-import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
 import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
+import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+
+import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
 
@@ -44,18 +42,11 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	/**
-	 *  CHOOSE Specific logic. State across stages
-	 */
-	private int currentChooseStageUpstreamCount;
-	private int totalStageProcessedForCurrentChoose;
-	private Map<Integer, List<Object>> evaluatedResults;
-	
 	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.loadBalancingStrategy = loadBalancingStrategy;
-		this.tracker = new ScheduleTracker(scheduleDescription.getStages());
+		this.tracker = new ScheduleTracker(scheduleDescription);
 		this.inf = inf;
 		this.comm = comm;
 		this.k = k;
@@ -118,39 +109,13 @@ public class SchedulerEngineWorker implements Runnable {
 			// TODO: make this compatible with waiting for multiple parallel schedule stages
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 			
-			// STORE EVALUATED RESULTS FOR CURRENT STAGE
-			if( ! nextStage.getDependants().isEmpty()) {
-				if(nextStage.getDependants().iterator().next().getStageType() == StageType.CHOOSE_STAGE) {
-					Stage chooseStage = nextStage.getDependants().iterator().next();
-					this.currentChooseStageUpstreamCount = chooseStage.getDependencies().size();
-					int seepChooseTaskId = chooseStage.getWrappedOperators().iterator().next();
-					SeepChooseTask sct = (SeepChooseTask) scheduleDescription.getOperatorWithId(seepChooseTaskId).getSeepTask();
-					
-					rEvents = tracker.getRuntimeEventsOfLastStageExecution();
-					List<Object> evalResult = new ArrayList<>();
-					for(List<RuntimeEvent> re : rEvents.values()) {
-						for(RuntimeEvent r : re) {
-							if(r.type() == RuntimeEventTypes.EVALUATE_RESULT.ofType()) {
-								evalResult.add(r.getEvaluateResultsRuntimeEvent().getEvaluateResults());
-							}
-						}
-					}
-					evaluatedResults.put(nextStage.getStageId(), evalResult);
-					// Update total stages of choose processed so far
-					totalStageProcessedForCurrentChoose++;
-					// Evaluate choose and get list of stages whose values are still useful
-					List<Integer> goOn = sct.choose(evaluatedResults);
-					
-					
-					// TODO: difference between evaluatedResults and goOn are datasets to evict
-					
-					
-					// Check whether we have finished the choose stage and we can go ahead
-					if(totalStageProcessedForCurrentChoose == currentChooseStageUpstreamCount) {
-						// TODO: make tracker propagate the results of the winning stage to the next stage to schedule
-					}
-				}
+			// Call the post processing event
+			List<Command> postCommands = schedulingStrategy.postCompletion(nextStage, tracker);
+			
+			if(! commands.isEmpty()) {
+				
 			}
+			
 		}
 	}
 	
