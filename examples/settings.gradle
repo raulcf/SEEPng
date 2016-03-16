@@ -11,4 +11,5 @@ include \
 	"simple-dag-schedule",
     "simple-pipeline-scheduledef",
 	"simple-shuffle-query",
-	"simple-dag-memorymng"
+	"simple-dag-memorymng",
+	"simple-mdf-schedule"

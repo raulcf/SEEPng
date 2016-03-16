@@ -19,12 +19,27 @@ public class Base implements QueryComposer {
 		
 		SyntheticSource synSrc = SyntheticSource.newSource(0, null);
 		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(), 1);
-		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 2);
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 3);
+		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(), 2);
+		LogicalOperator evaluator1 = queryAPI.newStatelessOperator(new Evaluator(), 2);
+		LogicalOperator evaluator2 = queryAPI.newStatelessOperator(new Evaluator(), 3);
+		
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), 3);
+		
+		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 3);
+		
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 5);
 		
 		synSrc.connectTo(adderOne, schema, 0);
-		adderOne.connectTo(branchone, 2, new DataStore(schema, DataStoreType.NETWORK));
-		branchone.connectTo(snk, 5, new DataStore(schema, DataStoreType.NETWORK));
+		synSrc.connectTo(adderTwo, schema, 1);
+		adderOne.connectTo(evaluator1, 3, new DataStore(schema, DataStoreType.NETWORK));
+		adderTwo.connectTo(evaluator2, 4, new DataStore(schema, DataStoreType.NETWORK));
+
+		evaluator1.connectTo(choose, 7, new DataStore(schema, DataStoreType.NETWORK));
+		evaluator2.connectTo(choose, 8, new DataStore(schema, DataStoreType.NETWORK));
+		
+		choose.connectTo(branchone, 9, new DataStore(schema, DataStoreType.NETWORK));
+		
+		branchone.connectTo(snk, 4, new DataStore(schema, DataStoreType.NETWORK));
 		
 		SeepLogicalQuery slq = queryAPI.build();
 		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);

@@ -65,6 +65,9 @@ examples/simple-shuffle-query/build/
 examples/simple-dag-memorymng/.gitignore
 examples/simple-dag-memorymng/.settings/
 examples/simple-dag-memorymng/build/
+examples/simple-mdf-schedule/.gitignore
+examples/simple-mdf-schedule/.settings/
+examples/simple-mdf-schedule/build/
 
 deploy/
 dist/
