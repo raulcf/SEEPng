@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
+package uk.ac.imperial.lsds.java2sdg.bricks.SDG;
 
 import java.util.ArrayList;
 import java.util.HashMap;
