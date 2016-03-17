@@ -390,7 +390,7 @@ public abstract class Type {
 
 		@Override
 		public Object defaultValue() {
-			return 0.0f;
+			return 0.0d;
 		}
 
 		@Override
