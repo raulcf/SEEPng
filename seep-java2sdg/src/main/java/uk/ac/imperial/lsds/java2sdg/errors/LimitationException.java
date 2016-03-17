@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg;
+package uk.ac.imperial.lsds.java2sdg.errors;
 
 import uk.ac.imperial.lsds.seep.errors.SeepException;
 

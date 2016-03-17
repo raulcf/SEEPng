@@ -9,9 +9,9 @@ import org.codehaus.janino.Java.Type;
 import org.codehaus.janino.Java.VariableDeclarator;
 import org.codehaus.janino.util.Traverser;
 
-import uk.ac.imperial.lsds.java2sdg.LimitationException;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.errors.LimitationException;
 
 public class StateAnalysis extends Traverser {
 
