@@ -34,6 +34,7 @@ public class DiskCacherTest {
 	 */
 	@Test
 	public void testInMemCall() {
+		System.out.println("Testing inMem");
 		//make new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
 		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
@@ -63,6 +64,7 @@ public class DiskCacherTest {
 	 */
 	@Test
 	public void testMemToDisk() {
+		System.out.println("Testing memory to disk + return");
 		//make and populate a new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
 		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
@@ -106,6 +108,7 @@ public class DiskCacherTest {
 	 */
 	@Test
 	public void testFutureToDisk() {
+		System.out.println("Testing read from disk");
 		//make, cache, and populate a new Dataset
 		DataReferenceManager drm = DataReferenceManager.makeDataReferenceManager(buildWorkerConfig());
 		DataReference dataRef = DataReference.makeManagedDataReferenceWithOwner(((int)System.currentTimeMillis()%Integer.MAX_VALUE), null, null, ServeMode.STORE);
@@ -123,10 +126,19 @@ public class DiskCacherTest {
 			testDataset.write(writeData.array(), null);
 		}
 		//check the caching was successful
-		assert(testDataset.consumeData() == null):"Data was consumed from a Dataset residing on disk";
+		int x;
+		for (x = 0; x < 5; x++) {
+	        byte[] content = testDataset.consumeData();
+	        assert(content != null):"Problem reading from disk";
+			ByteBuffer readData = ByteBuffer.allocate(content.length);
+			readData.put(content);
+			readData.flip();
+			readData.getInt();
+			assert(readData.getInt() == x):"The order of the Dataset appears to have been altered by the cache/return process";
+		}
 		//uncache dataset and check everything reappeared (and nothing else)
 		drm.retrieveDatasetFromDisk(testDataset.id());
-		for (int x = 0; x < 10; x++) {
+		for (; x < 10; x++) {
 	        byte[] content = testDataset.consumeData();
 	        assert(content != null):"Not all data was successfully returned to memory";
 			ByteBuffer readData = ByteBuffer.allocate(content.length);
