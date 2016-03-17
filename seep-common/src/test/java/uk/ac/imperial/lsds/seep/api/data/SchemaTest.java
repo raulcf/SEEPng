@@ -101,6 +101,28 @@ public class SchemaTest {
 		assertEquals(Type.STRING.sizeOf(stringWrite2), stringWrite2.length()+4);
 		
 		buffer.clear();
+
+		// Float
+		float floatWrite = 3.5f;
+		Type.FLOAT.write(buffer, floatWrite);
+		buffer.position(0);
+		float floatRead = (float) Type.FLOAT.read(buffer);
+
+		assertEquals(floatWrite, floatRead, 0.0f);
+		assertEquals(Type.FLOAT.sizeOf(null), 4);
+
+		buffer.clear();
+
+		// Double
+		double doubleWrite = 7.2d;
+		Type.DOUBLE.write(buffer, doubleWrite);
+		buffer.position(0);
+		double doubleRead = (double) Type.DOUBLE.read(buffer);
+
+		assertEquals(doubleWrite, doubleRead, 0.0d);
+		assertEquals(Type.DOUBLE.sizeOf(null), 8);
+
+		buffer.clear();
 		
 		// Array of Type
 		Integer[] w = new Integer[]{34, 56, 45, 01};
@@ -182,6 +204,28 @@ public class SchemaTest {
 		
 		assert(_item.equals(item));
 		assert(_price == price);
+	}
+
+	@Test
+	public void writeAndReadFixedSizeWithFloatingPointSchemaTest(){
+
+		// Fixed size schema
+		float p = 15;
+		double v = 16.458d;
+
+		Schema outputSchema = SchemaBuilder.getInstance().newField(Type.FLOAT, "probability").newField(Type.DOUBLE, "value").build();
+		OTuple output = new OTuple(outputSchema);
+
+		byte[] serializedData = OTuple.create(outputSchema, new String[]{"probability", "value"}, new Object[]{p, v});
+
+		ITuple input = new ITuple(outputSchema); // share output and input schema in the simplest case
+		input.setData(serializedData);
+
+		float probability = input.getFloat("probability");
+		double value = input.getDouble("value");
+
+		assertEquals(p, probability, 0.0f);
+		assertEquals(v, value, 0.0d);
 	}
 
 }
