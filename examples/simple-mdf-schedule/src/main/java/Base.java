@@ -20,14 +20,14 @@ public class Base implements QueryComposer {
 		SyntheticSource synSrc = SyntheticSource.newSource(0, null);
 		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(), 1);
 		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(), 2);
-		LogicalOperator evaluator1 = queryAPI.newStatelessOperator(new Evaluator(), 2);
-		LogicalOperator evaluator2 = queryAPI.newStatelessOperator(new Evaluator(), 3);
+		LogicalOperator evaluator1 = queryAPI.newStatelessOperator(new Evaluator(), 3);
+		LogicalOperator evaluator2 = queryAPI.newStatelessOperator(new Evaluator(), 4);
 		
-		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), 3);
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), 5);
 		
-		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 3);
+		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 6);
 		
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 5);
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 7);
 		
 		synSrc.connectTo(adderOne, schema, 0);
 		synSrc.connectTo(adderTwo, schema, 1);
@@ -39,7 +39,7 @@ public class Base implements QueryComposer {
 		
 		choose.connectTo(branchone, 9, new DataStore(schema, DataStoreType.NETWORK));
 		
-		branchone.connectTo(snk, 4, new DataStore(schema, DataStoreType.NETWORK));
+		branchone.connectTo(snk, 10, new DataStore(schema, DataStoreType.NETWORK));
 		
 		SeepLogicalQuery slq = queryAPI.build();
 		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);

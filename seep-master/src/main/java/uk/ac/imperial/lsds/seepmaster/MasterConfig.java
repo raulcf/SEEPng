@@ -35,7 +35,7 @@ public class MasterConfig extends Config {
     private static final String UI_TYPE_DOC = "The type of UI chosen, simpleconsole(0), console(1), web(2), etc";
     
     public static final String SCHED_STRATEGY = "scheduling.strategy.type";
-    private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), etc";
+    private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), mdf(3) etc";
     
     public static final String SCHED_STAGE_ASSIGMENT_STRATEGY = "scheduling.stageassignment.type";
     private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assign work to workers";

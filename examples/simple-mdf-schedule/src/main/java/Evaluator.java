@@ -15,8 +15,7 @@ public class Evaluator implements SeepTask {
 
 	@Override
 	public void processData(ITuple arg0, API arg1) {
-		// TODO Auto-generated method stub
-
+			arg1.storeEvaluateResults(System.currentTimeMillis()); // a long, as an abstract notion of quality
 	}
 
 	@Override
