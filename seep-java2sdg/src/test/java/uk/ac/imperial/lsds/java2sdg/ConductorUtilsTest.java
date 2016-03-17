@@ -11,7 +11,7 @@ public class ConductorUtilsTest {
 	@Test
 	public void testGetCompilationUnit() {
 		ConductorUtils cu = new ConductorUtils();
-		String inputFile = "/home/ra/dev/SEEPng/seep-java2sdg/src/test/java/Fake.java";
+		String inputFile = Util.getProjectPath()+"/src/test/java/Fake.java";
 		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFile);
 		
 		System.out.println("Compilation-Unit: ");
