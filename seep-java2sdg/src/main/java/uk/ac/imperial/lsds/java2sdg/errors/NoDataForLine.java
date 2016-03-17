@@ -8,7 +8,7 @@
  * Contributors:
  *     Raul Castro Fernandez - initial API and implementation
  ******************************************************************************/
-package uk.ac.imperial.lsds.java2sdg.analysis;
+package uk.ac.imperial.lsds.java2sdg.errors;
 
 public class NoDataForLine extends Exception {
 
