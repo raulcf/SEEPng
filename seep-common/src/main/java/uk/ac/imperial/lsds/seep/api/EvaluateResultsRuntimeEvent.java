@@ -4,6 +4,8 @@ public class EvaluateResultsRuntimeEvent implements RuntimeEventType {
 
 	private Object obj;
 	
+	public EvaluateResultsRuntimeEvent() { }
+	
 	public EvaluateResultsRuntimeEvent(Object obj) {
 		this.obj = obj;
 	}

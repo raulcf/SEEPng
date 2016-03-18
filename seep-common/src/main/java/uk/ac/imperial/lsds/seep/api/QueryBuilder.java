@@ -141,8 +141,11 @@ public class QueryBuilder implements QueryAPI {
 
 	@Override
 	public LogicalOperator newChooseOperator(SeepChooseTask choose, int opId) {
-		// TODO Auto-generated method stub
-		return null;
+		if(usedIds.contains(opId)) {
+			throw new InvalidQueryDefinitionException("OP id already used!");
+		}
+		usedIds.add(opId);
+		return qp.newStatelessOperator(choose, opId);
 	}
 
 }

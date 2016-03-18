@@ -80,7 +80,11 @@ public class DataReferenceManager {
 	}
 	
 	public Set<Integer> getManagedDatasets() {
-		return this.datasets.keySet();
+		Set<Integer> datasets = new HashSet<>();
+		for(Integer i : this.datasets.keySet()) {
+			datasets.add(i);
+		}
+		return datasets;
 	}
 	
 	public OBuffer manageNewDataReference(DataReference dataRef) {

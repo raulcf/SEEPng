@@ -1,6 +1,3 @@
-import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
-import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
-import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSource;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.QueryComposer;
@@ -8,6 +5,10 @@ import uk.ac.imperial.lsds.seep.api.QueryExecutionMode;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
+import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
+import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
+import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSource;
+
 
 
 public class Base implements QueryComposer {
@@ -22,7 +23,7 @@ public class Base implements QueryComposer {
 		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(), 2);
 		LogicalOperator evaluator1 = queryAPI.newStatelessOperator(new Evaluator(), 3);
 		LogicalOperator evaluator2 = queryAPI.newStatelessOperator(new Evaluator(), 4);
-		
+		System.out.println("OGT");
 		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), 5);
 		
 		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), 6);

@@ -9,6 +9,8 @@ public class SpillToDiskRuntimeEvent implements RuntimeEventType {
 		return RuntimeEventTypes.DATASET_SPILL_TO_DISK.ofType();
 	}
 	
+	public SpillToDiskRuntimeEvent(){ }
+	
 	public SpillToDiskRuntimeEvent(int datasetId) {
 		this.datasetId = datasetId;
 	}

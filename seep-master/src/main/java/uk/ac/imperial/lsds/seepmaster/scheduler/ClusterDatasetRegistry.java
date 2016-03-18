@@ -16,6 +16,7 @@ public class ClusterDatasetRegistry {
 	
 	public ClusterDatasetRegistry() {
 		this.datasetsPerNode = new HashMap<>();
+		this.rankedDatasetsPerNode = new HashMap<>();
 	}
 	
 	public int totalDatasetsInCluster() {
