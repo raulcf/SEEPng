@@ -2,8 +2,8 @@ package uk.ac.imperial.lsds.java2sdg.bricks;
 
 import java.util.List;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
 
 public class PartialSDGRepr {
 

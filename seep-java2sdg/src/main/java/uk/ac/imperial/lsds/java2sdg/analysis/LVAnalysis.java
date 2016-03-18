@@ -11,7 +11,7 @@ import org.codehaus.janino.util.Traverser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
 
 public class LVAnalysis extends Traverser {
 

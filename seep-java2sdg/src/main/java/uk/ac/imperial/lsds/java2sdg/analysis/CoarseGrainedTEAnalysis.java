@@ -9,8 +9,8 @@ import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
 
 /**
  * Dumb analysis that simply create a TE per workflow. There will then be as many TEs as workflows defined in the 

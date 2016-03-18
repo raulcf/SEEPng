@@ -22,7 +22,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.SDG.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
 import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
 
 public class Conductor {
@@ -40,7 +40,8 @@ public class Conductor {
 	public void start(){
 		
 		/** Get Compilation Unit **/
-		String inputFilePath = cc.getString(CompilerConfig.INPUT_FILE);
+//		String inputFilePath = cc.getString(CompilerConfig.INPUT_FILE);
+		String inputFilePath = Util.getProjectPath() +"/src/test/java/Fake.java";
 		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFilePath);
 		
 		/** Extract annotations **/
