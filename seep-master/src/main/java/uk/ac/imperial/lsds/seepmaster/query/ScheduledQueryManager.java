@@ -12,6 +12,7 @@ import com.esotericsoftware.kryo.Kryo;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.api.operator.DownstreamConnection;
 import uk.ac.imperial.lsds.seep.api.operator.Operator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalOperator;
@@ -238,7 +239,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 		// Create new stage and dependency with parent
 		Stage stage = new Stage(stageId);
-		if(parent != null) {
+		if(parent != null) { // To jump the first case
 			parent.dependsOn(stage);
 		}
 		stage = createStageFromLogicalOperator(stage, opsAlreadyInSchedule, slo);
@@ -282,6 +283,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		StageType type = null;
 		boolean containsSinkOperator = false;
 		boolean containsSourceOperator = false;
+		boolean isChooseOperator = false;
 		
 		boolean finishesStage = false;
 		do {
@@ -309,10 +311,26 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 				finishesStage = true;
 			}
 			
+			// is a choose operator?
+			if(slo.getSeepTask() instanceof SeepChooseTask) {
+				isChooseOperator = true;
+				finishesStage = true;
+			}
+			
+			// is any of my upstream a choose operator?
+			for(UpstreamConnection uc : slo.upstreamConnections()) {
+				if(uc.getUpstreamOperator() != null) {
+					if(uc.getUpstreamOperator().getSeepTask() instanceof SeepChooseTask) {
+						finishesStage = true;
+					}
+				}
+			}
+			
 			// is source operator?
 			if(containsSourceOperator) {
 				finishesStage = true;
 			}
+			
 			// if not source op, then...
 			else {
 				// has upstream downstreams other than me?
@@ -336,6 +354,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 			type = StageType.SOURCE_STAGE;
 		} else if(containsSinkOperator) {
 			type = StageType.SINK_STAGE;
+		} else if(isChooseOperator) {
+			type = StageType.CHOOSE_STAGE;
 		} else {
 			type = StageType.INTERMEDIATE_STAGE;
 		}
