@@ -95,7 +95,7 @@ public class WorkflowExtractorAnalysis extends Traverser {
 		for(BlockStatement bs : methodBody){
 			bs.accept(be);
 		}
-		List<CodeRepr.CodeAndLine> code = be.getCode();
+//		List<CodeRepr.CodeAndLine> code = be.getCode();
 		bodies.put(md.toString(), new CodeRepr(be.getCode()));
 	}
 	

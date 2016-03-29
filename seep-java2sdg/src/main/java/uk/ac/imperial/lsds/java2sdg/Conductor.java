@@ -48,7 +48,7 @@ public class Conductor {
 		Map<Integer, SDGAnnotation> annotations = AnnotationAnalysis.getAnnotations(compilationUnit);
 		
 		/** Extract fields **/
-		Map<String, InternalStateRepr> fields = StateAnalysis.getStates(compilationUnit);
+		Map<String, InternalStateRepr> stateFields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
 		Map<String, CodeRepr> workflowBodies = WorkflowExtractorAnalysis.getWorkflowBody(compilationUnit);
