@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
@@ -8,7 +9,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
 public class PartialSDGRepr {
 
 	private static int currentId;
-	private List<TaskElementRepr> te;
+	private List<TaskElementRepr> te = new ArrayList<TaskElementRepr>();;
 	
 	public static PartialSDGRepr makePartialSDGRepr(String workflowName, TaskElementRepr ter, List<VariableRepr> inputVariables,
 			List<VariableRepr> outputVariables) {
@@ -16,8 +17,7 @@ public class PartialSDGRepr {
 		return new PartialSDGRepr(currentId, workflowName, ter, inputVariables, outputVariables);
 	}
 	
-	private PartialSDGRepr(int currentId, String workflowName, TaskElementRepr ter,
-			List<VariableRepr> inputVariables,
+	private PartialSDGRepr(int currentId, String workflowName, TaskElementRepr ter, List<VariableRepr> inputVariables,
 			List<VariableRepr> outputVariables) {
 		TaskElementRepr te = new TaskElementRepr(currentId, ter, inputVariables, outputVariables);
 		this.te.add(te);
