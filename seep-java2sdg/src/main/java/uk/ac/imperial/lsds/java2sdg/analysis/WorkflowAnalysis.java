@@ -28,6 +28,7 @@ public class WorkflowAnalysis {
 		// Fill WorkflowRepr with workflow body
 		for(Entry<String, WorkflowRepr> entry : workflows.entrySet()){
 			WorkflowRepr wr = entry.getValue();
+			// Possible Name incompatibility => User must use the exact method signature in SeepProgramConfiguration!
 			CodeRepr code = workflowBodies.get(entry.getKey());
 			wr.setCode(code);
 		}
