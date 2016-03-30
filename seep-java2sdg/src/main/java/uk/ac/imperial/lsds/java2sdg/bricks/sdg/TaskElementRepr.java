@@ -85,6 +85,17 @@ public class TaskElementRepr {
 		this.outputSchema = outputSchema;
 	}
 	
-	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("TaskElemRepr ID: "+ id + "\n");
+		sb.append("\t\t  DownStreams: "+ downstreams+ "\n");
+		sb.append("\t\t  Upstreams: " + upstreams+ "\n");
+		sb.append("\t\t  InitialVariables: "+ initialVariables + "\n");
+		sb.append("\t\t  Code: "+ code+ "\n");
+		sb.append("\t\t  OutputVariables: "+ outputVariables+ "\n" );
+		sb.append("\t\t  OutputSchema: "+ outputSchema+ "\n");
+		return sb.toString();
+	}
 
 }
