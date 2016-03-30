@@ -10,57 +10,51 @@
  ******************************************************************************/
 package uk.ac.imperial.lsds.java2sdg.codegenerator;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.imperial.lsds.java2sdg.Main;
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
 
 public class CodeGenerator {
 
-	private final static Logger log = LoggerFactory.getLogger(CodeGenerator.class.getCanonicalName());
+	private final static Logger LOG = LoggerFactory.getLogger(CodeGenerator.class.getCanonicalName());
 	
-	public static List<OperatorBlock> assemble(List<OperatorBlock> ops){
-		
-		List<OperatorBlock> assembled = CodeGenerator.assembleTE(ops);
-		
-		return assembled;
+	public static SDGRepr assemble(SDGRepr sdg){
+		SDGRepr assembledSDG = CodeGenerator.assembleTE(sdg);
+		return assembledSDG;
 	}
 	
-	private static List<OperatorBlock> assembleTE(List<OperatorBlock> ops){
-		for(OperatorBlock op : ops){
-			// Check if it is multi-TE
+	private static SDGRepr assembleTE(SDGRepr sdg){
+		
+		for(SDGNode node : sdg.getSdgNodes()){
 			String builtCode = null;
-			if(op.getTEs().size() > 1){
-				builtCode = SeepOperatorInternalCodeTemplate.getCodeForMultiOp(op.getTEs());
+			/*  Multi-TE case */
+			if(node.getTaskElements().size() > 1){
+				builtCode = SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
 			}
-			// In case it is single te
+			/*  Single-TE case */
+			else if (node.getTaskElements().size() == 1){
+				builtCode = SeepOperatorNewTemplate.getCodeForSingleOp(node.getTaskElements().values().iterator().next());
+			}
 			else{
-				builtCode = SeepOperatorInternalCodeTemplate.getCodeForSingleOp(op.getTE());
+				LOG.error("SDGRepr with empty TaskElement List!");
 			}
 			try {
 				if(builtCode == null){
-					System.out.println("ERROR HERE");
+					LOG.error("CodeGenerator failed to produce any Code for Node {}", node.getName());
 				}
-				op.setCode(builtCode);
+				else{
+					System.out.println("CODE PRODUCED: "+ builtCode);
+					/* Maybe add the code to the SDG node here? */
+					//op.setCode(builtCode);
+				}
 			} 
 			catch (Exception e) {
 				e.printStackTrace();
-				log.error("Invalid code assigment: "+e.getMessage());
+				LOG.error("Invalid code assigment: "+e.getMessage());
 			}
 		}
-		return ops;
+		return sdg;
 	}
 	
-	private static OperatorBlock getOb(int obId, int workflowId, List<OperatorBlock> obs){
-		for(int i = 0; i<obs.size(); i++){
-			OperatorBlock ob = obs.get(i);
-			if(ob.getId() == obId && ob.getWorkflowId() == workflowId){
-				return ob;
-			}
-		}
-		return null;
-	}
 }
