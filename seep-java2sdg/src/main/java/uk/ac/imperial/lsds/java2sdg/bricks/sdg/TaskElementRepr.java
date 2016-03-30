@@ -8,7 +8,6 @@ public class TaskElementRepr {
 
 	private final int id;
 	private List<Integer> downstreams; // id of downstreams
-
 	private List<Integer> upstreams;   // id of upstreams
 	
 	private List<VariableRepr> initialVariables;

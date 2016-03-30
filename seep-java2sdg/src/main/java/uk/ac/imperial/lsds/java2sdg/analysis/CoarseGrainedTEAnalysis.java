@@ -28,14 +28,20 @@ public class CoarseGrainedTEAnalysis {
 		
 		for(Entry<String, WorkflowRepr> entry : workflows.entrySet()){
 			String workflowName = entry.getKey();
+			
 			// get body of workflow (code)
 			CodeRepr code = entry.getValue().getCode();
 			TaskElementRepr ter = new TaskElementRepr(teId++);
+			ter.setCode(code.getCodeText());
+			ter.setOutputSchema(entry.getValue().getOutputSchema());
+			
 			// check what are the live variables in the first line
 			List<VariableRepr> inputVariables = lvInfo.getLiveVarsAt(code.getInitLine());
 			// check what are the live variables in the last line
 			List<VariableRepr> outputVariables = lvInfo.getLiveVarsAt(code.getEndLine());
+			
 			// check the input and outputschema
+			
 			// TODO:
 			PartialSDGRepr psdg = PartialSDGRepr.makePartialSDGRepr(workflowName, ter, inputVariables, outputVariables);
 			partialSDGs.add(psdg);

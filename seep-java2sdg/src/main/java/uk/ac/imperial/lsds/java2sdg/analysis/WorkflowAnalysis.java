@@ -1,7 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
