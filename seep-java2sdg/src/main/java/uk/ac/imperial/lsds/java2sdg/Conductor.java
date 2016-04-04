@@ -22,12 +22,14 @@ import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.codegenerator.CodeGenerator;
 import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
 
 public class Conductor {
 
-	final private static Logger LOG = LoggerFactory.getLogger(Conductor.class);
+	final private static Logger LOG = LoggerFactory.getLogger(Conductor.class.getCanonicalName());
 	
 	private CompilerConfig cc;
 	private ConductorUtils cu;
@@ -93,6 +95,14 @@ public class Conductor {
 			break;
 		case X_JAR:
 			LOG.info("Exporting SDG to SEEP runnable query JAR...");
+			for(SDGNode n : sdg.getSdgNodes()){
+				System.out.println("-----------");
+				System.out.println(n.toString());
+				System.out.println("-----------");
+			}
+			CodeGenerator.assemble(sdg);
+//			List<OperatorBlock> assembledCode = CodeGenerator.assemble(sdg);
+//			QueryBuilder qBuilder = new QueryBuilder();
 			
 			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;
