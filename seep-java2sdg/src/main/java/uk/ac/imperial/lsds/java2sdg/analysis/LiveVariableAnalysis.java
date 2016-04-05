@@ -25,6 +25,7 @@ import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.SimpleLiveLocals;
 import uk.ac.imperial.lsds.java2sdg.Main;
 import uk.ac.imperial.lsds.java2sdg.bricks2.Variable;
+import uk.ac.imperial.lsds.java2sdg.errors.NoDataForLine;
 
 public class LiveVariableAnalysis {
 

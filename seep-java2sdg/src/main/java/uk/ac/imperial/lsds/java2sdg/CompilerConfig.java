@@ -14,7 +14,7 @@ public class CompilerConfig extends Config {
 	private static final ConfigDef config;
     
     public static final String TARGET_OUTPUT = "target.type";
-    private static final String TARGET_OUTPUT_DOC = "The target type can be a DOT file, a GEXF file or a seep-runnable JAR";
+    private static final String TARGET_OUTPUT_DOC = "The target type can be a DOT(0) file, a GEXF(1) file or a seep-runnable JAR(2)";
     
     public static final String OUTPUT_FILE = "output.file";
     private static final String OUTPUT_FILE_DOC = "The name of the output file";

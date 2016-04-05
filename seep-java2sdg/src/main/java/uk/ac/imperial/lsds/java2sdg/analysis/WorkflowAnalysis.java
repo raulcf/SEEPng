@@ -1,7 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -28,6 +27,7 @@ public class WorkflowAnalysis {
 		// Fill WorkflowRepr with workflow body
 		for(Entry<String, WorkflowRepr> entry : workflows.entrySet()){
 			WorkflowRepr wr = entry.getValue();
+			// Possible Name incompatibility => User must use the exact method signature in SeepProgramConfiguration!
 			CodeRepr code = workflowBodies.get(entry.getKey());
 			wr.setCode(code);
 		}

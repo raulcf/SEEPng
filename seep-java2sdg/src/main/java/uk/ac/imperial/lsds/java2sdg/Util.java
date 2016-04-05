@@ -28,12 +28,17 @@ import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 
 public class Util {
+	
+	/* Moving to relative paths rather than static wherever possible*/
+	private static String PROJECT_PATH;
+	private final static Logger log = Logger.getLogger(Main.class.getCanonicalName());
 
-	private final static Logger log = Logger.getLogger(Main.class
-			.getCanonicalName());
-
-	private Util() {
-
+	private Util() {}
+	
+	public static String getProjectPath(){
+		if(Util.PROJECT_PATH == null)
+			Util.PROJECT_PATH = System.getProperty("user.dir");
+		return Util.PROJECT_PATH;
 	}
 
 	public static Map<String, InternalStateRepr> extractStateInformation(Iterator<SootField> fieldsIterator) {

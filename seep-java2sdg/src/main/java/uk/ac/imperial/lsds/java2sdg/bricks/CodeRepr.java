@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.bricks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CodeRepr {
@@ -18,6 +19,22 @@ public class CodeRepr {
 	
 	public int getEndLine(){
 		return code.get(code.size()-1).line;
+	}
+	
+	public List<String> getCodeText(){
+		List<String> toreturn = new ArrayList<String>();
+		for(CodeAndLine c : code)
+			toreturn.add(c.code);
+		return toreturn;
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("CodeRepr: \n");
+		for(CodeAndLine c : code)
+			sb.append("\t line: "+c.line + " \t code: "+ c.code +"\n");
+		return sb.toString();
 	}
 	
 	public class CodeAndLine {

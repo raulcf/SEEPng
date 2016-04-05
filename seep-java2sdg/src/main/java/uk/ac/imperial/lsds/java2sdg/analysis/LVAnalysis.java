@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.analysis;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,8 +34,9 @@ public class LVAnalysis extends Traverser {
 	
 	private LivenessInformation buildLVInfo(){
 		// TODO: create lvinfo here with comfortable ifaces
+		LivenessInformation lv = new LivenessInformation(lvData);
 		
-		return lvInfo;
+		return lv;
 	}
 	
 	@Override 
@@ -47,6 +49,10 @@ public class LVAnalysis extends Traverser {
 		}
 	}
 	
+	/* Atom: Abstract base class for Java.Type, Java.Rvalue and Java.Lvalue.
+	 * lvalue: i.e. an expression that has a type and a value, and can be assigned to ->
+	 * An expression that can be the left-hand-side of an assignment.
+	 */
 	@Override
 	public void traverseAtom(Atom a){
 		String atomName = a.toString();
@@ -105,9 +111,17 @@ public class LVAnalysis extends Traverser {
 	}
 	
 	public class LivenessInformation{
+		HashMap<String, VariableLivenessInformation> lvData;
 		
+		public LivenessInformation(HashMap<String, VariableLivenessInformation> lvData){
+			this.lvData = lvData;
+		}
+		
+		//TODO: Add Implementation Logic and check correctness! => What about Variable type?
+		// For now just return an empty List
 		public List<VariableRepr> getLiveVarsAt(int line){
-			return null;
+			List<VariableRepr> toreturn = new ArrayList<VariableRepr>();
+			return toreturn;
 		}
 	}
 }

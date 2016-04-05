@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import uk.ac.imperial.lsds.java2sdg.Main;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.errors.IllegalDriverProgram;
 
 /**
  * SourceCodeHandler simply reads an input source code file and stores its lines in memory. It also represents

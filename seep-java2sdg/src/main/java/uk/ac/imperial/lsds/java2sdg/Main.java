@@ -10,17 +10,17 @@
  ******************************************************************************/
 package uk.ac.imperial.lsds.java2sdg;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import joptsimple.OptionParser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import joptsimple.OptionParser;
 import uk.ac.imperial.lsds.seep.config.CommandLineArgs;
 import uk.ac.imperial.lsds.seep.config.ConfigKey;
-import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 public class Main {
 
@@ -29,14 +29,44 @@ public class Main {
 	public static void main(String args[]) {
 		
 		/** Parse input parameters **/
-		List<ConfigKey> configKeys = WorkerConfig.getAllConfigKey();
+		List<ConfigKey> configKeys = CompilerConfig.getAllConfigKey();
 		OptionParser parser = new OptionParser();
 		CommandLineArgs cla = new CommandLineArgs(args, parser, configKeys);
 		Properties commandLineProperties = cla.getProperties();
 		
-		CompilerConfig cc = new CompilerConfig(commandLineProperties);
+		//TODO: pgaref Maybe get properties configuration from File as well
 		
+		//Validate properties by checking Input and Output are set
+		if(!validateProperties(commandLineProperties)){
+			printHelp(parser);
+			System.exit(0);
+		}
+		
+		CompilerConfig cc = new CompilerConfig(commandLineProperties);
 		Conductor c = new Conductor(cc);
 		c.start();
 	}
+	
+	
+	private static boolean validateProperties(Properties properties2Validate) {
+		if(properties2Validate.get(CompilerConfig.getConfigKey(CompilerConfig.INPUT_FILE).name) == ""){
+			LOG.error("Please set Compiler input.file property!");
+			return false;
+		}
+		if(properties2Validate.get(CompilerConfig.getConfigKey(CompilerConfig.OUTPUT_FILE).name) == ""){
+			LOG.error("Please set Compiler output.file property!");
+			return false;
+		}
+		return true;
+	}
+	
+	private static void printHelp(OptionParser JOptParser) {
+		try {
+			JOptParser.printHelpOn(System.out);
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

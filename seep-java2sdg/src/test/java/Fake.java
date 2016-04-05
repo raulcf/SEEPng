@@ -31,13 +31,13 @@ public class Fake implements SeepProgram {
 		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
 		
 		DataStore trainSrc = new DataStore(DataStoreType.NETWORK);
-		spc.newWorkflow("train", trainSrc, sch);
+		spc.newWorkflow("train()", trainSrc, sch);
 		
 		// declare test workflow
 		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
 		DataStore testSrc = new DataStore(DataStoreType.NETWORK);
 		DataStore testSnk = new DataStore(DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
-		spc.newWorkflow("test", testSrc, sch2, testSnk, sch2); // input and output schema are the same
+		spc.newWorkflow("test(float data)", testSrc, sch2, testSnk, sch2); // input and output schema are the same
 
 		return spc;
 	}

@@ -21,7 +21,9 @@ public enum SDGAnnotation{
 	LOCAL ("Local"),
 	FILE ("File"),
 	NETWORKSOURCE ("NetworkSource"),
-	CONSOLESINK ("ConsoleSink");
+	CONSOLESINK ("ConsoleSink"),
+	//Might need to handle the Override Annotation differently(?)
+	OVERRIDE ("Override");
 	
 	
 	private final String value;
@@ -35,6 +37,13 @@ public enum SDGAnnotation{
 	}
 	
 	public static SDGAnnotation getAnnotation(String value) {
+		
+		/* After latest code refactor - each Java2SDG programm needs to implement SeepProgram 
+		 * and Override configure method - defining workflow IO -
+		 * As a result we need to handle that annotation - Just store it for now!
+		 */
+		
+		/* Partial and Partial_State are the SAME Annotation*/
 		if(value.equalsIgnoreCase("Partial"))
 			return SDGAnnotation.PARTIAL_STATE;
 		
