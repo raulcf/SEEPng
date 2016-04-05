@@ -35,15 +35,17 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			// Check whether we have finished the choose stage and we can go ahead
 			// TODO: pick stage according to the currentBestCandidate
 			Set<Stage> upstream = nextToSchedule.getDependencies();
-			Map<Integer, Set<DataReference>> outputOfUpstream = null;
+			Map<Integer, Set<DataReference>> chosenResultsOfStage = new HashMap<>();
 			for(Stage s : upstream) {
 				if(s.getStageId() == currentBestCandidate) {
-					 outputOfUpstream = s.getOutputDataReferences();
+					// Filter out potential inputs of CHOOSE to get only the chosen one
+					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(currentBestCandidate);
+					chosenResultsOfStage.put(currentBestCandidate, inputs);
 				}
 			}
 			
 			// Say that choose is done and assign results to its downstream stages
-			tracker.setFinished(nextToSchedule, outputOfUpstream);
+			tracker.setFinished(nextToSchedule, chosenResultsOfStage);
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
@@ -104,8 +106,8 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				rEvents = tracker.getRuntimeEventsOfLastStageExecution();
 				List<Object> evalResult = new ArrayList<>();
 				for(List<RuntimeEvent> re : rEvents.values()) {
-					for(RuntimeEvent r : re) {
-						if(r.type() == RuntimeEventTypes.EVALUATE_RESULT.ofType()) {
+					for(RuntimeEvent r : re) { 
+						if(r.getEvaluateResultsRuntimeEvent().type() == RuntimeEventTypes.EVALUATE_RESULT.ofType()) {
 							evalResult.add(r.getEvaluateResultsRuntimeEvent().getEvaluateResults());
 						}
 					}

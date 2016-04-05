@@ -38,6 +38,7 @@ import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
@@ -221,14 +222,15 @@ public class Conductor {
 	
 	private Map<Integer, Set<DataReference>> createOutputForTask(Stage s, Schema schema) {
 		// Master did not assign output, so we need to create it here
-		// This basically depends on how many outputs we need to generate
+		// Althouth output is indexed on an integer, this is for compatibility with
+		// downstream interfaces. It will always be the stageId
 		Map<Integer, Set<DataReference>> output = new HashMap<>();
 		
 		if(s.hasDependantWithPartitionedStage()) {
 			// create a DR per partition, that are managed
 			// TODO: how to get the number of partitions
 			int numPartitions = wc.getInt(WorkerConfig.SHUFFLE_NUM_PARTITIONS);
-			int streamId = -1; // FIXME: this is a bug, output should be indexed on downstream stage ids
+			int outputId = s.getStageId();
 			Set<DataReference> drefs = new HashSet<>();
 			// TODO: create a DR per partition and assign the partitionSeqId
 			for(int i = 0; i < numPartitions; i++) {
@@ -239,11 +241,11 @@ public class Conductor {
 				dr = DataReference.makeManagedAndPartitionedDataReference(dataStore, cep, ServeMode.STORE, partitionId);
 				drefs.add(dr);
 			}
-			output.put(streamId, drefs);
+			output.put(outputId, drefs);
 		}
 		else {
 			// create a single DR, that is managed
-			int streamId = -1; // FIXME: BUG, should be indexed on downstream stage id
+			int outputId = s.getStageId();
 			Set<DataReference> drefs = new HashSet<>();
 			DataStore dataStore = new DataStore(schema, DataStoreType.IN_MEMORY);
 			ControlEndPoint cep = new ControlEndPoint(id, wc.getString(WorkerConfig.WORKER_IP), wc.getInt(WorkerConfig.CONTROL_PORT));
@@ -256,7 +258,7 @@ public class Conductor {
 				dr = DataReference.makeManagedDataReference(dataStore, cep, ServeMode.STORE);
 			}
 			drefs.add(dr);
-			output.put(streamId, drefs);
+			output.put(outputId, drefs);
 		}
 		return output;
 	}

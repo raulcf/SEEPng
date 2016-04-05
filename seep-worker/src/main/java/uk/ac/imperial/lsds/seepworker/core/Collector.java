@@ -36,6 +36,8 @@ public class Collector implements API {
 	
 	// Attributes for RuntimeEvent
 	private List<RuntimeEvent> rEvents;
+	// Current evaluation results
+	private RuntimeEvent re;
 	
 	public Collector(int id, CoreOutput coreOutput) {
 		this.rEvents = new ArrayList<>();
@@ -209,6 +211,10 @@ public class Collector implements API {
 	
 	@Override
 	public List<RuntimeEvent> getRuntimeEvents() {
+		// Lazily add evaluation results if any
+		if(re != null) {
+			rEvents.add(re);
+		}
 		return rEvents;
 	}
 
@@ -248,11 +254,10 @@ public class Collector implements API {
 
 	@Override
 	public void storeEvaluateResults(Object obj) {
-		RuntimeEvent re = RuntimeEventFactory.makeEvaluateResults(obj);
-		this.rEvents.add(re);
-		
+		// Only update state (there will be one evaluation results per Evaluator then)
+		// Then re will be added to the other runtimeEvents when get(rEvents).
+		re = RuntimeEventFactory.makeEvaluateResults(obj);
+		//this.rEvents.add(re);
 	}
-
-	
 
 }
