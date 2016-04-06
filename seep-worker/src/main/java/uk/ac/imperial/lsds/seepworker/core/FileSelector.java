@@ -8,7 +8,6 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.channels.Selector;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -21,6 +20,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,19 +108,32 @@ public class FileSelector implements DataStoreSelector {
 		this.readerWorker = new Thread(this.reader);
 		this.readerWorker.setName("File-Reader");
 
-		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
+		Map<ReadableByteChannel, Integer> channels = new HashMap<>();
 		for(Entry<Integer, DataStore> e : fileOrigins.entrySet()){
 			try {
 				FileConfig config = new FileConfig(e.getValue().getConfig());
 				//String absPath = Utils.absolutePath(config.getString(FileConfig.FILE_PATH));
 				String absPath = config.getString(FileConfig.FILE_PATH);
-				URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
-				LOG.info("Created URI to local resource: {}", uri.toString());
-				Path resource = Paths.get(uri);
-				defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
-				LOG.info("Configuring file channel: {} as binary input", resource.toString());
-				SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
-				channels.put(sbc, e.getKey());
+				Boolean isHDFS = config.getBoolean(FileConfig.HDFS_SOURCE);
+				if (isHDFS) {
+					//We have two Path types in this file, and the other is imported, so
+					//fully qualify this one.
+					org.apache.hadoop.fs.Path hdfsPath = new org.apache.hadoop.fs.Path(config.getString(FileConfig.HDFS_URI) + absPath);
+					FileSystem fs = FileSystem.get(hdfsPath.toUri(), new Configuration());
+					LOG.info("Created URI to HDFS resource: {}", hdfsPath.toUri());
+					FSDataInputStream hdfsInput = fs.open(hdfsPath);
+					LOG.info("Configuring file channel: {}", hdfsInput.toString());
+					ReadableByteChannel sbc = Channels.newChannel(hdfsInput);
+					channels.put(sbc, e.getKey());
+				} else {
+					URI uri = new URI(Utils.FILE_URI_SCHEME + absPath);
+					LOG.info("Created URI to local resource: {}", uri.toString());
+					Path resource = Paths.get(uri);
+					defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
+					LOG.info("Configuring file channel: {}", resource.toString());
+					ReadableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+					channels.put(sbc, e.getKey());
+				}
 			} 
 			catch (FileNotFoundException fnfe) {
 				fnfe.printStackTrace();
@@ -153,11 +169,11 @@ public class FileSelector implements DataStoreSelector {
 	
 	public void addNewAccept(Path resource, int id, Map<Integer, IBuffer> dataAdapters, boolean textSource, String characterSet) {
 		this.dataAdapters = dataAdapters;
-		Map<SeekableByteChannel, Integer> channels = new HashMap<>();
-		//SeekableByteChannel sbc = null;
+		Map<ReadableByteChannel, Integer> channels = new HashMap<>();
+		//ReadableByteChannel sbc = null;
 		try {
 			LOG.info("Configuring file channel: {}", resource.toString());
-			SeekableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
+			ReadableByteChannel sbc = Files.newByteChannel(resource, StandardOpenOption.READ);
 			channels.put(sbc, id);
 		} 
 		catch (IOException e) {
@@ -196,7 +212,7 @@ public class FileSelector implements DataStoreSelector {
 
 		private boolean working = true;
 		private Selector readSelector;
-		private Map<SeekableByteChannel, Integer> channels;
+		private Map<ReadableByteChannel, Integer> channels;
 		private Map<Integer, DataStore> channelDataStore;
 		
 		public Reader() {
@@ -208,7 +224,7 @@ public class FileSelector implements DataStoreSelector {
 			}
 		}
 		
-		public void availableChannels(Map<SeekableByteChannel, Integer> channels) {
+		public void availableChannels(Map<ReadableByteChannel, Integer> channels) {
 			this.channels = channels;
 		}
 		
@@ -226,7 +242,7 @@ public class FileSelector implements DataStoreSelector {
 					 Thread.currentThread().getName(),
 					 channels.entrySet().size());
 			while(working && channels.entrySet().size() > 0){
-				for(Entry<SeekableByteChannel, Integer> e: channels.entrySet()) {
+				for(Entry<ReadableByteChannel, Integer> e: channels.entrySet()) {
 					int id = e.getValue();
 					ReadableByteChannel rbc = e.getKey();
 					IBuffer ib = dataAdapters.get(id);
@@ -250,7 +266,7 @@ public class FileSelector implements DataStoreSelector {
 			this.closeReader();
 		}
 		
-		private boolean isTextSource(Entry<SeekableByteChannel, Integer> e) {
+		private boolean isTextSource(Entry<ReadableByteChannel, Integer> e) {
 			if (channelDataStore.containsKey(e.getValue())) {
 				FileConfig config = new FileConfig(channelDataStore.get(e.getValue()).getConfig());
 				defaultCharacterSet = config.getString(FileConfig.CHARACTER_SET);
@@ -259,7 +275,7 @@ public class FileSelector implements DataStoreSelector {
 			return false;
 		}
 		
-		private void readFromText(Entry<SeekableByteChannel, Integer> e, IBuffer ib, ReadableByteChannel rbc) {
+		private void readFromText(Entry<ReadableByteChannel, Integer> e, IBuffer ib, ReadableByteChannel rbc) {
 			BufferedReader br = new BufferedReader (Channels.newReader(rbc, channelDataStore.get(e.getValue()).getSchema().getSchemaParser().getCharsetName()));
 			String line;
 			try {
@@ -274,7 +290,7 @@ public class FileSelector implements DataStoreSelector {
 		}
 		
 		private void closeReader(){
-			for(SeekableByteChannel sbc : channels.keySet()){
+			for(ReadableByteChannel sbc : channels.keySet()){
 				try {
 					sbc.close();
 				} 
