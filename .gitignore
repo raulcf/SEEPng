@@ -68,6 +68,9 @@ examples/simple-dag-memorymng/build/
 examples/simple-mdf-schedule/.gitignore
 examples/simple-mdf-schedule/.settings/
 examples/simple-mdf-schedule/build/
+examples/microbenchmark-mdf/.gitignore
+examples/microbenchmark-mdf/.settings/
+examples/microbenchmark-mdf/build/
 
 deploy/
 dist/

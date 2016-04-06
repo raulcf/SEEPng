@@ -12,4 +12,5 @@ include \
     "simple-pipeline-scheduledef",
 	"simple-shuffle-query",
 	"simple-dag-memorymng",
-	"simple-mdf-schedule"
+	"simple-mdf-schedule",
+    "microbenchmark-mdf"
