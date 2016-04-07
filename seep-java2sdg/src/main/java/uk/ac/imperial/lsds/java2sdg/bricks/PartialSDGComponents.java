@@ -1,0 +1,19 @@
+package uk.ac.imperial.lsds.java2sdg.bricks;
+
+import java.util.List;
+
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
+
+public class PartialSDGComponents {
+
+	public TaskElementRepr te;
+	public List<VariableRepr> inputVariables;
+	public List<VariableRepr> outputVariables;
+	
+	public PartialSDGComponents(TaskElementRepr te, List<VariableRepr> inputVariables, List<VariableRepr> outputVariables) {
+		this.te = te;
+		this.inputVariables = inputVariables;
+		this.outputVariables = outputVariables;
+	}
+}

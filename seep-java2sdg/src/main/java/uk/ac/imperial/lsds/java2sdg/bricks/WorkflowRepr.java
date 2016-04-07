@@ -14,10 +14,12 @@ public class WorkflowRepr {
 	// The input data store, e.g. file, network, kafka, etc
 	private DataStore source;
 	// The schema of the input data
+	@Deprecated // already included in source DataStore
 	private Schema inputSchema;
 	// The output data store, e.g. file, network, kafka, console, etc
 	private DataStore sink;
 	// The schema of the output data
+	@Deprecated // already included in sink DataStore
 	private Schema outputSchema;
 	// Actual code of workflow
 	private CodeRepr code;
