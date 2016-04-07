@@ -8,12 +8,15 @@ import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 
-
-
-
 public class Adder implements SeepTask {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
+	private Double selectivity = 0;
+	int processed = 0, sent = 0;
+	
+	public Adder(Double sel) {
+		selectivity = sel;
+	}
 	
 	@Override
 	public void setUp() {
@@ -24,11 +27,15 @@ public class Adder implements SeepTask {
 	public void processData(ITuple data, API api) {
 		int userId = data.getInt("userId");
 		long value = data.getLong("value");
+		processed++;
 		
 		value++;
 		
-		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
-		api.send(processedData);
+		while (((double)sent/(double)processed) < selectivity) {
+			byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
+			api.send(processedData);
+			sent++;
+		}
 	}
 
 	@Override
@@ -41,4 +48,5 @@ public class Adder implements SeepTask {
 		// TODO Auto-generated method stub
 		
 	}
+	
 }
