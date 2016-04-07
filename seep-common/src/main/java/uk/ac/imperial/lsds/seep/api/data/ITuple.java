@@ -142,6 +142,32 @@ public class ITuple {
 		String str = (String) Type.STRING.read(wrapper);
 		return str;
 	}
+
+	public float getFloat(String fieldName){
+		if(! schema.hasField(fieldName)){
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
+		}
+		if(! schema.typeCheck(fieldName, Type.FLOAT)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '" + Type.FLOAT + "' with name '"+fieldName+"'");
+		}
+
+		int offset = mapFieldToOffset.get(fieldName);
+		wrapper.position(offset);
+		return wrapper.getFloat();
+	}
+
+	public double getDouble(String fieldName){
+		if(! schema.hasField(fieldName)){
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
+		}
+		if(! schema.typeCheck(fieldName, Type.DOUBLE)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '" + Type.DOUBLE + "' with name '"+fieldName+"'");
+		}
+
+		int offset = mapFieldToOffset.get(fieldName);
+		wrapper.position(offset);
+		return wrapper.getDouble();
+	}
 	
 	public Object get(String fieldName){
 		if(! schema.hasField(fieldName)){
@@ -161,6 +187,10 @@ public class ITuple {
 			o = wrapper.getLong();
 		} else if(t == Type.STRING){
 			o = Type.STRING.read(wrapper);
+		} else if(t == Type.FLOAT){
+			o = wrapper.getFloat();
+		} else if(t == Type.DOUBLE){
+			o = wrapper.getDouble();
 		}
 		return o;
 	}

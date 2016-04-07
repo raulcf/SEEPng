@@ -72,6 +72,16 @@ public class Schema {
 				return true;
 			}
 		}
+		else if(t.toString().equals(Type.FLOAT.toString())){
+			if(o instanceof Float){
+				return true;
+			}
+		}
+		else if(t.toString().equals(Type.DOUBLE.toString())){
+			if(o instanceof Double){
+				return true;
+			}
+		}
 		return false;
 	}
 	
