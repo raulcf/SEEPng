@@ -1,6 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class Dataset implements IBuffer, OBuffer {
 	// FIXME: this guy should not have this info. Instead, put this along with the 
 	// dataset in a helper class, and do the management outside this. Open issue for this.
 	private String cacheFileName = "";
+	private long cacheFilePosition = 0;
 
 	public Dataset(DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm) {
 		this.drm = drm;
@@ -66,7 +68,7 @@ public class Dataset implements IBuffer, OBuffer {
 		return null;
 	}
 	
-	public byte[] consumeData() {
+	private byte[] consumeDataFromMemory() {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
 			readerIterator = this.buffers.iterator();
@@ -104,7 +106,6 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 		}
 
-		
 		// FIXME: This is written to handle the case of having empty dataset
 		// howver, that case should be handled in a more principled way, and before
 		if(! rPtrToBuffer.hasRemaining()) {
@@ -116,6 +117,48 @@ public class Dataset implements IBuffer, OBuffer {
 		rPtrToBuffer.get(data);
 		
 		return data;
+	}
+		
+	private byte[] consumeDataFromDisk() {
+		FileInputStream inputStream;
+		try {
+			inputStream = new FileInputStream(cacheFileName);
+			inputStream.getChannel().position(cacheFilePosition);
+			
+			//It is used, in the while condition just below, but Eclipse's analyzer isn't 
+			//smart enough to figure that out. This just saves us a warning.
+			@SuppressWarnings("unused")
+			int readSuccess;
+			byte[] recordSizeBytes = new byte[Integer.BYTES];
+			//If there is another record the next few bytes will be an int containing the size of said record.
+			if ((readSuccess = inputStream.read(recordSizeBytes)) != -1) {
+				//Convert the bytes giving us the size to an int and read exactly the next record
+				int recordSize = ByteBuffer.wrap(recordSizeBytes).getInt();
+				byte[] record = new byte[recordSize + Integer.BYTES];
+				System.arraycopy(recordSizeBytes, 0, record,0, Integer.BYTES);
+				inputStream.read(record, Integer.BYTES, recordSize);
+				
+				cacheFilePosition += Integer.BYTES + recordSize;
+				inputStream.close();
+				return record;
+			}
+			inputStream.close();
+			return null;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+			
+	public byte[] consumeData() {
+		if (cacheFileName.equals("")) {
+			return consumeDataFromMemory();
+		}
+		return consumeDataFromDisk();
 	}
 	
 	public Schema getSchemaForDataset() {
@@ -191,10 +234,15 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	public void setCachedLocation(String filename) {
 		cacheFileName = filename;
+		cacheFilePosition = 0;
 	}
 	
 	public void unsetCachedLocation() {
 		cacheFileName = "";
+	}
+	
+	public long cacheFileLocation() {
+		return cacheFilePosition;
 	}
 	
 	/**

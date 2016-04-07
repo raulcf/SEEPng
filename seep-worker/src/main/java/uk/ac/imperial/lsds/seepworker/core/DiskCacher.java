@@ -119,12 +119,14 @@ public class DiskCacher {
 		try {
 			//Unsetting this first is necessary - otherwise the write we use to place the record
 			//back in memory will just be appended back to the file.
+			long filePosition = data.cacheFileLocation();
 			data.unsetCachedLocation();
 			//It is used, in the while condition just below, but Eclipse's analyzer isn't 
 			//smart enough to figure that out. This just saves us a warning.
 			@SuppressWarnings("unused")
 			int readSuccess;
 			inputStream = new FileInputStream(cacheFileName);
+			inputStream.getChannel().position(filePosition);
 			byte[] recordSizeBytes = new byte[Integer.SIZE / Byte.SIZE];
 			//If there is another record the next few bytes will be an int containing the size of said record.
 			while ((readSuccess = inputStream.read(recordSizeBytes)) != -1) {
