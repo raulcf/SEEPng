@@ -11,7 +11,7 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 public class Adder implements SeepTask {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
-	private Double selectivity = 0;
+	private Double selectivity = 0.;
 	int processed = 0, sent = 0;
 	
 	public Adder(Double sel) {

@@ -16,6 +16,7 @@ import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSource;
 public class Base implements QueryComposer {
 	int operatorId = 0;
 	int connectionId = 0;
+	Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 
 	@Override
 	public SeepLogicalQuery compose() {
@@ -23,17 +24,16 @@ public class Base implements QueryComposer {
 		LinkedList <Double> selectivity = new LinkedList <Double>();
 
 		//TODO: populate fanout and selectivity properly.
-		fanout.push(2);
-		fanout.push(2);
-		fanout.push(2);
-		selectivity.push(2.0);
-		selectivity.push(0.8);
+		fanout.push(200);
+//		fanout.push(2);
+//		fanout.push(2);
+//		selectivity.push(2.0);
+//		selectivity.push(0.8);
 		selectivity.push(0.8);
 		
-		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 		
 		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, null);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(), operatorId++);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		
 		
@@ -57,7 +57,7 @@ public class Base implements QueryComposer {
 			LogicalOperator nullReturn = queryAPI.newChooseOperator(new Choose(), operatorId++);
 			parent.connectTo(nullEval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 			nullEval.connectTo(nullReturn, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-			return nullreturn;
+			return nullReturn;
 		}
 		Integer thisfanout = fanout.get(location);
 		Double thisselectivity = selectivity.get(location);
@@ -65,7 +65,7 @@ public class Base implements QueryComposer {
 		for (int x = 0; x < thisfanout; x++) {
 			LogicalOperator child = queryAPI.newStatelessOperator(new Adder(thisselectivity), operatorId++);
 			if (fanout.size() > location+1 && selectivity.size() > location+1) {
-				LogicalOperator childChoose = expand(fanout, selectivity, location+1);
+				LogicalOperator childChoose = expand(fanout, selectivity, location+1, child);
 				childChoose.connectTo(finalChoose, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 			} else {
 				LogicalOperator childEval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
