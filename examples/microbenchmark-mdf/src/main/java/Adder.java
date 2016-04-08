@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.UUID;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
@@ -12,10 +13,20 @@ public class Adder implements SeepTask {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 	private Double selectivity = 0.;
-	int processed = 0, sent = 0;
+	private int processed = 0, sent = 0;
+	private String adderId;
+	private boolean used;
+	
+	public Adder() {
+		selectivity = 1.;
+		adderId = UUID.randomUUID().toString();
+		used = false;
+	}
 	
 	public Adder(Double sel) {
 		selectivity = sel;
+		adderId = UUID.randomUUID().toString();
+		used = false;
 	}
 	
 	@Override
@@ -28,6 +39,13 @@ public class Adder implements SeepTask {
 		int userId = data.getInt("userId");
 		long value = data.getLong("value");
 		processed++;
+		
+		if (!used) {
+			System.out.println(adderId + " has started with selectivity " + selectivity);
+			used = true;
+		}
+		
+		System.out.println(adderId +" processed " + userId);
 		
 		value++;
 		
