@@ -108,9 +108,6 @@ public class ScheduleTracker {
 		if(stage.getStageType().equals(StageType.SINK_STAGE)) {
 			// Finished schedule
 			this.status = ScheduleStatus.FINISHED;
-			LOG.info("[FINISHED-JOB]");
-			// TODO: what to do with results in this case
-			LOG.warn("TODO: what to do with results in this case");
 		}
 		// Check whether the new stage makes ready new stages, and propagate results
 		for(Stage downstream : stage.getDependants()) {

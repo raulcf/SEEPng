@@ -65,7 +65,13 @@ public class SchedulerEngineWorker implements Runnable {
 		LOG.info("[START JOB]");
 		long scheduleStart = System.nanoTime();
 		while(work) {
-			
+			if(tracker.isScheduledFinished()) {
+				long scheduleFinish = System.nanoTime();
+				long totalScheduleTime = scheduleFinish - scheduleStart;
+				LOG.info("[END JOB] !!! {}", totalScheduleTime);
+				work = false;
+				continue;
+			}
 			// At the end of one iteration the worker will have populated the commands that need to be sent to the cluster
 			// Some of these commands are schedule stage commands. Other are about evicting datasets, etc.
 			List<CommandToNode> commands = new ArrayList<>();
@@ -81,16 +87,6 @@ public class SchedulerEngineWorker implements Runnable {
 			// Get next stage
 			// TODO: make next return a List of next stages
 			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
-			if(nextStage == null) {
-				// TODO: means the computation finished, do something
-				if(tracker.isScheduledFinished()) {	
-					long scheduleFinish = System.nanoTime();
-					long totalScheduleTime = scheduleFinish - scheduleStart;
-					LOG.info("[END JOB] !!! {}", totalScheduleTime);
-					work = false;
-					continue;
-				}
-			}
 			
 			// TODO: (parallel sched) make this receive a list of stages
 			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
