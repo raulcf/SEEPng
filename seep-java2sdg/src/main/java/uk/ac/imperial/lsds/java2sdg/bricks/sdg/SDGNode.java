@@ -9,7 +9,7 @@ public class SDGNode {
 	private int id = 0;
 	private String name;
 	private Map<Integer, TaskElementRepr> taskElements;
-
+	private String builtCode;
 	private StateElementRepr stateElement;
 	
 	public SDGNode(String name, Map<Integer, TaskElementRepr> taskElements, StateElementRepr stateElement) {
@@ -45,6 +45,20 @@ public class SDGNode {
 	 */
 	public StateElementRepr getStateElement() {
 		return stateElement;
+	}
+	
+	/**
+	 * @return the buildCode
+	 */
+	public String getBuiltCode() {
+		return builtCode;
+	}
+
+	/**
+	 * @param buildCode the buildCode to set
+	 */
+	public void setBuiltCode(String buildCode) {
+		this.builtCode = buildCode;
 	}
 	
 	@Override

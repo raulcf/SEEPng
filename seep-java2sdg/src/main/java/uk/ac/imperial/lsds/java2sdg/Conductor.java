@@ -25,6 +25,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.CodeGenerator;
+import uk.ac.imperial.lsds.java2sdg.codegenerator.QueryBuilder;
 import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
 
 public class Conductor {
@@ -56,6 +57,9 @@ public class Conductor {
 		Map<String, CodeRepr> workflowBodies = WorkflowExtractorAnalysis.getWorkflowBody(compilationUnit);
 		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath, workflowBodies);
 		
+		for(Map.Entry<String, WorkflowRepr> w : workflows.entrySet())
+			System.out.println("W "+ w.getKey() + " V: "+ w.getValue().toString());
+		
 		/** Build partial SDGs from workflows **/
 		// Perform live variable analysis and retrieve information
 		LivenessInformation lvInfo = LVAnalysis.getLVInfo(compilationUnit);
@@ -76,7 +80,6 @@ public class Conductor {
 		}
 		
 		/** Build SDG from partial SDGs **/
-		// TODO: get SDG from collection of partialSDGs
 		SDGRepr sdg = SDGRepr.createSDGFromPartialSDG(partialSDGs);
 		
 		/** Output generated SDG **/
@@ -100,9 +103,10 @@ public class Conductor {
 				System.out.println(n.toString());
 				System.out.println("-----------");
 			}
-			CodeGenerator.assemble(sdg);
+			List<SDGNode> sdgNodes = CodeGenerator.assemble(sdg).getSdgNodes();
 //			List<OperatorBlock> assembledCode = CodeGenerator.assemble(sdg);
-//			QueryBuilder qBuilder = new QueryBuilder();
+			QueryBuilder qBuilder = new QueryBuilder();
+			qBuilder.generateDummyQueryPlanDriver(sdgNodes.get(0));
 			
 			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;

@@ -33,6 +33,7 @@ import javassist.bytecode.CodeIterator;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Mnemonic;
 import uk.ac.imperial.lsds.java2sdg.Util;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
 import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElementNature;
 import uk.ac.imperial.lsds.seep.api.DataStore;
@@ -54,6 +55,52 @@ public class QueryBuilder {
 	public QueryBuilder(){
 		builder = new OperatorClassBuilder();
 	}
+	
+	public void generateDummyQueryPlanDriver(SDGNode processNode){
+		
+		String schema = new String("Schema schema = Schema.SchemaBuilder.getInstance().newField(Type.INT, \"userId\").newField(Type.LONG, \"ts\").newField(Type.STRING, \"text\").build();\n");
+		String bcode = new String ( "LogicalOperator src = queryAPI.newStatelessSource(new Src(), 0);"+
+									"LogicalOperator processor = queryAPI.newStatelessOperator(new Processor(), 1);"+
+									"LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 2);"+
+									"src.connectTo(processor, 0, new DataStore(schema, DataStoreType.NETWORK));"+
+									"processor.connectTo(snk, 0, new DataStore(schema, DataStoreType.NETWORK));"+
+									"return QueryBuilder.build();\n");
+		
+		String [] srcFields =  new String [] {"private boolean working = true;"};
+		String srcProcess = new String ("int userId = 0; long ts = 0l; waitHere(2000); "
+				+ "						while(working){ byte[] d = OTuple.create(schema, "
+				+ "							new String[]{\"userId\", \"ts\", \"text\"}, new Object[]{new Integer(userId), new Long(ts),  \"some Text\"});"
+										+ "$2.send(d);userId=userId+1;ts=ts+1;}");
+		String srcExtraMethod = new String("private void waitHere(int time){ try { Thread.sleep((long)time);} catch (InterruptedException e) {e.printStackTrace();}}");
+		
+		String pcode = processNode.getBuiltCode();
+		
+		String [] snkFields = new String [] {"int PERIOD = 1000;", "int count = 0;", "public long time;"};
+		String snkProcess = new String("count++; if(System.currentTimeMillis() - time > PERIOD){ System.out.println(\"[Sink] e/s: \"+count); count = 0;time = System.currentTimeMillis();}");
+		
+		QueryBuilder b = new QueryBuilder();
+		CtClass srcClass = b.builder.generateSource(schema, srcFields, srcExtraMethod, srcProcess);
+		CtClass processClass = b.builder.generateStatelessProcessor("Processor", schema, null, null, pcode);
+		CtClass sinkClass = b.builder.generateSink(schema, snkFields, null, snkProcess);
+		CtClass baseClass = b.builder.generateBase(schema + bcode);
+		
+		try {
+			srcClass.writeFile(b.outputPath);
+			processClass.writeFile(b.outputPath);
+			sinkClass.writeFile(b.outputPath);
+			baseClass.writeFile(b.outputPath);
+			
+		} 
+		catch (CannotCompileException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		// Packaging All classes into jar
+		b.packageToJar(b.outputPath);
+	}
+	
 	
 	public String generateQueryPlanDriver(Set<TaskElement> sdg){
 //		StringBuffer compose = new StringBuffer();
@@ -240,7 +287,7 @@ public class QueryBuilder {
 									"text = text + \"_processed\";\n" +
 									"userId = userId + userId;\n" +
 									"ts = ts - 1;\n"+
-									"byte[] processedData = OTuple.create(schema, new String[]{\"userId\", \"ts\", \"text\"}, new Object[]{new Integer(userId), new Long(ts), text});\n" +
+									"byte[] processedData = OTuple.create(schema, new String[]{\"userId\", \"ts\", \"text\"}, new Object[]{new Integer(userId), new Long(ts), new String(text)});\n" +
 									"$2.send(processedData);\n");
 		
 		String [] snkFields = new String [] {"int PERIOD = 1000;", "int count = 0;", "public long time;"};

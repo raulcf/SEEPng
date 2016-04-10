@@ -36,7 +36,6 @@ public class LVAnalysis extends Traverser {
 	private LivenessInformation buildLVInfo(){
 		// TODO: create lvinfo here with comfortable ifaces
 		LivenessInformation lv = new LivenessInformation(lvData);
-		
 		return lv;
 	}
 	
@@ -120,22 +119,51 @@ public class LVAnalysis extends Traverser {
 	}
 	
 	public class LivenessInformation{
-		HashMap<String, VariableLivenessInformation> lvData;
+		private HashMap<String, VariableLivenessInformation> lvData;
 		
 		public LivenessInformation(HashMap<String, VariableLivenessInformation> lvData){
 			this.lvData = lvData;
 		}
 		
-		//TODO: Add Implementation Logic and check correctness!
 		public List<VariableRepr> getLiveVarsAt(int line){
+			System.out.println("getLiveVarsAt Line "+ line);
 			List<VariableRepr> toreturn = new ArrayList<VariableRepr>();
 			for(Map.Entry<String, VariableLivenessInformation> entry: lvData.entrySet() ){
-				if(entry.getValue().isLive(line)){
-					System.out.println("JANINO VAR:  "+ entry.getValue().getType() + " Class: "+ entry.getValue().getType().getClass());
+				if(entry.getValue().getLivesFrom() == line ){
 					toreturn.add(VariableRepr.var(entry.getValue().getType(), entry.getKey()));
 				}
 			}
 			return toreturn;
 		}
+		/**
+		 * @return the input Variables - NOT TESTED!
+		 */
+		public List<VariableRepr> getInputVariables(int startLine, int endLine) {
+			//List<Value> IN = sll.getLiveLocalsBefore(u);
+			System.out.println("getOutputVariables Line "+ startLine+ " - " + endLine);
+			List<VariableRepr> toreturn = new ArrayList<VariableRepr>();
+			for(Map.Entry<String, VariableLivenessInformation> entry: lvData.entrySet() ){
+				if((entry.getValue().getLivesFrom()  <= startLine)){
+					toreturn.add(VariableRepr.var(entry.getValue().getType(), entry.getKey()));
+				}
+			}
+			return toreturn;
+		}
+		
+		/**
+		 * @return the output Variables - NOT TESTED!
+		 */
+		public List<VariableRepr> getOutputVariables(int startLine, int endLine) {
+			//List<Value> OUT = sll.getLiveLocalsAfter(u);
+			System.out.println("getOutputVariables Line "+ startLine+ " - " + endLine);
+			List<VariableRepr> toreturn = new ArrayList<VariableRepr>();
+			for(Map.Entry<String, VariableLivenessInformation> entry: lvData.entrySet() ){
+				if((entry.getValue().getLivesFrom() > startLine) && (entry.getValue().getLivesTo() < endLine)){
+					toreturn.add(VariableRepr.var(entry.getValue().getType(), entry.getKey()));
+				}
+			}
+			return toreturn;
+		}
+		
 	}
 }

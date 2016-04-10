@@ -3,7 +3,6 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.janino.Java.BasicType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,7 @@ public class SeepOperatorNewTemplate {
 	
 	private static String _getCodeForSingleOp(TaskElementRepr te){
 		// Extract and synthesize code for getting the right variables. This is constant
-		List<VariableRepr> localVars = te.getInitialVariables();
+		List<VariableRepr> localVars = te.getInputVariables();
 		String header = getCodeToLocalVars(localVars);
 		
 		// Append TE code
@@ -75,9 +74,18 @@ public class SeepOperatorNewTemplate {
 //			varsToStream.add(0, branchId);
 //			footer = getCodeToSend(varsToStream);
 //		}
-		
-		String footer = getCodeToSend(varsToStream, te.getOutputSchema());
-		
+		String footer = "";
+		if(varsToStream != null && !varsToStream.isEmpty()){
+			//Simple Schema - inputVars check
+			if(te.getOutputSchema().fields().length != varsToStream.size()){
+				LOG.error("OutputSchema and StreamVariables size missmatch!!");
+				LOG.error("Schema {}", te.getOutputSchema());
+				LOG.error("Variables {}", varsToStream);
+				System.exit(0);
+			}
+			
+			footer = getCodeToSend(varsToStream, te.getOutputSchema());
+		}
 		/*
 		 * Merge ALL Code blocks together
 		 */
@@ -117,22 +125,22 @@ public class SeepOperatorNewTemplate {
 		String unboxVarMethodName_stmt1 = null;
 		String varType_stmt2 = null;
 		String unboxVarMethodName_stmt2 = null;
-		LOG.debug("UnboxCode TYPE: {} ",type);
+		LOG.debug("Unbox INPUT Code TYPE: {} ",type);
 		if(type.equals("java.lang.Integer") || type.equals("int")){
-			varType_stmt1 = "Integer";
-			varType_stmt2 = "int";
+			varType_stmt1 = "int";
+//			varType_stmt2 = "int";
 			unboxVarMethodName_stmt1 = " = $1.getInt(";
-			unboxVarMethodName_stmt2 = ".intValue();";
+//			unboxVarMethodName_stmt2 = ".intValue();";
 		}
-		else if(type.equals("java.lang.String")){
+		else if(type.equals("java.lang.String") || type.equals("String")){
 			varType_stmt1 = "String";
 			unboxVarMethodName_stmt1 = " = $1.getString(";
 		}
 		else if(type.equals("java.lang.Long") || type.equals("long") ){
-			varType_stmt1 = "Long";
-			varType_stmt2 = "long";
+			varType_stmt1 = "long";
+//			varType_stmt2 = "long";
 			unboxVarMethodName_stmt1 = " = $1.getLong(";
-			unboxVarMethodName_stmt2 = ".longValue();";
+//			unboxVarMethodName_stmt2 = ".longValue();";
 		}
 		else if(type.equals("java.lang.Double") || type.equals("double") ){
 			varType_stmt1 = "Double";
@@ -165,16 +173,16 @@ public class SeepOperatorNewTemplate {
 	}
 	
 	/*
-	 * TODO: Need a way to ensure variables and schema order do match!
+	 * TODO: Need a way to ensure variables and schema ORDER and SIZE do match!
 	 * 
 	 */
 	private static String getCodeToSend(List<VariableRepr> varsToStream, Schema sc ){
 		
 		StringBuffer vars = new StringBuffer();
-		
 		for(int i = 0; i<varsToStream.size(); i++){
 			VariableRepr v = varsToStream.get(i);
 			String boxCode = getBoxCode(v.getType(), v.getName());
+			LOG.debug("Box OUTPUT Code var {}  ", v.getName());
 			if(i == (varsToStream.size()-1))
 				vars.append(boxCode);
 			else
@@ -182,15 +190,20 @@ public class SeepOperatorNewTemplate {
 		}
 		
 		StringBuffer varSchema = new StringBuffer();
-		for(String n : sc.names())
-			varSchema.append('"'+ n+'"');
+		for(int i =0; i < sc.names().length; i++){
+			if(i == sc.names().length-1)
+				varSchema.append('"'+ sc.names()[i] +'"');
+			else
+				varSchema.append('"'+ sc.names()[i] +"\", ");
+		}
+				
 		
 		
 		// Note that $1 is the method argument -> api
 		String producedCode = Utils.NL + 
 				"byte[] processedData = OTuple.create(schema, new String[]{" + varSchema.toString() +"}," +
 				"new Object[]{ " +vars.toString() +" });"+ Utils.NL +
-				"$1.send(processedData);"
+				"$2.send(processedData);"
 			+ Utils.NL;
 		return producedCode;
 	}
@@ -204,7 +217,10 @@ public class SeepOperatorNewTemplate {
 		if( type.equals("java.lang.Integer") || type.equals("INT") || type.equals("int") ){
 			c = "new Integer("+name+")";
 		}
-		else if(type.equals("java.lang.String")){
+		else if(type.equals("java.lang.Long") || type.equals("long")){
+			c = "new Long("+name+")";
+		}
+		else if(type.equals("java.lang.String") || type.equals("String")){
 			c = "new String("+name+")";
 		}
 		else{

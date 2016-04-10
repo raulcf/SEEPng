@@ -28,34 +28,34 @@ public class Fake implements SeepProgram {
 		SeepProgramConfiguration spc = new SeepProgramConfiguration();
 		
 		// declare train workflow
-		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		
-		DataStore trainSrc = new DataStore(DataStoreType.NETWORK);
-		spc.newWorkflow("train()", trainSrc, sch);
+//		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+//		DataStore trainSrc = new DataStore(sch, DataStoreType.NETWORK);
+//		spc.newWorkflow("train()", trainSrc);
 		
 		// declare test workflow
-		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		DataStore testSrc = new DataStore(DataStoreType.NETWORK);
-		DataStore testSnk = new DataStore(DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
-		spc.newWorkflow("test(float data)", testSrc, sch2, testSnk, sch2); // input and output schema are the same
+		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
+		DataStore testSrc = new DataStore(sch2, DataStoreType.NETWORK);
+		DataStore testSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
+		spc.newWorkflow("test(float data)", testSrc, testSnk); // input and output schema are the same
 
 		return spc;
 	}
 	
-	public double train(){
-		iteration = 5;
-		List<Double> weights = new ArrayList<Double>();
-		for(int i = 0; i < iteration; i++){
-			weights.add((double) (i*8));
-			@Global
-			double gradient = 4*5;
-		}
-		return weights.get(0);
-	}
+//	public double train(){
+//		iteration = 5;
+//		List<Double> weights = new ArrayList<Double>();
+//		for(int i = 0; i < iteration; i++){
+//			weights.add((double) (i*8));
+//			@Global
+//			double gradient = 4*5;
+//		}
+//		return weights.get(0);
+//	}
 	
 	public void test(float data){
-		int a = 0;
-		int b = 1;
+		int userId = 0; long ts = 0;  String text = "" ;
+		long whatever = 0l;
+		int b = 1; long ts2 =ts +1; String newText = text + "_saying_something";
 	}
 	
 	@Collection

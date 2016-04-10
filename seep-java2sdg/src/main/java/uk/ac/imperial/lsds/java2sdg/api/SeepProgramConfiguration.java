@@ -26,9 +26,8 @@ public class SeepProgramConfiguration {
 	 * @param inputDataStore The input data store
 	 * @param inputSchema The schema of the input data
 	 */
-	// pgaref: Since DataStore class already contains a schema instance why dont we change this method to take as argument only a Datastore?
-	public void newWorkflow(String name, DataStore inputDataStore, Schema inputSchema){
-		newWorkflow(name, inputDataStore, inputSchema, null, null);
+	public void newWorkflow(String name, DataStore inputDataStore){
+		newWorkflow(name, inputDataStore, null);
 	}
 	
 	/**
@@ -39,11 +38,11 @@ public class SeepProgramConfiguration {
 	 * @param outputDataStore The output data store
 	 * @param outputSchema The schema of the output data
 	 */
-	public void newWorkflow(String name, DataStore inputDataStore, Schema inputSchema, DataStore outputDataStore, Schema outputSchema){
+	public void newWorkflow(String name, DataStore inputDataStore, DataStore outputDataStore){
 		if(workflows.containsKey(name))
 			throw new InvalidQueryDefinitionException("Workflow with same name already registered");
 		
-		WorkflowRepr wr = new WorkflowRepr(name, inputDataStore, inputSchema, outputDataStore, outputSchema);
+		WorkflowRepr wr = new WorkflowRepr(name, inputDataStore, outputDataStore);
 		this.workflows.put(name, wr);
 	}
 	

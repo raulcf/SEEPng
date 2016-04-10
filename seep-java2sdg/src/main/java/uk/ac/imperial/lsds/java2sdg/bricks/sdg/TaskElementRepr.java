@@ -10,7 +10,7 @@ public class TaskElementRepr {
 	private List<Integer> downstreams; // id of downstreams
 	private List<Integer> upstreams;   // id of upstreams
 	
-	private List<VariableRepr> initialVariables;
+	private List<VariableRepr> inputVariables;
 	private List<String> code;
 	private List<VariableRepr> outputVariables;
 	private Schema outputSchema;
@@ -23,7 +23,7 @@ public class TaskElementRepr {
 			List<VariableRepr> inputVariables,
 			List<VariableRepr> outputVariables) {
 		this.id = id;
-		this.initialVariables = inputVariables;
+		this.inputVariables = inputVariables;
 		this.outputVariables = outputVariables;
 		this.code = ter.code;
 		this.downstreams = ter.downstreams;
@@ -52,12 +52,12 @@ public class TaskElementRepr {
 		this.upstreams = upstreams;
 	}
 
-	public List<VariableRepr> getInitialVariables() {
-		return initialVariables;
+	public List<VariableRepr> getInputVariables() {
+		return inputVariables;
 	}
 
-	public void setInitialVariables(List<VariableRepr> initialVariables) {
-		this.initialVariables = initialVariables;
+	public void setInputVariables(List<VariableRepr> initialVariables) {
+		this.inputVariables = initialVariables;
 	}
 
 	public List<String> getCode() {
@@ -90,9 +90,15 @@ public class TaskElementRepr {
 		sb.append("TaskElemRepr ID: "+ id + "\n");
 		sb.append("\t\t  DownStreams: "+ downstreams+ "\n");
 		sb.append("\t\t  Upstreams: " + upstreams+ "\n");
-		sb.append("\t\t  InitialVariables: "+ initialVariables + "\n");
+		String tmp = "";
+		for(VariableRepr t : inputVariables)
+			tmp +=t.getName()+", ";
+		sb.append("\t\t  InputVariables: "+ tmp + "\n");
 		sb.append("\t\t  Code: "+ code+ "\n");
-		sb.append("\t\t  OutputVariables: "+ outputVariables+ "\n" );
+		sb.append("\t\t  OutputVariables: ");
+		for(VariableRepr v : this.outputVariables)
+			sb.append(v.getName()+", ");
+		sb.append("\n" );
 		sb.append("\t\t  OutputSchema: "+ outputSchema+ "\n");
 		return sb.toString();
 	}

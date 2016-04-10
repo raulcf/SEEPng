@@ -27,6 +27,7 @@ public class CodeGenerator {
 	private static SDGRepr assembleTE(SDGRepr sdg){
 		
 		for(SDGNode node : sdg.getSdgNodes()){
+			LOG.debug("Generating code for SDG Node: {}", node.getName());
 			String builtCode = null;
 			/*  Multi-TE case */
 			if(node.getTaskElements().size() > 1){
@@ -46,7 +47,7 @@ public class CodeGenerator {
 				else{
 					System.out.println("CODE PRODUCED: "+ builtCode);
 					/* Maybe add the code to the SDG node here? */
-					//op.setCode(builtCode);
+					node.setBuiltCode(builtCode);
 				}
 			} 
 			catch (Exception e) {

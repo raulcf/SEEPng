@@ -105,7 +105,7 @@ public class OperatorClassBuilder {
 			}
 			
 			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW METHOD: \n" + processorCode);
+			LOG.info("NEW Processor \n {} \n\n", processorCode);
 			cc.addMethod(processDataSingle);
 			
 			//Mandatory methods
@@ -168,7 +168,7 @@ public class OperatorClassBuilder {
 			}
 			
 			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW METHOD: \n" + processorCode);
+			LOG.info("NEW Source \n {} \n\n", processorCode);
 			cc.addMethod(processDataSingle);
 			
 			//Mandatory methods
@@ -230,7 +230,7 @@ public class OperatorClassBuilder {
 			}
 			
 			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW METHOD: \n" + processorCode);
+			LOG.info("NEW Sink \n {} \n\n", processorCode);
 			cc.addMethod(processDataSingle);
 			
 			//Mandatory methods
