@@ -54,6 +54,7 @@ public class CoarseGrainedTEAnalysis {
 			PartialSDGComponents pComponents = new PartialSDGComponents(ter, inputVariables, outputVariables);
 			psdgComponents.add(pComponents);
 			
+			// TODO: Not finished yet
 			PartialSDGRepr psdg = PartialSDGRepr.makePartialSDGRepr(workflowName, source, psdgComponents, sink);
 			partialSDGs.add(psdg);
 		}

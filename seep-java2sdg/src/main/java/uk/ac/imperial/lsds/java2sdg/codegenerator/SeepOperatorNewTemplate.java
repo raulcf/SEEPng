@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.janino.Java.BasicType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,15 +107,18 @@ public class SeepOperatorNewTemplate {
 		return code.toString();
 	}
 	
+	/*
+	 * Added Janino Primitive Type Mappings
+	 * Maybe also add float and short?
+	 */
 	private static String getUnboxCode(String type, String name){
 		StringBuilder sb = new StringBuilder();
-		System.out.println("type: "+type);
 		String varType_stmt1 = null;
 		String unboxVarMethodName_stmt1 = null;
 		String varType_stmt2 = null;
 		String unboxVarMethodName_stmt2 = null;
-		System.out.println("TYPE: "+type);
-		if(type.equals("java.lang.Integer")){
+		LOG.debug("UnboxCode TYPE: {} ",type);
+		if(type.equals("java.lang.Integer") || type.equals("int")){
 			varType_stmt1 = "Integer";
 			varType_stmt2 = "int";
 			unboxVarMethodName_stmt1 = " = $1.getInt(";
@@ -124,32 +128,32 @@ public class SeepOperatorNewTemplate {
 			varType_stmt1 = "String";
 			unboxVarMethodName_stmt1 = " = $1.getString(";
 		}
-		else if(type.equals("java.lang.Long")){
+		else if(type.equals("java.lang.Long") || type.equals("long") ){
 			varType_stmt1 = "Long";
 			varType_stmt2 = "long";
 			unboxVarMethodName_stmt1 = " = $1.getLong(";
 			unboxVarMethodName_stmt2 = ".longValue();";
 		}
-		else if(type.equals("java.lang.Double")){
+		else if(type.equals("java.lang.Double") || type.equals("double") ){
 			varType_stmt1 = "Double";
 			varType_stmt2 = "double";
 			unboxVarMethodName_stmt1 = " = $1.getDouble(";
 			unboxVarMethodName_stmt2 = ".doubleValue();";
 		}
-		else if(type.equals("java.lang.Character")){
+		else if(type.equals("java.lang.Character") || type.equals("char") ){
 			varType_stmt1 = "Character";
 			varType_stmt2 = "char";
 			unboxVarMethodName_stmt1 = " = $1.getChar(";
 			unboxVarMethodName_stmt2 = ".charValue();";
 		}
-		else if(type.equals("java.lang.Boolean")){
+		else if(type.equals("java.lang.Boolean") || type.equals("boolean")){
 			varType_stmt1 = "Boolean";
 			varType_stmt2 = "boolean";
 			unboxVarMethodName_stmt1 = " = $1.getBoolean(";
 			unboxVarMethodName_stmt2 = ".booleanValue();";
 		}
 		else{
-			LOG.error("getBoxCode unknown variable: {} type: {}", name, type );
+			LOG.error("getUnBoxCode unknown variable: {} type: {}", name, type );
 			System.exit(0);
 		}
 		// Build actual lines
@@ -191,9 +195,13 @@ public class SeepOperatorNewTemplate {
 		return producedCode;
 	}
 	
+	/*
+	 * Added Janino Primitive Type Mappings
+	 * Maybe also add float and short?
+	 */
 	private static String getBoxCode(String type, String name){
 		String c = null;
-		if(type.equals("java.lang.Integer") || type.equals("INT")){
+		if( type.equals("java.lang.Integer") || type.equals("INT") || type.equals("int") ){
 			c = "new Integer("+name+")";
 		}
 		else if(type.equals("java.lang.String")){

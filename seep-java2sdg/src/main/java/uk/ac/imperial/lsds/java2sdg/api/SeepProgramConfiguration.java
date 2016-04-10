@@ -26,7 +26,7 @@ public class SeepProgramConfiguration {
 	 * @param inputDataStore The input data store
 	 * @param inputSchema The schema of the input data
 	 */
-	// Since DataStore class already contains a schema instance why dont we change this method to take as argument only a Datastore?
+	// pgaref: Since DataStore class already contains a schema instance why dont we change this method to take as argument only a Datastore?
 	public void newWorkflow(String name, DataStore inputDataStore, Schema inputSchema){
 		newWorkflow(name, inputDataStore, inputSchema, null, null);
 	}

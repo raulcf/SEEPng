@@ -1,6 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 
-import uk.ac.imperial.lsds.seep.api.data.Type;
+import org.codehaus.janino.Java.Type;
 
 
 public class VariableRepr {
@@ -13,8 +13,8 @@ public class VariableRepr {
 		this.name = name;
 	}
 	
-	public static VariableRepr var(Type type2, String name){
-		return new VariableRepr(type2, name);
+	public static VariableRepr var(Type janinoType, String name){
+		return new VariableRepr(janinoType, name);
 	}
 	
 	public Type getRawType(){

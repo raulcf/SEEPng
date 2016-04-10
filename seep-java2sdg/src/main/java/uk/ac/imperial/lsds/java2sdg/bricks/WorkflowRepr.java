@@ -13,22 +13,23 @@ public class WorkflowRepr {
 	private String name;
 	// The input data store, e.g. file, network, kafka, etc
 	private DataStore source;
+	// The output data store, e.g. file, network, kafka, console, etc
+	private DataStore sink;
+	// Actual code of workflow
+	private CodeRepr code;
+	
 	// The schema of the input data
 	@Deprecated // already included in source DataStore
 	private Schema inputSchema;
-	// The output data store, e.g. file, network, kafka, console, etc
-	private DataStore sink;
 	// The schema of the output data
 	@Deprecated // already included in sink DataStore
 	private Schema outputSchema;
-	// Actual code of workflow
-	private CodeRepr code;
 	
 	public WorkflowRepr(String name, DataStore source, Schema inputSchema, DataStore sink, Schema outputSchema){
 		this.name = name;
 		this.source = source;
-		this.inputSchema = inputSchema;
 		this.sink = sink;
+		this.inputSchema = inputSchema;
 		this.outputSchema = outputSchema;
 	}
 	
@@ -82,5 +83,17 @@ public class WorkflowRepr {
 	
 	public CodeRepr getCode(){
 		return code;
+	}
+	@Override
+	public String toString(){
+		// Synchronization is not a concern here
+		StringBuilder  sb = new StringBuilder();
+		sb.append("\nName: "+ this.name);
+		sb.append("\nSource: "+ this.source);
+		sb.append("\nSink: "+ this.sink);
+		sb.append("\nCode: "+ this.code);
+		sb.append("\nDeprecated: \nIN: "+ this.inputSchema + "\nOUT: "+this.outputSchema);
+		return sb.toString();
+		
 	}
 }

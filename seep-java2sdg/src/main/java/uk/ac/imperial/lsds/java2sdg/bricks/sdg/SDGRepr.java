@@ -5,10 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.org.apache.xerces.internal.impl.dv.ValidatedInfo;
-
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
-import uk.ac.imperial.lsds.seep.api.data.Type;
+import org.codehaus.janino.Java.Type;
+import org.codehaus.janino.Java.BasicType;
 
 public class SDGRepr {
 
@@ -24,7 +23,8 @@ public class SDGRepr {
 		PartialSDGRepr fake = partialSDGs.iterator().next();
 		Map<Integer, TaskElementRepr> taskElements = new HashMap<>();
 		for(TaskElementRepr el : fake.getTEs()) {
-			el.getOutputVariables().add(VariableRepr.var(Type.INT, "b"));
+			// pgarf TODO: remove this line below
+			el.getOutputVariables().add(VariableRepr.var( new BasicType(null, BasicType.INT), "b"));
 			taskElements.put(el.getId(), el);
 			System.out.println("Task Element Code: "+ el.getCode());
 		}

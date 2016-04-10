@@ -16,4 +16,25 @@ public class PartialSDGComponents {
 		this.inputVariables = inputVariables;
 		this.outputVariables = outputVariables;
 	}
+
+	/**
+	 * @return the TaskElementRepr
+	 */
+	public TaskElementRepr getTe() {
+		return te;
+	}
+
+	/**
+	 * @return the inputVariables
+	 */
+	public List<VariableRepr> getInputVariables() {
+		return inputVariables;
+	}
+
+	/**
+	 * @return the outputVariables
+	 */
+	public List<VariableRepr> getOutputVariables() {
+		return outputVariables;
+	}
 }

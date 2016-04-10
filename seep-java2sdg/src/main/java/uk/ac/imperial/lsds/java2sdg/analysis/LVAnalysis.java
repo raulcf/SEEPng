@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.java2sdg.analysis;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.janino.Java.Atom;
 import org.codehaus.janino.Java.CompilationUnit;
@@ -78,6 +79,7 @@ public class LVAnalysis extends Traverser {
 	class VariableLivenessInformation{
 		
 		private final String varName;
+		//Janino variable Type
 		private final Type varType;
 		private final int livesFrom;
 		private int livesTo = 0;
@@ -104,7 +106,7 @@ public class LVAnalysis extends Traverser {
 		public void updateLivesTo(String varName, int line){
 			if(this.varName.equals(varName)){
 				this.livesTo = line;
-				System.out.println(varName+" livesTo "+line);
+				LOG.debug(varName+" livesTo "+line);
 			}
 			else{
 				LOG.error("Variable names do not MATCH!!");
@@ -124,10 +126,15 @@ public class LVAnalysis extends Traverser {
 			this.lvData = lvData;
 		}
 		
-		//TODO: Add Implementation Logic and check correctness! => What about Variable type?
-		// For now just return an empty List
+		//TODO: Add Implementation Logic and check correctness!
 		public List<VariableRepr> getLiveVarsAt(int line){
 			List<VariableRepr> toreturn = new ArrayList<VariableRepr>();
+			for(Map.Entry<String, VariableLivenessInformation> entry: lvData.entrySet() ){
+				if(entry.getValue().isLive(line)){
+					System.out.println("JANINO VAR:  "+ entry.getValue().getType() + " Class: "+ entry.getValue().getType().getClass());
+					toreturn.add(VariableRepr.var(entry.getValue().getType(), entry.getKey()));
+				}
+			}
 			return toreturn;
 		}
 	}
