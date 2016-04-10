@@ -15,6 +15,15 @@ public class Adder implements SeepTask {
 
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 	
+	private long value;
+	
+	// Empty constructor For Kryo serialization
+	public Adder() { }
+	
+	public Adder(int value) {
+		this.value = value;
+	}
+	
 	@Override
 	public void setUp() {
 		// TODO Auto-generated method stub
@@ -23,9 +32,8 @@ public class Adder implements SeepTask {
 	@Override
 	public void processData(ITuple data, API api) {
 		int userId = data.getInt("userId");
-		long value = data.getLong("value");
 		
-		value++;
+		value = value + 2;
 		
 		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
 		api.send(processedData);

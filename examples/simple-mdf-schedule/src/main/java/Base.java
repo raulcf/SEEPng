@@ -9,8 +9,6 @@ import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSource;
 
-
-
 public class Base implements QueryComposer {
 
 	@Override
@@ -19,8 +17,8 @@ public class Base implements QueryComposer {
 		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 		
 		SyntheticSource synSrc = SyntheticSource.newSource(0, null);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(), 1);
-		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(), 2);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(5), 1);
+		LogicalOperator adderTwo = queryAPI.newStatelessOperator(new Adder(63), 2);
 		LogicalOperator evaluator1 = queryAPI.newStatelessOperator(new Evaluator(), 3);
 		LogicalOperator evaluator2 = queryAPI.newStatelessOperator(new Evaluator(), 4);
 		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), 5);

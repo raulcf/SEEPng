@@ -21,8 +21,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 	private int currentBestCandidate = -1;
 	
 	@Override
-	public Stage next(ScheduleTracker tracker,
-			Map<Integer, List<RuntimeEvent>> rEvents) {
+	public Stage next(ScheduleTracker tracker, Map<Integer, List<RuntimeEvent>> rEvents) {
 		Stage head = tracker.getHead();
 		Stage nextToSchedule = nextStageToSchedule(head, tracker);
 		
@@ -40,7 +39,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				if(s.getStageId() == currentBestCandidate) {
 					// Filter out potential inputs of CHOOSE to get only the chosen one
 					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(currentBestCandidate);
-					chosenResultsOfStage.put(currentBestCandidate, inputs);
+					chosenResultsOfStage.put(nextToSchedule.getStageId(), inputs);
 				}
 			}
 			
@@ -52,7 +51,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			currentBestCandidate = -1;
 			
 			// Call recursively to next so that we give worker a stage to schedule
-			next(tracker, null);
+			nextToSchedule = next(tracker, null);
 		}
 		
 		return nextToSchedule;

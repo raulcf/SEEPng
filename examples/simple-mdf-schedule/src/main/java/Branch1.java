@@ -19,9 +19,7 @@ public class Branch1 implements SeepTask {
 	public void processData(ITuple data, API api) {
 		int userId = data.getInt("userId");
 		long value = data.getLong("value");
-		
-		value = value / value;
-		
+				
 		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
 		api.send(processedData);
 	}

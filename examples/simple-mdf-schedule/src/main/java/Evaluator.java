@@ -16,8 +16,14 @@ public class Evaluator implements SeepTask {
 
 	@Override
 	public void processData(ITuple arg0, API arg1) {
+		long value = arg0.getLong("value");
+		
 		// do some calculation with the utility function 
-		arg1.storeEvaluateResults(System.currentTimeMillis()); // a long, as an abstract notion of quality
+		arg1.storeEvaluateResults(value); // a long, as an abstract notion of quality
+		
+		String msg = "eval: "+arg1.id()+" -> "+value;
+		System.out.println(msg);
+		
 		// propagate the results downstream
 		arg1.send(arg0.getData());
 	}
