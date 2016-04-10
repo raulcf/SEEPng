@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import static com.codahale.metrics.MetricRegistry.name;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,12 +20,14 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
+import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 
+import com.codahale.metrics.Timer;
 import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
@@ -59,6 +63,7 @@ public class SchedulerEngineWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("[START JOB]");
+		long scheduleStart = System.nanoTime();
 		while(work) {
 			
 			// At the end of one iteration the worker will have populated the commands that need to be sent to the cluster
@@ -79,8 +84,10 @@ public class SchedulerEngineWorker implements Runnable {
 			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			if(nextStage == null) {
 				// TODO: means the computation finished, do something
-				if(tracker.isScheduledFinished()) {
-					LOG.info("TODO: 1-Schedule has finished at this point");
+				if(tracker.isScheduledFinished()) {	
+					long scheduleFinish = System.nanoTime();
+					long totalScheduleTime = scheduleFinish - scheduleStart;
+					LOG.info("[END JOB] !!! {}", totalScheduleTime);
 					work = false;
 					continue;
 				}
@@ -93,6 +100,7 @@ public class SchedulerEngineWorker implements Runnable {
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
 			// we should have a tracker entity that receives progressively what to track, and then we 
 			// just pass info (the connections) to that guy
+			long stageStart = System.nanoTime();
 			Set<Connection> euInvolved = new HashSet<>();
 			for(CommandToNode ctn : commands) {
 				euInvolved.add(ctn.c);
@@ -111,6 +119,10 @@ public class SchedulerEngineWorker implements Runnable {
 			
 			// Call the post processing event
 			List<Command> postCommands = schedulingStrategy.postCompletion(nextStage, tracker);
+			
+			long stageFinish = System.nanoTime();
+			long totalStageTime = stageFinish - stageStart;
+			LOG.warn("Stage {} finished in: ! {}", nextStage.getStageId(), totalStageTime);
 			
 			if(! commands.isEmpty()) {
 				// TODO:
