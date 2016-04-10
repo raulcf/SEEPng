@@ -33,7 +33,7 @@ public class MasterWorkerCommManager {
 	
 	public MasterWorkerCommManager(int port, MasterWorkerAPIImplementation api){
 		this.api = api;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		try {
 			serverSocket = new ServerSocket(port);
 			LOG.info(" Listening on {}:{}", InetAddress.getLocalHost(), port);

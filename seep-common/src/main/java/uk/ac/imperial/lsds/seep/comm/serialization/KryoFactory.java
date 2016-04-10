@@ -32,28 +32,15 @@ public class KryoFactory {
 		return k;
 	}
 	
-	public static Kryo buildKryoForMasterWorkerProtocol(){
+	public static Kryo buildKryoForProtocolCommands(ClassLoader cl){
 		Kryo k = new Kryo();
 		for(MasterWorkerProtocolAPI command : MasterWorkerProtocolAPI.values()){
 			k.register(command.getClass(), command.type());
 		}
-		return k;
-	}
-	
-	public static Kryo buildKryoForMasterWorkerProtocol(ClassLoader cl){
-		Kryo k = new Kryo();
-		for(MasterWorkerProtocolAPI command : MasterWorkerProtocolAPI.values()){
-			k.register(command.getClass(), command.type());
-		}
-		k.setClassLoader(cl);
-		return k;
-	}
-	
-	public static Kryo buildKryoForWorkerWorkerProtocol(){
-		Kryo k = new Kryo();
 		for(WorkerWorkerProtocolAPI command : WorkerWorkerProtocolAPI.values()){
 			k.register(command.getClass(), command.type());
 		}
+		k.setClassLoader(cl);
 		return k;
 	}
 	

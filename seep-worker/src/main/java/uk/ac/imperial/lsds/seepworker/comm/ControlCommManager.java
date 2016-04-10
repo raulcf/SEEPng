@@ -69,7 +69,7 @@ public class ControlCommManager {
 		this.myIp = myIp;
 		this.myPort = wc.getInt(WorkerConfig.CONTROL_PORT);
 		this.rcl = rcl;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol(rcl);
+		this.k = KryoFactory.buildKryoForProtocolCommands(rcl);
 		try {
 			serverSocket = new ServerSocket(port, Utils.SERVER_SOCKET_BACKLOG, myIp);
 			LOG.info(" Listening on {}:{}", myIp, port);
@@ -79,17 +79,12 @@ public class ControlCommManager {
 			e.printStackTrace();
 		}
 		listener = new Thread(new CommandReceiver());
-//		dispatcher = new Thread(new CommandDispatcher());
 		listener.setName(CommandReceiver.class.getSimpleName());
-//		dispatcher.setName(CommandDispatcher.class.getSimpleName());
-//		this.signal = new WaitNotify();
-//		this.commandQueue = new ArrayBlockingQueue<>(10);
 	}
 	
 	public void start() {
 		this.working = true;
 		this.listener.start();
-//		this.dispatcher.start();
 	}
 	
 	public void stop() {
@@ -106,11 +101,14 @@ public class ControlCommManager {
 		}
 		
 		public void run() {
+			// TODO: Creating an instance per command seems wasteful, but this is necessary to maintain the invariant of
+			// one serde per thread -- as these tasks can now run concurrently.
+			Kryo kryo = KryoFactory.buildKryoForProtocolCommands(rcl);
 			try {
 				InputStream is = incomingSocket.getInputStream();
 				PrintWriter out = new PrintWriter(incomingSocket.getOutputStream(), true);
 				Input i = new Input(is, 1000000);
-				Command sc = k.readObject(i, Command.class);
+				Command sc = kryo.readObject(i, Command.class);
 				short familyType = sc.familyType();
 				if(familyType == CommandFamilyType.MASTERCOMMAND.ofType()) {
 					handleMasterCommand(((MasterWorkerCommand)sc.getCommand()), out);
@@ -172,7 +170,6 @@ public class ControlCommManager {
 			String pathToQueryJar = "query.jar";
 			File f = Utils.writeDataToFile(file, pathToQueryJar);
 			out.println("ack");
-//			signal.n();
 			loadCodeToRuntime(f);
 			// Instantiate Seep Logical Query
 			handleQueryInstantiation(queryType, pathToQueryJar, cc.getBaseClassName(), cc.getQueryConfig(), cc.getMethodName());
@@ -182,7 +179,6 @@ public class ControlCommManager {
 			LOG.info("RX MATERIALIZED_TASK command");
 			MaterializeTaskCommand mtc = c.getMaterializeTaskCommand();
 			out.println("ack");
-//			signal.n();
 			handleMaterializeTask(mtc);
 		}
 		// SCHEDULE_TASKS command
@@ -190,7 +186,6 @@ public class ControlCommManager {
 			LOG.info("RX SCHEDULE_TASKS command");
 			ScheduleDeployCommand sdc = c.getScheduleDeployCommand();
 			out.println("ack");
-//			signal.n();
 			handleScheduleDeploy(sdc);
 		}
 		// SCHEDULE_STAGE command
@@ -198,7 +193,6 @@ public class ControlCommManager {
 			LOG.info("RX SCHEDULE_STAGE command");
 			ScheduleStageCommand esc = c.getScheduleStageCommand();
 			out.println("ack");
-//			signal.n();
 			handleScheduleStage(esc);
 		}
 		// STARTQUERY command
@@ -206,7 +200,6 @@ public class ControlCommManager {
 			LOG.info("RX STARTQUERY command");
 			StartQueryCommand sqc = c.getStartQueryCommand();
 			out.println("ack");
-//			signal.n();
 			handleStartQuery(sqc);
 		}
 		// STOPQUERY command
@@ -214,7 +207,6 @@ public class ControlCommManager {
 			LOG.info("RX STOPQUERY command");
 			StopQueryCommand sqc = c.getStopQueryCommand();
 			out.println("ack");
-//			signal.n();
 			handleStopQuery(sqc);
 		}
 		LOG.debug("Served command of type: {}", cType);
@@ -228,18 +220,15 @@ public class ControlCommManager {
 			LOG.info("RX-> ACK command");
 			
 			out.println("ack");
-//			signal.n();
 		}
 		else if(type == WorkerWorkerProtocolAPI.CRASH.type()){
 			LOG.info("RX-> Crash command");
 			
 			out.println("ack");
-//			signal.n();
 		}
 		else if(type == WorkerWorkerProtocolAPI.REQUEST_DATAREF.type()) {
 			LOG.info("RX -> RequestDataReferenceCommand");
 			out.println("ack");
-//			signal.n();
 			handleRequestDataReferenceCommand(c.getRequestDataReferenceCommand());
 		}
 		LOG.debug("Served WORKER-COMMAND of type: {}", type);
@@ -277,7 +266,6 @@ public class ControlCommManager {
 		Map<Integer, Map<Integer, Set<DataReference>>> outputs = mtc.getOutputs();
  		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
  		LOG.info("Computed ID: {}", myOwnId);
-//		c.setQuery(myOwnId, slq, mapping, inputs, outputs);
 		c.materializeAndConfigureTask(myOwnId, slq, mapping, inputs, outputs);
 	}
 	
@@ -288,7 +276,6 @@ public class ControlCommManager {
 		ScheduleDescription sd = sdc.getSchedule();
 		
 		// Get schedule description by loading to runtime
-//		ScheduleDescription sd = Utils.executeComposeFromQuery(pathToQueryJar, definitionClass, queryArgs, methodName);
 		int myOwnId = Utils.computeIdFromIpAndPort(myIp, myPort);
 		c.configureScheduleTasks(myOwnId, sd);
 		LOG.info("Scheduled deploy is done. Waiting for master commands...");

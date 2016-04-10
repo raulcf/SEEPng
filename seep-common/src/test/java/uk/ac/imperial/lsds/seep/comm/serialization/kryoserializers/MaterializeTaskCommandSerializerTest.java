@@ -115,7 +115,7 @@ public class MaterializeTaskCommandSerializerTest {
 		MasterWorkerCommand mtc = get();
 		
 		// Serialise object
-		Kryo k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		Kryo k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		ByteBufferOutputStream o = new ByteBufferOutputStream(20000);
 		Output output = new Output(o);
 		k.writeObject(output, mtc);

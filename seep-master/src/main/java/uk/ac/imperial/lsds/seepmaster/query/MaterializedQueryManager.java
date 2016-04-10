@@ -71,7 +71,7 @@ public class MaterializedQueryManager implements QueryManager {
 		this.inf = inf;
 		this.opToEndpointMapping = opToEndpointMapping;
 		this.comm = comm;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 	}
 	
 	private MaterializedQueryManager(InfrastructureManager inf, Map<Integer, ControlEndPoint> mapOpToEndPoint, 
@@ -80,7 +80,7 @@ public class MaterializedQueryManager implements QueryManager {
 		this.opToEndpointMapping = mapOpToEndPoint;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		this.mc = mc;
 	}
 	

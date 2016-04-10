@@ -31,7 +31,7 @@ public class ControlAPIImplementation {
 	
 	public ControlAPIImplementation(Comm comm, WorkerConfig wc){
 		this.comm = comm;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		this.retriesToMaster = wc.getInt(WorkerConfig.MASTER_CONNECTION_RETRIES);
 		this.retryBackOffMs = wc.getInt(WorkerConfig.MASTER_RETRY_BACKOFF_MS);
 	}

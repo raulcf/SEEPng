@@ -84,7 +84,7 @@ public class Conductor {
 		this.scheduleTasks = new HashMap<>();
 		this.drm = drm;
 		this.comm = comm;
-		this.k = KryoFactory.buildKryoForWorkerWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		this.registerFlag = new CountDownLatch(1);
 	}
 	

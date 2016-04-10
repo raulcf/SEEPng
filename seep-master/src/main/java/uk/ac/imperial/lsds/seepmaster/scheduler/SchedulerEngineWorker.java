@@ -70,7 +70,6 @@ public class SchedulerEngineWorker implements Runnable {
 			// Some of these commands are schedule stage commands. Other are about evicting datasets, etc.
 			List<CommandToNode> commands = new ArrayList<>();
 			
-			
 			Map<Integer, List<RuntimeEvent>> rEvents = null;
 			// Check whether the last executed stage generated runtime events that need to be handled here
 			if(tracker.didLastStageGenerateRuntimeEvents()) {

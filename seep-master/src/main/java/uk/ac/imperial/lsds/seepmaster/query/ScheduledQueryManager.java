@@ -71,7 +71,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		this.inf = inf;
 		this.comm = comm;
 		this.lifeManager = lifeManager;
-		this.k = KryoFactory.buildKryoForMasterWorkerProtocol();
+		this.k = KryoFactory.buildKryoForProtocolCommands(this.getClass().getClassLoader());
 		this.queryType = queryType;
 	}
 	

@@ -70,7 +70,7 @@ public class CoreInput {
 				// Create dataRef request and send to the worker
 				SeepCommand requestStreamDataReference = ProtocolCommandFactory.buildRequestDataReference(dr.getId(), myIp, wc.getInt(WorkerConfig.DATA_PORT));
 				Connection targetConn = new Connection(dr.getControlEndPoint());
-				LOG.trace("Sending RequestStreamDataReference with id: {} to: {}", dr.getId(), targetConn);
+				LOG.trace("Sending RequestStreamDataReference with id: {} to: {} at: {}", dr.getId(), targetConn, System.currentTimeMillis());
 				comm.send_object_sync(requestStreamDataReference, targetConn, k);
 			}
 			else {
