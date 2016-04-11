@@ -1,0 +1,6 @@
+
+dependencies {
+
+    compile "com.googlecode.matrix-toolkits-java:mtj:1.0.2"
+
+}
