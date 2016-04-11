@@ -39,10 +39,10 @@ public class Base implements QueryComposer {
 		
 		LogicalOperator choose = expand(fanout, selectivity, 0, adderOne);
 		
-		LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), operatorId++);
+		//LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), operatorId++);
 		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), operatorId++);
-		choose.connectTo(branchone, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-		branchone.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+		//choose.connectTo(branchone, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+		choose.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 		
 		SeepLogicalQuery slq = queryAPI.build();
 		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);
