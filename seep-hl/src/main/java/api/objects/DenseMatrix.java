@@ -37,12 +37,18 @@ public class DenseMatrix implements Locatable {
 
 	@Override
 	public int rowIndex() {
-		return gridPosition.getRow();
+		return gridPosition.getRowIdx();
 	}
 
 	@Override
 	public int colIndex() {
-		return gridPosition.getCol();
+		return gridPosition.getColIdx();
+	}
+
+	@Override
+	public void moveTo(int i, int j) {
+		// TODO change gridPosition
+		
 	}
 
 }

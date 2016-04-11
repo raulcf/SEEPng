@@ -8,4 +8,6 @@ public interface Locatable {
 	public int rowIndex();
 	public int colIndex();
 	
+	public void moveTo(int i, int j);
+	
 }
