@@ -20,6 +20,38 @@ public class Base implements QueryComposer {
 
 	@Override
 	public SeepLogicalQuery compose() {
+		
+		final int fanout = 20;
+		
+		// source with adder (fixed selectivity)
+		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, null);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
+		synSrc.connectTo(adderOne, schema, connectionId++);
+		
+		// We create a choose
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), operatorId++);
+		
+		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
+		for(int i = 0; i < fanout; i++) {
+			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(), operatorId++);
+			LogicalOperator eval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
+			adderOne.connectTo(branch, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+			branch.connectTo(eval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+			eval.connectTo(choose, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+		}
+		
+		// Finally connect choose to sink
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), operatorId++);
+		choose.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
+		
+		
+		SeepLogicalQuery slq = queryAPI.build();
+		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);
+		return slq;
+	}
+	
+	//@Override
+	public SeepLogicalQuery _compose() {
 		LinkedList <Integer> fanout = new LinkedList <Integer>();
 		LinkedList <Double> selectivity = new LinkedList <Double>();
 

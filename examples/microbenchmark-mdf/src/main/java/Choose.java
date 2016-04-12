@@ -36,18 +36,24 @@ public class Choose implements SeepChooseTask {
 
 	@Override
 	public Integer choose(Map<Integer, List<Object>> arg0) {
+		System.out.println("CHOOSE btw:");
+		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
+			System.out.print(obj.getKey() + " or ");
+		}
 		long highestQuality = -666;
 		int chosenOne = -666;
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			for(Object o : obj.getValue()) {
 				// I know the type, as I wrote the evaluators
 				long quality = (long)o;
+				System.out.println("is " +quality+ " > " +highestQuality + " ?");
 				if(quality > highestQuality) {
 					highestQuality = quality;
 					chosenOne = obj.getKey();
 				}
 			}
 		}
+		System.out.println("CHOSEN one: " + chosenOne);
 		return chosenOne;
 	}
 
