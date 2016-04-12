@@ -21,7 +21,7 @@ public class Base implements QueryComposer {
 	@Override
 	public SeepLogicalQuery compose() {
 		
-		final int fanout = 20;
+		final int fanout = 20; // determines how many operators to explore
 		
 		// source with adder (fixed selectivity)
 		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, null);
