@@ -46,11 +46,11 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
+	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, MemoryManagementPolicy mmp, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.loadBalancingStrategy = loadBalancingStrategy;
-		this.tracker = new ScheduleTracker(scheduleDescription);
+		this.tracker = new ScheduleTracker(scheduleDescription, mmp);
 		this.inf = inf;
 		this.comm = comm;
 		this.k = k;

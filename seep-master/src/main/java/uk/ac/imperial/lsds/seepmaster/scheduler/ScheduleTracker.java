@@ -34,7 +34,7 @@ public class ScheduleTracker {
 	private boolean runtimeEventsInLastStageExecution = false;
 	private Map<Integer, List<RuntimeEvent>> lastStageRuntimeEvents = null;
 	
-	public ScheduleTracker(ScheduleDescription scheduleDescription) {
+	public ScheduleTracker(ScheduleDescription scheduleDescription, MemoryManagementPolicy mmp) {
 		this.scheduleDescription = scheduleDescription;
 		this.stages = this.scheduleDescription.getStages();
 		status = ScheduleStatus.NON_INITIALIZED;
@@ -53,7 +53,7 @@ public class ScheduleTracker {
 			scheduleStatus.put(stage, StageStatus.WAITING);
 		}
 		this.lastStageRuntimeEvents = new HashMap<>();
-		this.clusterDatasetRegistry = new ClusterDatasetRegistry();
+		this.clusterDatasetRegistry = new ClusterDatasetRegistry(mmp);
 	}
 	
 	public ScheduleDescription getScheduleDescription() {

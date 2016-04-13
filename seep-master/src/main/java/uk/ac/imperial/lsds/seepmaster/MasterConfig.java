@@ -37,6 +37,9 @@ public class MasterConfig extends Config {
     public static final String SCHED_STRATEGY = "scheduling.strategy.type";
     private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), mdf(3) etc";
     
+    public static final String MEM_MANAGEMENT_POLICY = "memory.management.policy";
+    private static final String MEM_MANAGEMENT_POLICY_DOC = "The mem mng policy to rank datasets according to their priority to live in memory";
+    
     public static final String SCHED_STAGE_ASSIGMENT_STRATEGY = "scheduling.stageassignment.type";
     private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assign work to workers";
     
@@ -53,6 +56,7 @@ public class MasterConfig extends Config {
 				.define(CONTROL_PORT, Type.INT, 3500, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
 				.define(SCHED_STRATEGY, Type.INT, 0, Importance.LOW, SCHED_STRATEGY_DOC)
+				.define(MEM_MANAGEMENT_POLICY, Type.INT, 0, Importance.LOW, MEM_MANAGEMENT_POLICY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
 				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC);
 	}

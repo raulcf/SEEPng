@@ -38,6 +38,7 @@ import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.LoadBalancingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.MemoryManagementPolicyType;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
@@ -126,6 +127,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 				scheduleDescription, 
 				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)),
 				LoadBalancingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STAGE_ASSIGMENT_STRATEGY)),
+				MemoryManagementPolicyType.clazz(mc.getInt(MasterConfig.MEM_MANAGEMENT_POLICY)),
 				inf, 
 				comm, 
 				k);

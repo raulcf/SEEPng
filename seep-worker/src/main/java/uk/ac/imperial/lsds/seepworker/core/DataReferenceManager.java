@@ -211,8 +211,31 @@ public class DataReferenceManager {
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
 	}
-
+	
 	public List<Integer> spillDatasetsToDisk(int datasetId) {
+		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
+		List<Integer> spilledDatasets = new ArrayList<>();
+		
+		try {
+			for(Integer i : rankedDatasets) { 
+				// We find the first dataset in the list that is in memory and send it to disk
+				// TODO: is one enough? how to know?
+				if(! this.datasetIsInMem(i)) {
+					sendDatasetToDisk(i);
+					spilledDatasets.add(i);
+				}
+			}
+		}
+		catch (IOException io) {
+			LOG.error("While trying to spill dataset: {} to disk", datasetId);
+			io.printStackTrace();
+		}
+		
+		return spilledDatasets;
+	}
+
+	@Deprecated
+	public List<Integer> _spillDatasetsToDisk(int datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
 		List<Integer> spilledDatasets = new ArrayList<>();
 		

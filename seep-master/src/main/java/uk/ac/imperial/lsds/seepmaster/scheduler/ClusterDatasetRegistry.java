@@ -8,13 +8,16 @@ import java.util.Set;
 
 public class ClusterDatasetRegistry {
 
+	// The class that implements the memory management policy, used to rank datasets in nodes
+	private MemoryManagementPolicy mmp;
+	
 	// Keeps a map from SeepEndPoint id to the list of datasets managed there
 	private Map<Integer, Set<Integer>> datasetsPerNode;
 	
 	// Keeps a map of datasets per node ordered by priority to live in memory
 	private Map<Integer, List<Integer>> rankedDatasetsPerNode;
 	
-	public ClusterDatasetRegistry() {
+	public ClusterDatasetRegistry(MemoryManagementPolicy mmp) {
 		this.datasetsPerNode = new HashMap<>();
 		this.rankedDatasetsPerNode = new HashMap<>();
 	}
@@ -36,7 +39,13 @@ public class ClusterDatasetRegistry {
 	}
 
 	public List<Integer> getRankedDatasetForNode(int euId) {
+		this.rankDatasets(); // eagerly rerank if necessary before returning the (potentially) new order
 		return rankedDatasetsPerNode.get(euId);
+	}
+	
+	private void rankDatasets() {
+		// TODO: use mmp to rank datasets
+		
 	}
 	
 }
