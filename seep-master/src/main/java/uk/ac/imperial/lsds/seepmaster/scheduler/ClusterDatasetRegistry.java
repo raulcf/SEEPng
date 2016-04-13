@@ -35,6 +35,7 @@ public class ClusterDatasetRegistry {
 	}
 
 	public void updateDatasetsForNode(int euId, Set<Integer> managedDatasets) {
+		mmp.updateDatasetsForNode(euId, managedDatasets);
 		this.datasetsPerNode.put(euId, managedDatasets);
 	}
 
