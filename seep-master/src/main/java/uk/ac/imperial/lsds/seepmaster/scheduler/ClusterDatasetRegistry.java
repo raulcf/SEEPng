@@ -20,6 +20,7 @@ public class ClusterDatasetRegistry {
 	public ClusterDatasetRegistry(MemoryManagementPolicy mmp) {
 		this.datasetsPerNode = new HashMap<>();
 		this.rankedDatasetsPerNode = new HashMap<>();
+		this.mmp = mmp;
 	}
 	
 	public int totalDatasetsInCluster() {
