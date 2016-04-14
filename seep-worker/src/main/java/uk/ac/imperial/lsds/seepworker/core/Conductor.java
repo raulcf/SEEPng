@@ -329,7 +329,7 @@ public class Conductor {
 		}
 
 		public void notifyOk(List<RuntimeEvent> runtimeEvents) {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasets());
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasetsMetadata());
 		}
 		
 	}

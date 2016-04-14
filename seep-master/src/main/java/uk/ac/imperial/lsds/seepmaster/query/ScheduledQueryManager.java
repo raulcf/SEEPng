@@ -28,6 +28,7 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -395,7 +396,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
 		List<RuntimeEvent> runtimeEvents = ssc.getRuntimeEvents();
-		Set<Integer> managedDatasets = ssc.getManagedDatasets();
+		Set<DatasetMetadata> managedDatasets = ssc.getManagedDatasets();
 		seWorker.newStageStatus(stageId, euId, results, status, runtimeEvents, managedDatasets);
 	}
 	

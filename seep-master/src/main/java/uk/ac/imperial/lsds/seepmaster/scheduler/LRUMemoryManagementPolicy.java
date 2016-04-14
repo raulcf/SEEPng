@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+
 public class LRUMemoryManagementPolicy implements MemoryManagementPolicy {
 
 	/**
@@ -24,8 +26,9 @@ public class LRUMemoryManagementPolicy implements MemoryManagementPolicy {
 	}
 	
 	@Override
-	public void updateDatasetsForNode(int euId, Set<Integer> datasetIds) {
-		for(Integer datasetId : datasetIds) {
+	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> datasetsMetadata) {
+		for(DatasetMetadata datasetMetadata : datasetsMetadata) {
+			int datasetId = datasetMetadata.getDatasetId();
 			touchDataset(euId, datasetId);
 		}
 	}
@@ -56,7 +59,6 @@ public class LRUMemoryManagementPolicy implements MemoryManagementPolicy {
 		for(Integer key : sorted.keySet()) {
 			rankedDatasets.add(key);
 		}
-		
 		return rankedDatasets;
 	}
 	

@@ -63,6 +63,10 @@ public class Dataset implements IBuffer, OBuffer {
 		this.buffers.add(wPtrToBuffer);
 	}
 	
+	public long size() {
+		return (buffers.size() * bufferPool.getMinimumBufferSize());
+	}
+	
 	public List<byte[]> consumeData(int numTuples) {
 		// TODO: Implement
 		return null;

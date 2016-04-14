@@ -20,6 +20,7 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -190,7 +191,7 @@ public class SchedulerEngineWorker implements Runnable {
 			Map<Integer, Set<DataReference>> results, 
 			StageStatusCommand.Status status,
 			List<RuntimeEvent> runtimeEvents,
-			Set<Integer> managedDatasets) {
+			Set<DatasetMetadata> managedDatasets) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);

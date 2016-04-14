@@ -55,6 +55,10 @@ public class BufferPool {
 		return new BufferPool(wc);
 	}
 	
+	public int getMinimumBufferSize() {
+		return this.minBufferSize;
+	}
+	
 	/**
 	 * Will return a ByteBuffer from the pool if available. If not, it will try to allocate a new ByteBuffer,
 	 * an operation that will succeed if there is enough memory available. If there is not enough memory

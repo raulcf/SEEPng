@@ -5,14 +5,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+
 
 public class ClusterDatasetRegistry {
 
 	// The class that implements the memory management policy, used to rank datasets in nodes
 	private MemoryManagementPolicy mmp;
 	
-	// Keeps a map from SeepEndPoint id to the list of datasets managed there
-	private Map<Integer, Set<Integer>> datasetsPerNode;
+	// Keeps a map from SeepEndPoint id to the list of datasetsMetadata managed there
+	private Map<Integer, Set<DatasetMetadata>> datasetsPerNode;
 	
 	// Keeps a map of datasets per node ordered by priority to live in memory
 	private Map<Integer, List<Integer>> rankedDatasetsPerNode;
@@ -25,7 +27,7 @@ public class ClusterDatasetRegistry {
 	
 	public int totalDatasetsInCluster() {
 		int total = 0;
-		for (Set<Integer> list : datasetsPerNode.values()) {
+		for (Set<DatasetMetadata> list : datasetsPerNode.values()) {
 			total = total + list.size();
 		}
 		return total;
@@ -35,7 +37,7 @@ public class ClusterDatasetRegistry {
 		return this.datasetsPerNode.get(euId).size();
 	}
 
-	public void updateDatasetsForNode(int euId, Set<Integer> managedDatasets) {
+	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> managedDatasets) {
 		mmp.updateDatasetsForNode(euId, managedDatasets);
 		this.datasetsPerNode.put(euId, managedDatasets);
 	}

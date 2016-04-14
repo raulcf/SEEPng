@@ -6,6 +6,7 @@ import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 
 public class StageStatusCommand implements CommandType {
 
@@ -14,11 +15,11 @@ public class StageStatusCommand implements CommandType {
 	private Status status;
 	private Map<Integer, Set<DataReference>> resultDataReference;
 	private List<RuntimeEvent> runtimeEvents;
-	private Set<Integer> managedDatasets;
+	private Set<DatasetMetadata> managedDatasets;
 	
 	public StageStatusCommand() {}
 	
-	public StageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<Integer> managedDatasets) {
+	public StageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<DatasetMetadata> managedDatasets) {
 		this.stageId = stageId;
 		this.euId = euId;
 		this.status = status;
@@ -52,7 +53,7 @@ public class StageStatusCommand implements CommandType {
 		return runtimeEvents;
 	}
 	
-	public Set<Integer> getManagedDatasets() {
+	public Set<DatasetMetadata> getManagedDatasets() {
 		return managedDatasets;
 	}
 	

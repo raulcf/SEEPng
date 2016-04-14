@@ -21,6 +21,7 @@ import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
@@ -79,6 +80,19 @@ public class DataReferenceManager {
 		// TODO: Trigger enforcement policy now??
 	}
 	
+	public Set<DatasetMetadata> getManagedDatasetsMetadata() {
+		Set<DatasetMetadata> datasets = new HashSet<>();
+		for(Dataset d : this.datasets.values()) {
+			int id = d.id();
+			long size = d.size();
+			boolean inMem = datasetIsInMem(id);
+			DatasetMetadata dm = new DatasetMetadata(id, size, inMem);
+			datasets.add(dm);
+		}
+		return datasets;
+	}
+	
+	@Deprecated
 	public Set<Integer> getManagedDatasets() {
 		Set<Integer> datasets = new HashSet<>();
 		for(Integer i : this.datasets.keySet()) {
