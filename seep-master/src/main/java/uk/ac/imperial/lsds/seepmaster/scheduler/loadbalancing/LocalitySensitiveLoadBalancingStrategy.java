@@ -12,13 +12,13 @@ import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.ClusterDatasetRegistry;
 import uk.ac.imperial.lsds.seepmaster.scheduler.CommandToNode;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class LocalitySensitiveLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	@Override
-	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf, ClusterDatasetRegistry cdr) {
+	public List<CommandToNode> assignWorkToWorkers(Stage stage, InfrastructureManager inf, ScheduleTracker tracker) {
 		List<CommandToNode> ctns = new ArrayList<>();
 		
 		// Simply get locality information from Stage
@@ -30,7 +30,7 @@ public class LocalitySensitiveLoadBalancingStrategy implements LoadBalancingStra
 		Map<Integer, Set<DataReference>> input = stage.getInputDataReferences();
 		Map<Integer, Set<DataReference>> output = stage.getOutputDataReferences();
 		SeepCommand esc = ProtocolCommandFactory.buildScheduleStageCommand(stageId, 
-				input, output, cdr.getRankedDatasetForNode(euId));
+				input, output, tracker.getClusterDatasetRegistry().getRankedDatasetForNode(euId, tracker.getScheduleDescription()));
 		CommandToNode ctn = new CommandToNode(esc, cToWorker);
 		ctns.add(ctn);
 		return ctns;

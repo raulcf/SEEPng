@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 
-public class LRUMemoryManagementPolicy implements MemoryManagementPolicy {
+public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementPolicy {
 
 	/**
 	 * A map that given an id, returns a monotonically increasing id that represents the last time the dataset was used,
@@ -21,7 +21,7 @@ public class LRUMemoryManagementPolicy implements MemoryManagementPolicy {
 	 */	
 	private Map<Integer, Map<Integer, Integer>> euId_lru;
 	
-	public LRUMemoryManagementPolicy() {
+	public SizeObliviousLRUMemoryManagementPolicy() {
 		euId_lru = new HashMap<>();
 	}
 	

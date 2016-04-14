@@ -1,11 +1,14 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
 
 
@@ -34,6 +37,14 @@ public class ClusterDatasetRegistry {
 		return total;
 	}
 	
+	public Set<Integer> getDatasetIdsForNode(int euId) {
+		Set<Integer> datasets = new HashSet<>();
+		for(DatasetMetadata dm : datasetsPerNode.get(euId)) {
+			datasets.add(dm.getDatasetId());
+		}
+		return datasets;
+	}
+	
 	public int totalDatasetsInSeepEndPoint(int euId) {
 		return this.datasetsPerNode.get(euId).size();
 	}
@@ -43,14 +54,14 @@ public class ClusterDatasetRegistry {
 		this.datasetsPerNode.put(euId, managedDatasets);
 	}
 
-	public List<Integer> getRankedDatasetForNode(int euId) {
-		this.rankDatasets(); // eagerly rerank if necessary before returning the (potentially) new order
+	public List<Integer> getRankedDatasetForNode(int euId, ScheduleDescription schedDesc) {
+		this.rankDatasets(euId); // eagerly rerank if necessary before returning the (potentially) new order
 		return rankedDatasetsPerNode.get(euId);
 	}
 	
-	private void rankDatasets() {
-		// TODO: use mmp to rank datasets
-		
+	private void rankDatasets(int euId) {
+		List<Integer> rankedDatasetsForNode = mmp.rankDatasetsForNode(euId, getDatasetIdsForNode(euId));
+		this.rankedDatasetsPerNode.put(euId, rankedDatasetsForNode);
 	}
 	
 }

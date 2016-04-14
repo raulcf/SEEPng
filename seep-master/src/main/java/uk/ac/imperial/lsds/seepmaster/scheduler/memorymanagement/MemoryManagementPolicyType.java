@@ -2,7 +2,7 @@ package uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement;
 
 
 public enum MemoryManagementPolicyType {
-	LRU(0, new LRUMemoryManagementPolicy()),
+	LRU(0, new SizeObliviousLRUMemoryManagementPolicy()),
 	MDF(1, new MDFMemoryManagementPolicy());
 	
 	int type;

@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
-import static com.codahale.metrics.MetricRegistry.name;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +19,6 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
-import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
@@ -31,7 +28,6 @@ import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrat
 import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
 import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategy;
 
-import com.codahale.metrics.Timer;
 import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
@@ -93,7 +89,7 @@ public class SchedulerEngineWorker implements Runnable {
 			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			
 			// TODO: (parallel sched) make this receive a list of stages
-			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
+			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker);
 			commands.addAll(schedCommands); // append scheduling commands to the commands necessary to send to the cluster
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after

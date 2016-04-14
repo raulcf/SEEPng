@@ -93,15 +93,6 @@ public class DataReferenceManager {
 		return datasets;
 	}
 	
-	@Deprecated
-	public Set<Integer> getManagedDatasets() {
-		Set<Integer> datasets = new HashSet<>();
-		for(Integer i : this.datasets.keySet()) {
-			datasets.add(i);
-		}
-		return datasets;
-	}
-	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
 		int id = dataRef.getId();
 		Dataset newDataset = null;
