@@ -33,6 +33,10 @@ public class Dataset implements IBuffer, OBuffer {
 	private ByteBuffer wPtrToBuffer;
 	private ByteBuffer rPtrToBuffer;
 	
+	// Variables to estimate cost of creating the dataset
+	final private long creationTime;
+	private long lastAccessForWriteTime;
+	
 	// FIXME: this guy should not have this info. Instead, put this along with the 
 	// dataset in a helper class, and do the management outside this. Open issue for this.
 	private String cacheFileName = "";
@@ -47,6 +51,7 @@ public class Dataset implements IBuffer, OBuffer {
 		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		this.buffers = new LinkedList<>();
 		this.buffers.add(wPtrToBuffer);
+		this.creationTime = System.nanoTime();
 	}
 	
 	public Dataset(int id, byte[] syntheticData, DataReference dr, BufferPool bufferPool) {
@@ -61,10 +66,15 @@ public class Dataset implements IBuffer, OBuffer {
 		wPtrToBuffer.put(syntheticData);
 		this.buffers = new LinkedList<>();
 		this.buffers.add(wPtrToBuffer);
+		this.creationTime = System.nanoTime();
 	}
 	
 	public long size() {
 		return (buffers.size() * bufferPool.getMinimumBufferSize());
+	}
+	
+	public long creationCost() {
+		return (this.lastAccessForWriteTime - this.creationTime);
 	}
 	
 	public List<byte[]> consumeData(int numTuples) {
@@ -191,7 +201,7 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	@Override
 	public boolean write(byte[] data, RuntimeEventRegister reg) {
-		
+		this.lastAccessForWriteTime = System.nanoTime();
 		// Check whether we have memory space to write data
 		// if not try to borrow buffer, if this fails, spill to disk
 		int dataSize = data.length;

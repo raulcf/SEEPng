@@ -86,7 +86,8 @@ public class DataReferenceManager {
 			int id = d.id();
 			long size = d.size();
 			boolean inMem = datasetIsInMem(id);
-			DatasetMetadata dm = new DatasetMetadata(id, size, inMem);
+			long estimatedCreationCost = d.creationCost();
+			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost);
 			datasets.add(dm);
 		}
 		return datasets;
