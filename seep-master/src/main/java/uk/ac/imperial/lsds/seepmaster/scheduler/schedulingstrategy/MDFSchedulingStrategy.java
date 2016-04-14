@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class MDFSchedulingStrategy implements SchedulingStrategy {
 

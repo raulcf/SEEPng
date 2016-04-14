@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
 
 
 public class ClusterDatasetRegistry {

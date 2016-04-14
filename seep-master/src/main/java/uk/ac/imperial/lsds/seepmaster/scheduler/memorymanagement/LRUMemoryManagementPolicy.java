@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +16,8 @@ import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ClusterDatasetRegistry;
+import uk.ac.imperial.lsds.seepmaster.scheduler.CommandToNode;
 
 public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements LoadBalancingStrategy {
 

@@ -27,6 +27,9 @@ import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategy;
 
 import com.codahale.metrics.Timer;
 import com.esotericsoftware.kryo.Kryo;

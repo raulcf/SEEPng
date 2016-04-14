@@ -1,4 +1,5 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing;
+
 
 public enum LoadBalancingStrategyType {
 

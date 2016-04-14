@@ -38,12 +38,12 @@ import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.LoadBalancingStrategyType;
-import uk.ac.imperial.lsds.seepmaster.scheduler.MemoryManagementPolicyType;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategyType;
 
 public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
