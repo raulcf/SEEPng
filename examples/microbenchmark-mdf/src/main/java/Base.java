@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Properties;
 
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
@@ -10,6 +11,7 @@ import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSource;
+import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSourceConfig;
 
 
 
@@ -18,13 +20,39 @@ public class Base implements QueryComposer {
 	int connectionId = 0;
 	Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 
+	private int sel;
+	private int cost;
+	private int isize;
+	
+	public Base(String[] qParams) {
+		String sel = "selectivity";
+		String cost = "cost";
+		String isize = "isize";
+		for(int i = 0; i < qParams.length; i++) {
+			String token = qParams[i];
+			if(token.equals(sel)) {
+				this.sel = new Integer(qParams[(i+1)]);
+			}
+			else if(token.equals(cost)) {
+				this.cost = new Integer(qParams[(i+1)]);
+			}
+			else if(token.equals(isize)) {
+				this.isize = new Integer(qParams[(i+1)]);
+			}
+		}
+	}
+	
 	@Override
 	public SeepLogicalQuery compose() {
 		
 		final int fanout = 20; // determines how many operators to explore
 		
+		Properties syncConfig = new Properties();
+		String size = ""+isize+"";
+		syncConfig.setProperty(SyntheticSourceConfig.GENERATED_SIZE, size);
+		
 		// source with adder (fixed selectivity)
-		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, null);
+		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, syncConfig);
 		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		
