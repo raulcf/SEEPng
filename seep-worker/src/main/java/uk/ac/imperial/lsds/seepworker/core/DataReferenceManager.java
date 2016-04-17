@@ -182,10 +182,9 @@ public class DataReferenceManager {
 		return datasets.get(dr.getId());
 	}
 	
-	public IBuffer getSyntheticDataset(DataReference dr) {
+	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
 		
-		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(3999);
+		ByteBuffer d = ByteBuffer.allocate(sizeOfDataToGenerate);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();
@@ -205,7 +204,6 @@ public class DataReferenceManager {
 				// stop when no more data fits
 				goOn = false;
 			}
-			
 		}
 		//Copy only the written bytes
 		byte[] dataToForward = new byte[totalWritten];

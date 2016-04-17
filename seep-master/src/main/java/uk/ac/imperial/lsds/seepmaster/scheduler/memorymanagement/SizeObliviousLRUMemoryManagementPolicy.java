@@ -52,6 +52,9 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 	@Override
 	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds) {
 		List<Integer> rankedDatasets = new ArrayList<>();
+		if(! euId_lru.containsKey(euId)) {
+			return rankedDatasets;
+		}
 		Map<Integer, Integer> datasetId_timestamp = euId_lru.get(euId);
 		
 		Map<Integer, Integer> sorted = sortByValue(datasetId_timestamp);

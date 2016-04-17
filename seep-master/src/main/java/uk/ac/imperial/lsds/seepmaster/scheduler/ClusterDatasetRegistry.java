@@ -39,8 +39,10 @@ public class ClusterDatasetRegistry {
 	
 	public Set<Integer> getDatasetIdsForNode(int euId) {
 		Set<Integer> datasets = new HashSet<>();
-		for(DatasetMetadata dm : datasetsPerNode.get(euId)) {
-			datasets.add(dm.getDatasetId());
+		if(datasetsPerNode.containsKey(euId)) {
+			for(DatasetMetadata dm : datasetsPerNode.get(euId)) {
+				datasets.add(dm.getDatasetId());
+			}
 		}
 		return datasets;
 	}

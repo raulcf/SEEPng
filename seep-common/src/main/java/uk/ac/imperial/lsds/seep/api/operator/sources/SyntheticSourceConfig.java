@@ -13,15 +13,11 @@ public class SyntheticSourceConfig extends Config {
 
 	private static final ConfigDef config;
 
-	public static final String FILE_PATH = "file.path";
-	private static final String FILE_PATH_DOC = "The absolute path to a file in the local filesystem";
-	
-	public static final String SERDE_TYPE = "serde.type";
-	private static final String SERDE_TYPE_DOC = "The type of the serializer/deserializer. See SerializerType enum for reference";
+	public static final String GENERATED_SIZE = "generated.size";
+	private static final String GENERATED_SIZE_DOC = "Total size of the generated data";
 	
 	static {
-		config = new ConfigDef().define(FILE_PATH, Type.STRING, Importance.HIGH, FILE_PATH_DOC)
-								.define(SERDE_TYPE, Type.INT, 0, Importance.HIGH, SERDE_TYPE_DOC);
+		config = new ConfigDef().define(GENERATED_SIZE, Type.INT, 1024, Importance.HIGH, GENERATED_SIZE_DOC);
 	}
 	
 	public SyntheticSourceConfig(Map<? extends Object, ? extends Object> originals) {

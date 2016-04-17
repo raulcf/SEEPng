@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
+import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSourceConfig;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.InputAdapter;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
@@ -46,7 +47,10 @@ public class CoreInputFactory {
 					ib = FacadeInputBuffer.makeOneFor(wc, dr);
 				}
 				else if(dr.getDataStore().type().equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
-					ib = drm.getSyntheticDataset(dr);
+					DataStore ds = dr.getDataStore();
+					int sizeOfGeneratedData = new Integer(ds.getConfig().getProperty(SyntheticSourceConfig.GENERATED_SIZE));
+					LOG.info("Created synthetic dataset of size: {}", sizeOfGeneratedData);
+					ib = drm.getSyntheticDataset(dr, sizeOfGeneratedData);
 				}
 				// If not
 				else {
