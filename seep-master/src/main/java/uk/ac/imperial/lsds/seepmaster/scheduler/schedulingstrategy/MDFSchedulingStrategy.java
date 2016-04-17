@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ClusterDatasetRegistry;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class MDFSchedulingStrategy implements SchedulingStrategy {
@@ -123,8 +124,22 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 						stagesToEvict.add(stageId);
 						// get upstream of CHOOSE (which is my downstream), then go over output results and get all the
 						// datasets Id, which together in a list are the payload of an eviction command.
+						ClusterDatasetRegistry cr = tracker.getClusterDatasetRegistry();
+						Stage choose = finishedStage.getDependants().iterator().next();
+						for(Stage upstream : choose.getDependencies()) {
+							if(upstream.getStageId() == stageId) {
+								Map<Integer, Set<DataReference>> outputs = upstream.getOutputDataReferences();
+								for(Set<DataReference> drsToEvict : outputs.values()) {
+									for(DataReference drToEvict : drsToEvict) {
+										cr.evictDatasetFromCluster(drToEvict.getId());
+									}
+								}
+							}
+						}
 					}
 				}
+				// TODO: Use clusterRegistry (from tracker) to remove datasets from the cluster
+				
 			}
 		}
 		return commands;

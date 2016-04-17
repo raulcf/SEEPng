@@ -75,9 +75,19 @@ public class DataReferenceManager {
 	}
 	
 	public void updateRankedDatasets(List<Integer> rankedDatasets) {
+		
 		this.rankedDatasets = rankedDatasets;
 		
-		// TODO: Trigger enforcement policy now??
+		// Free datasets that are no longer part of the list of rankedDatasets
+		int totalFreedMemory = 0;
+		for(Integer dId : datasets.keySet()) {
+			if(! rankedDatasets.contains(dId)) {
+				// Eliminate dataset
+				totalFreedMemory = totalFreedMemory + datasets.get(dId).freeDataset();
+				datasets.remove(dId);
+			}
+		}
+		LOG.info("Total freed memory: {}", totalFreedMemory);
 	}
 	
 	public Set<DatasetMetadata> getManagedDatasetsMetadata() {
@@ -233,23 +243,6 @@ public class DataReferenceManager {
 		catch (IOException io) {
 			LOG.error("While trying to spill dataset: {} to disk", datasetId);
 			io.printStackTrace();
-		}
-		
-		return spilledDatasets;
-	}
-
-	@Deprecated
-	public List<Integer> _spillDatasetsToDisk(int datasetId) {
-		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
-		List<Integer> spilledDatasets = new ArrayList<>();
-		
-		// TODO: USE THE RANKED datasets, if available, to make the decision here
-		try {
-			sendDatasetToDisk(datasetId);
-			spilledDatasets.add(datasetId);
-		} catch (IOException e) {
-			LOG.error("While trying to spill dataset: {} to disk", datasetId);
-			e.printStackTrace();
 		}
 		
 		return spilledDatasets;

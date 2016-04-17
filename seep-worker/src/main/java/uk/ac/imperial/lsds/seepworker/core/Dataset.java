@@ -82,6 +82,14 @@ public class Dataset implements IBuffer, OBuffer {
 		return null;
 	}
 	
+	public int freeDataset() {
+		int totalFreedMemory = 0;
+		for(ByteBuffer bb : buffers) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
+		}
+		return totalFreedMemory;
+	}
+	
 	private byte[] consumeDataFromMemory() {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {

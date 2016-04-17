@@ -1,10 +1,10 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
@@ -64,6 +64,13 @@ public class ClusterDatasetRegistry {
 	private void rankDatasets(int euId) {
 		List<Integer> rankedDatasetsForNode = mmp.rankDatasetsForNode(euId, getDatasetIdsForNode(euId));
 		this.rankedDatasetsPerNode.put(euId, rankedDatasetsForNode);
+	}
+
+	public void evictDatasetFromCluster(int id) {
+		for(Entry<Integer, Set<DatasetMetadata>> entry : datasetsPerNode.entrySet()) {
+			int key = entry.getKey();
+			datasetsPerNode.get(key).remove(id);		
+		}
 	}
 	
 }

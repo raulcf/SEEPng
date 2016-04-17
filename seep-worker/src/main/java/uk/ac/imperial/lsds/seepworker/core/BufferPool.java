@@ -84,9 +84,11 @@ public class BufferPool {
 		}
 	}
 	
-	public void returnBuffer(ByteBuffer buffer) {
+	public int returnBuffer(ByteBuffer buffer) {
+		int freedMemory = buffer.capacity();
 		usedMemory.dec(minBufferSize);
 		allocatedBuffers.add(buffer);
+		return freedMemory;
 	}
 	
 	private boolean enoughMemoryAvailable() {
