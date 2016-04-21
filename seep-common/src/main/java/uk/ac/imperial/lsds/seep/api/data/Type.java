@@ -18,6 +18,10 @@ public abstract class Type {
 	public abstract Object defaultValue();
 	public abstract Object randomValue();
 	
+	public boolean equals(Type t) {
+		return this.toString().equals(t.toString());
+	}
+	
 	public enum JavaType{
 		BYTE, SHORT, INT, LONG, STRING, BYTES, FLOAT, DOUBLE
 	}

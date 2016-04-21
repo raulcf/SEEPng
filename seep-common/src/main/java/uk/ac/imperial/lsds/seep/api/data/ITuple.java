@@ -177,19 +177,19 @@ public class ITuple {
 		wrapper.position(offset);
 		Object o = null;
 		Type t = schema.getField(fieldName);
-		if(t == Type.BYTE){
+		if(t.equals(Type.BYTE)){
 			o = wrapper.get();
-		} else if(t == Type.INT){
+		} else if(t.equals(Type.INT)){
 			o = wrapper.getInt();
-		} else if(t == Type.SHORT){
+		} else if(t.equals(Type.SHORT)){
 			o = wrapper.getShort();
-		} else if(t == Type.LONG){
+		} else if(t.equals(Type.LONG)){
 			o = wrapper.getLong();
-		} else if(t == Type.STRING){
+		} else if(t.equals(Type.STRING)){
 			o = Type.STRING.read(wrapper);
-		} else if(t == Type.FLOAT){
+		} else if(t.equals(Type.FLOAT)){
 			o = wrapper.getFloat();
-		} else if(t == Type.DOUBLE){
+		} else if(t.equals(Type.DOUBLE)){
 			o = wrapper.getDouble();
 		}
 		return o;
