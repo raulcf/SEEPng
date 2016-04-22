@@ -47,37 +47,37 @@ public class Schema {
 	
 	public boolean typeCheck(String fieldName, Object o){
 		Type t = fields[mapFieldNameToFieldPosition.get(fieldName)];
-		if (t.toString().equals(Type.BYTE.toString())){
+		if (t.equals(Type.BYTE)){
 			if(o instanceof Byte){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.SHORT.toString())){
+		else if(t.equals(Type.SHORT)){
 			if(o instanceof Short){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.INT.toString())){
+		else if(t.equals(Type.INT)){
 			if(o instanceof Integer){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.LONG.toString())){
+		else if(t.equals(Type.LONG)){
 			if(o instanceof Long){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.STRING.toString())){
+		else if(t.equals(Type.STRING)){
 			if(o instanceof String){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.FLOAT.toString())){
+		else if(t.equals(Type.FLOAT)){
 			if(o instanceof Float){
 				return true;
 			}
 		}
-		else if(t.toString().equals(Type.DOUBLE.toString())){
+		else if(t.equals(Type.DOUBLE)){
 			if(o instanceof Double){
 				return true;
 			}
