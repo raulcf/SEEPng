@@ -20,7 +20,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 
 	private Map<Integer, List<Object>> evaluatedResults = new HashMap<>();
 	
-	private int currentBestCandidate = -1;
+	private List<Integer> chooseCandidates = new ArrayList<>();
 	
 	@Override
 	public Stage next(ScheduleTracker tracker, Map<Integer, List<RuntimeEvent>> rEvents) {
@@ -38,9 +38,10 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			Set<Stage> upstream = nextToSchedule.getDependencies();
 			Map<Integer, Set<DataReference>> chosenResultsOfStage = new HashMap<>();
 			for(Stage s : upstream) {
-				if(s.getStageId() == currentBestCandidate) {
+				int stageId = s.getStageId();
+				if(chooseCandidates.contains(stageId)) {
 					// Filter out potential inputs of CHOOSE to get only the chosen one
-					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(currentBestCandidate);
+					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(stageId);
 					chosenResultsOfStage.put(nextToSchedule.getStageId(), inputs);
 				}
 			}
@@ -50,7 +51,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
-			currentBestCandidate = -1;
+			chooseCandidates = new ArrayList<>();
 			
 			// Call recursively to next so that we give worker a stage to schedule
 			nextToSchedule = next(tracker, null);
@@ -115,12 +116,12 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				}
 				evaluatedResults.put(finishedStage.getStageId(), evalResult);
 				// Evaluate choose and get list of stages whose values are still useful
-				this.currentBestCandidate = sct.choose(evaluatedResults);
+				this.chooseCandidates = sct.choose(evaluatedResults);
 				
 				// TODO: difference between evaluatedResults and goOn are datasets to evict
 				for(int stageId : evaluatedResults.keySet()) {
 					List<Integer> stagesToEvict = new ArrayList<>();
-					if(stageId != currentBestCandidate) {
+					if(! chooseCandidates.contains(stageId)) {
 						stagesToEvict.add(stageId);
 						// get upstream of CHOOSE (which is my downstream), then go over output results and get all the
 						// datasets Id, which together in a list are the payload of an eviction command.
@@ -137,9 +138,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 							}
 						}
 					}
-				}
-				// TODO: Use clusterRegistry (from tracker) to remove datasets from the cluster
-				
+				}				
 			}
 		}
 		return commands;

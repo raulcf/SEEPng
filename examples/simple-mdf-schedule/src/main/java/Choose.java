@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,13 +36,13 @@ public class Choose implements SeepChooseTask {
 	}
 
 	@Override
-	public Integer choose(Map<Integer, List<Object>> arg0) {
+	public List<Integer> choose(Map<Integer, List<Object>> arg0) {
+		List<Integer> chosenOne = new ArrayList<>();
 		System.out.println("CHOOSE btw:");
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			System.out.print(obj.getKey() + " or ");
 		}
 		long highestQuality = -666;
-		int chosenOne = -666;
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			for(Object o : obj.getValue()) {
 				// I know the type, as I wrote the evaluators
@@ -49,7 +50,7 @@ public class Choose implements SeepChooseTask {
 				System.out.println("is " +quality+ " > " +highestQuality + " ?");
 				if(quality > highestQuality) {
 					highestQuality = quality;
-					chosenOne = obj.getKey();
+					chosenOne.add(obj.getKey());
 				}
 			}
 		}

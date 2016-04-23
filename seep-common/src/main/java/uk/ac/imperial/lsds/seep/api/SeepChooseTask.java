@@ -5,6 +5,6 @@ import java.util.Map;
 
 public interface SeepChooseTask extends SeepTask {
 	
-	public Integer choose(Map<Integer, List<Object>> evaluatedResults); 
+	public List<Integer> choose(Map<Integer, List<Object>> evaluatedResults); 
 	
 }
