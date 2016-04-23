@@ -23,11 +23,13 @@ public class Base implements QueryComposer {
 	private int sel;
 	private int cost;
 	private int isize;
+	private boolean incremental_choose;
 	
 	public Base(String[] qParams) {
 		String sel = "selectivity";
 		String cost = "cost";
 		String isize = "isize";
+		String incrementalchoose = "incchoose";
 		for(int i = 0; i < qParams.length; i++) {
 			String token = qParams[i];
 			if(token.equals(sel)) {
@@ -38,6 +40,9 @@ public class Base implements QueryComposer {
 			}
 			else if(token.equals(isize)) {
 				this.isize = new Integer(qParams[(i+1)]);
+			}
+			else if(token.equalsIgnoreCase(incrementalchoose)){
+				this.incremental_choose = new Boolean(qParams[(i+1)]);
 			}
 		}
 	}
@@ -57,7 +62,7 @@ public class Base implements QueryComposer {
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		
 		// We create a choose
-		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(), operatorId++);
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), operatorId++);
 		
 		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
 		for(int i = 0; i < fanout; i++) {
