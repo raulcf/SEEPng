@@ -1,7 +1,9 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
@@ -36,8 +38,8 @@ public class Choose implements SeepChooseTask {
 	}
 
 	@Override
-	public List<Integer> choose(Map<Integer, List<Object>> arg0) {
-		List<Integer> chosenOne = new ArrayList<>();
+	public Set<Integer> choose(Map<Integer, List<Object>> arg0) {
+		Set<Integer> chosenOne = new HashSet<>();
 		System.out.println("CHOOSE btw:");
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			System.out.print(obj.getKey() + " or ");

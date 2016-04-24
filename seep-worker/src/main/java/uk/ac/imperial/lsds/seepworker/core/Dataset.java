@@ -105,12 +105,18 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 			if(readerIterator.hasNext()) {
 				rPtrToBuffer = readerIterator.next();
+				if(rPtrToBuffer == null) {
+					System.out.println("problem here");
+				}
 				rPtrToBuffer.flip();
 				
 				if (!readerIterator.hasNext()) {
+					
 					//We caught up to the write buffer. Allocate a new buffer for writing
-					this.wPtrToBuffer = bufferPool.borrowBuffer();
+					// FIXME: HACK, exploit the memory margin room to make this work
+					this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
 					this.buffers.add(wPtrToBuffer);
+					
 					//Yes, the following looks a bit silly (just getting a new iterator to the position
 					//of the current one), but it is necessary to allow readerIterator.remove to work 
 					//without the iterator complaining about concurrent modification due to adding a new
@@ -121,6 +127,7 @@ public class Dataset implements IBuffer, OBuffer {
 						return null;
 					}
 				}
+				
 			}
 			else {
 				// done reading

@@ -69,6 +69,12 @@ public class SchedulerEngineWorker implements Runnable {
 				long scheduleFinish = System.nanoTime();
 				long totalScheduleTime = scheduleFinish - scheduleStart;
 				LOG.info("[END JOB] !!! {}", totalScheduleTime);
+				int totalDatasets = tracker.getClusterDatasetRegistry().totalDatasetsGeneratedDuringSchedule();
+				int totalSpilledDatasets = tracker.getClusterDatasetRegistry().totalDatasetsSpilledToDiskDuringSchedule();
+				int ratioMemory = 100 - (int)(totalSpilledDatasets/totalDatasets);
+				LOG.info("Total datasets generated in schedule: {}", totalDatasets);
+				LOG.info("Total datasets spilled during schedule: {}", totalSpilledDatasets);
+				LOG.info("Ratio hit/miss: {}", ratioMemory);
 				work = false;
 				continue;
 			}

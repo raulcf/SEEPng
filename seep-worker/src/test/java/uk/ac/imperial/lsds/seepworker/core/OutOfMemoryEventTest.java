@@ -1,27 +1,21 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
-import static org.junit.Assert.*;
-
 import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Test;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
-import uk.ac.imperial.lsds.seep.api.ScheduleBuilder;
-import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
+import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.testutils.WriterOfTrash;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;

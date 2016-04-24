@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +21,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 
 	private Map<Integer, List<Object>> evaluatedResults = new HashMap<>();
 	
-	private List<Integer> chooseCandidates = new ArrayList<>();
+	private Set<Integer> chooseCandidates = new HashSet<>();
 	
 	@Override
 	public Stage next(ScheduleTracker tracker, Map<Integer, List<RuntimeEvent>> rEvents) {
@@ -51,7 +52,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
-			chooseCandidates = new ArrayList<>();
+			chooseCandidates = new HashSet<>();
 			
 			// Call recursively to next so that we give worker a stage to schedule
 			nextToSchedule = next(tracker, null);

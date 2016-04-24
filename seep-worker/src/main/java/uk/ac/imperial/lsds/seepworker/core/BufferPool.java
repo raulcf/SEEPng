@@ -73,7 +73,6 @@ public class BufferPool {
 			return bb;
 		}
 		else {
-			// TODO: at some point we'll need to set up a ceiling here, for now just let it die...
 			if(enoughMemoryAvailable()){
 				usedMemory.inc(minBufferSize);
 				return ByteBuffer.allocate(minBufferSize);
@@ -81,6 +80,19 @@ public class BufferPool {
 			else {
 				return null;
 			}
+		}
+	}
+	
+	public synchronized ByteBuffer _forceBorrowBuffer() {
+		if(allocatedBuffers.size() > 0) {
+			ByteBuffer bb = allocatedBuffers.pop();
+			bb.clear();
+			usedMemory.inc(minBufferSize);
+			return bb;
+		}
+		else {
+			usedMemory.inc(minBufferSize);
+			return ByteBuffer.allocate(minBufferSize);			
 		}
 	}
 	

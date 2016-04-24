@@ -23,6 +23,19 @@ public class ClusterDatasetRegistry {
 	// Keeps a map of datasets per node ordered by priority to live in memory
 	private Map<Integer, List<Integer>> rankedDatasetsPerNode;
 	
+	// Metrics
+	
+	private int totalDatasetsGenerated = 0;
+	private int totalDatasetsSpilledToDisk = 0;
+	
+	public int totalDatasetsGeneratedDuringSchedule() {
+		return this.totalDatasetsGenerated;
+	}
+	
+	public int totalDatasetsSpilledToDiskDuringSchedule() {
+		return this.totalDatasetsSpilledToDisk;
+	}
+	
 	public ClusterDatasetRegistry(MemoryManagementPolicy mmp) {
 		this.datasetsPerNode = new HashMap<>();
 		this.rankedDatasetsPerNode = new HashMap<>();
@@ -52,6 +65,8 @@ public class ClusterDatasetRegistry {
 	}
 
 	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> managedDatasets) {
+		// Update metrics
+		updateMetrics(managedDatasets);
 		mmp.updateDatasetsForNode(euId, managedDatasets);
 		this.datasetsPerNode.put(euId, managedDatasets);
 	}
@@ -70,6 +85,15 @@ public class ClusterDatasetRegistry {
 		for(Entry<Integer, Set<DatasetMetadata>> entry : datasetsPerNode.entrySet()) {
 			int key = entry.getKey();
 			datasetsPerNode.get(key).remove(id);		
+		}
+	}
+	
+	private void updateMetrics(Set<DatasetMetadata> managedDatasets) {
+		for(DatasetMetadata dm : managedDatasets) {
+			totalDatasetsGenerated++;
+			if(dm.isInMem()) {
+				totalDatasetsSpilledToDisk++;
+			}
 		}
 	}
 	

@@ -24,12 +24,14 @@ public class Base implements QueryComposer {
 	private int cost;
 	private int isize;
 	private boolean incremental_choose;
+	private int fanout;
 	
 	public Base(String[] qParams) {
 		String sel = "selectivity";
 		String cost = "cost";
 		String isize = "isize";
 		String incrementalchoose = "incchoose";
+		String fanout = "fanout";
 		for(int i = 0; i < qParams.length; i++) {
 			String token = qParams[i];
 			if(token.equals(sel)) {
@@ -41,16 +43,17 @@ public class Base implements QueryComposer {
 			else if(token.equals(isize)) {
 				this.isize = new Integer(qParams[(i+1)]);
 			}
-			else if(token.equalsIgnoreCase(incrementalchoose)){
+			else if(token.equals(incrementalchoose)){
 				this.incremental_choose = new Boolean(qParams[(i+1)]);
+			}
+			else if(token.equalsIgnoreCase(fanout)) {
+				this.fanout = new Integer(qParams[i+1]);
 			}
 		}
 	}
 	
 	@Override
 	public SeepLogicalQuery compose() {
-		
-		final int fanout = 20; // determines how many operators to explore
 		
 		Properties syncConfig = new Properties();
 		String size = ""+isize+"";

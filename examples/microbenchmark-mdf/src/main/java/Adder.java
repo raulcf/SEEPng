@@ -45,7 +45,7 @@ public class Adder implements SeepTask {
 			used = true;
 		}
 		
-		System.out.println(adderId +" processed " + userId);
+		//System.out.println(adderId +" processed " + userId);
 		
 		value++;
 		
