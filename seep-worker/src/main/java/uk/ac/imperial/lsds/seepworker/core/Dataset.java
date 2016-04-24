@@ -47,10 +47,11 @@ public class Dataset implements IBuffer, OBuffer {
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
-		this.wPtrToBuffer = bufferPool.borrowBuffer();
+		this.wPtrToBuffer = obtainNewWPtrBuffer();
 		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		this.buffers = new LinkedList<>();
-		this.buffers.add(wPtrToBuffer);
+		//this.buffers.add(wPtrToBuffer);
+		this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
@@ -60,12 +61,13 @@ public class Dataset implements IBuffer, OBuffer {
 		this.dataReference = dr;
 		this.id = id;
 		this.bufferPool = bufferPool;
-		this.wPtrToBuffer = bufferPool.borrowBuffer();
+		this.wPtrToBuffer = obtainNewWPtrBuffer();
 		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);
 		this.buffers = new LinkedList<>();
-		this.buffers.add(wPtrToBuffer);
+		//this.buffers.add(wPtrToBuffer);
+		this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
@@ -88,6 +90,38 @@ public class Dataset implements IBuffer, OBuffer {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
 		}
 		return totalFreedMemory;
+	}
+	
+	private void addBufferToBuffers(ByteBuffer buf) {
+		if(buf != null) {
+			buffers.add(buf);
+		}
+		else {
+			System.out.println(buf);
+		}
+	}
+	
+	private ByteBuffer obtainNewWPtrBuffer() {
+		
+		ByteBuffer bb = bufferPool.borrowBuffer();
+		while(bb == null) {
+			// free some memory from the node: true/false
+			// Notify DRM we run out of memory and get ids of spilled to disk datasets
+			List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
+			if(spilledDatasets.isEmpty()) {
+				// no more memory available, allocate buffer on disk
+				try {
+					drm.sendDatasetToDisk(id);
+				} 
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			}
+			// if true then try again
+			bb = bufferPool.borrowBuffer();
+		}
+		return bb;
 	}
 	
 	private byte[] consumeDataFromMemory() {
@@ -113,9 +147,10 @@ public class Dataset implements IBuffer, OBuffer {
 				if (!readerIterator.hasNext()) {
 					
 					//We caught up to the write buffer. Allocate a new buffer for writing
-					// FIXME: HACK, exploit the memory margin room to make this work
-					this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
-					this.buffers.add(wPtrToBuffer);
+					//this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
+					this.wPtrToBuffer = this.obtainNewWPtrBuffer();
+					//this.buffers.add(wPtrToBuffer);
+					this.addBufferToBuffers(wPtrToBuffer);
 					
 					//Yes, the following looks a bit silly (just getting a new iterator to the position
 					//of the current one), but it is necessary to allow readerIterator.remove to work 
@@ -217,23 +252,6 @@ public class Dataset implements IBuffer, OBuffer {
 	@Override
 	public boolean write(byte[] data, RuntimeEventRegister reg) {
 		this.lastAccessForWriteTime = System.nanoTime();
-		// Check whether we have memory space to write data
-		// if not try to borrow buffer, if this fails, spill to disk
-		int dataSize = data.length;
-		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
-			// Borrow a new buffer and add to the collection
-			this.wPtrToBuffer = bufferPool.borrowBuffer();
-			if(this.wPtrToBuffer == null) {
-				// Notify DRM we run out of memory and get ids of spilled to disk datasets
-				List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
-				for(int spilledDatasetId : spilledDatasets) {
-					reg.datasetSpilledToDisk(spilledDatasetId);
-				}
-			}
-			else {
-				this.buffers.add(wPtrToBuffer);
-			}
-		}
 		
 		// Check if dataset was spilled to disk, in which case we need to write there
 		if (!cacheFileName.equals("")) {
@@ -253,6 +271,28 @@ public class Dataset implements IBuffer, OBuffer {
 				ioe.printStackTrace();
 			}
 			return false;
+		}
+		
+		// Check whether we have memory space to write data
+		// if not try to borrow buffer, if this fails, spill to disk
+		int dataSize = data.length;
+		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
+			// Borrow a new buffer and add to the collection
+			this.wPtrToBuffer = this.obtainNewWPtrBuffer();
+			this.addBufferToBuffers(wPtrToBuffer);
+//			
+//			this.wPtrToBuffer = bufferPool.borrowBuffer();
+//			if(this.wPtrToBuffer == null) {
+//				// Notify DRM we run out of memory and get ids of spilled to disk datasets
+//				List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
+//				for(int spilledDatasetId : spilledDatasets) {
+//					reg.datasetSpilledToDisk(spilledDatasetId);
+//				}
+//			}
+//			else {
+//				//this.buffers.add(wPtrToBuffer);
+//				this.addBufferToBuffers(wPtrToBuffer);
+//			}
 		}
 
 		// If dataset is living in memory we write it directly

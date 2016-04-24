@@ -83,18 +83,19 @@ public class BufferPool {
 		}
 	}
 	
-	public synchronized ByteBuffer _forceBorrowBuffer() {
-		if(allocatedBuffers.size() > 0) {
-			ByteBuffer bb = allocatedBuffers.pop();
-			bb.clear();
-			usedMemory.inc(minBufferSize);
-			return bb;
-		}
-		else {
-			usedMemory.inc(minBufferSize);
-			return ByteBuffer.allocate(minBufferSize);			
-		}
-	}
+//	@Deprecated
+//	public synchronized ByteBuffer _forceBorrowBuffer() {
+//		if(allocatedBuffers.size() > 0) {
+//			ByteBuffer bb = allocatedBuffers.pop();
+//			bb.clear();
+//			usedMemory.inc(minBufferSize);
+//			return bb;
+//		}
+//		else {
+//			usedMemory.inc(minBufferSize);
+//			return ByteBuffer.allocate(minBufferSize);			
+//		}
+//	}
 	
 	public int returnBuffer(ByteBuffer buffer) {
 		int freedMemory = buffer.capacity();

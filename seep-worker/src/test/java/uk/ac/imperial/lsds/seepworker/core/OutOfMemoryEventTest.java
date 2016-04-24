@@ -32,7 +32,7 @@ public class OutOfMemoryEventTest {
 	public void testRunOutOfMemoryAndSpillToDisk() {
 		
 		// Configure test execution
-		final int numBytesWritten = 1048576;
+		final int numBytesWritten = 256;//1048576;
 		final int tupleSize = 4 + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		final int numTuples = numBytesWritten / tupleSize;
 		final int maxBufferSize = 2046;
