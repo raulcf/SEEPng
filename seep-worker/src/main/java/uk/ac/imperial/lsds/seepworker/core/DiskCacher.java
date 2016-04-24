@@ -37,6 +37,18 @@ public class DiskCacher {
 		return instance;
 	}
 	
+	public String createDatasetOnDisk(int datasetId) {
+		String cacheFileName = "";
+		
+		//Changing to abs might lead to a conflict (HIGHLY unlikely, needs a DataSet with the opposite 
+		//ID cached at exactly the same time), but files that start with - are annoying in console
+		//debugging.
+		cacheFileName = Math.abs(datasetId) + "_" + System.currentTimeMillis() + ".cached";
+		filenames.put(datasetId, cacheFileName);
+		
+		return cacheFileName;
+	}
+	
 	/***
 	 * Moves a Dataset to disk. If the Dataset is already on disk we try to move everything to
 	 * disk anyway. This is because there can be some rare instances with multithreading when
@@ -52,6 +64,12 @@ public class DiskCacher {
 		String cacheFileName = "";
 		int cachedRecords = 0;
 		//if(data.id() == null) {System.out.println("ID");}
+		if(filenames == null) {
+			System.out.println("filenames null");
+		}
+		if(data == null) {
+			System.out.println("data null");
+		}
 		if (filenames.containsKey(data.id())) {
 			//Already on disk. We could claim victory and return, but this will allow us to cache any
 			//items stuck in memory (see comment below).
@@ -66,7 +84,7 @@ public class DiskCacher {
 		try {
 			DataOutputStream cacheStream = new DataOutputStream(new FileOutputStream(cacheFileName));
 			byte[] record;
-			while((record = data.consumeData()) != null) {
+			while((record = data.consumeDataFromMemoryForCopy()) != null) {
 				cacheStream.writeInt(record.length);
 				cacheStream.write(record);
 				cachedRecords++;
@@ -103,7 +121,7 @@ public class DiskCacher {
 		return cachedRecords;
 	}
 	
-	/***
+	/**
 	 * Returns a Dataset from disk to memory.
 	 * @param data
 	 * @return The number of records returned to memory.

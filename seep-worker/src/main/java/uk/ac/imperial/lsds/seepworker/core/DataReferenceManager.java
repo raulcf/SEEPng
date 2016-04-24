@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -61,8 +62,9 @@ public class DataReferenceManager {
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
 		this.datasets = new HashMap<>();
+		int rnd = new Random().nextInt();
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
-		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
+		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID) + rnd;
 		this.bufferPool = BufferPool.createBufferPool(wc);
 		this.cacher = DiskCacher.makeDiskCacher();
 	}
@@ -163,6 +165,13 @@ public class DataReferenceManager {
 		return null;
 	}
 	
+	public String createDatasetOnDisk(int datasetId) {
+		LOG.info("Creating Dataset on disk, id -> {}", datasetId);
+		String name = cacher.createDatasetOnDisk(datasetId);
+		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+		return name;
+	}
+	
 	public void sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
 		cacher.cacheToDisk(datasets.get(datasetId));
@@ -231,12 +240,18 @@ public class DataReferenceManager {
 		List<Integer> spilledDatasets = new ArrayList<>();
 		
 		try {
-			for(Integer i : rankedDatasets) { 
-				// We find the first dataset in the list that is in memory and send it to disk
-				// TODO: is one enough? how to know?
-				if(this.datasetIsInMem(i)) {
-					sendDatasetToDisk(i);
-					spilledDatasets.add(i);
+			if(rankedDatasets == null) {
+				sendDatasetToDisk(datasetId);
+				spilledDatasets.add(datasetId);
+			}
+			else {
+				for(Integer i : rankedDatasets) { 
+					// We find the first dataset in the list that is in memory and send it to disk
+					// TODO: is one enough? how to know?
+					if(this.datasetIsInMem(i)) {
+						sendDatasetToDisk(i);
+						spilledDatasets.add(i);
+					}
 				}
 			}
 		}
