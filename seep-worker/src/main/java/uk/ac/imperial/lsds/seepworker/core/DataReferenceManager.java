@@ -234,7 +234,7 @@ public class DataReferenceManager {
 			for(Integer i : rankedDatasets) { 
 				// We find the first dataset in the list that is in memory and send it to disk
 				// TODO: is one enough? how to know?
-				if(! this.datasetIsInMem(i)) {
+				if(this.datasetIsInMem(i)) {
 					sendDatasetToDisk(i);
 					spilledDatasets.add(i);
 				}

@@ -118,6 +118,12 @@ public class Dataset implements IBuffer, OBuffer {
 				}
 				break;
 			}
+			else {
+				System.out.println("non empty");
+				for(int a : spilledDatasets) {
+					System.out.print(a + " ");
+				}
+			}
 			// if true then try again
 			bb = bufferPool.borrowBuffer();
 		}
@@ -152,14 +158,17 @@ public class Dataset implements IBuffer, OBuffer {
 					//this.buffers.add(wPtrToBuffer);
 					this.addBufferToBuffers(wPtrToBuffer);
 					
-					//Yes, the following looks a bit silly (just getting a new iterator to the position
-					//of the current one), but it is necessary to allow readerIterator.remove to work 
-					//without the iterator complaining about concurrent modification due to adding a new
-					//write buffer to the list.
-					readerIterator = this.buffers.iterator();
-					rPtrToBuffer = readerIterator.next();
-					if (rPtrToBuffer.remaining() == 0) {
-						return null;
+					
+					if(! buffers.isEmpty()) {
+						//Yes, the following looks a bit silly (just getting a new iterator to the position
+						//of the current one), but it is necessary to allow readerIterator.remove to work 
+						//without the iterator complaining about concurrent modification due to adding a new
+						//write buffer to the list.
+						readerIterator = this.buffers.iterator();
+						rPtrToBuffer = readerIterator.next();
+						if (rPtrToBuffer.remaining() == 0) {
+							return null;
+						}
 					}
 				}
 				
