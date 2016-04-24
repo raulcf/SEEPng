@@ -18,7 +18,6 @@ public class Fake implements SeepProgram {
 
 	@Partitioned
 	private int iteration;
-	
 	@Partial
 	private List<Double> weights;
 	
@@ -34,32 +33,40 @@ public class Fake implements SeepProgram {
 		
 		// declare test workflow
 		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
-		DataStore testSrc = new DataStore(sch2, DataStoreType.NETWORK);
-		DataStore testSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
-		spc.newWorkflow("test(float data)", testSrc, testSnk); // input and output schema are the same
-
+		DataStore netSrc = new DataStore(sch2, DataStoreType.NETWORK);
+		DataStore netSnk = new DataStore(sch2, DataStoreType.NETWORK); // TODO: CREATE STATIC SINK INSTEAD
+		DataStore fileSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
+		
+		spc.newWorkflow("train()", netSrc, netSnk);
+		spc.newWorkflow("test(float data)", netSrc, fileSnk); // input and output schema are the same
 		return spc;
 	}
 	
-//	public double train(){
-//		iteration = 5;
-//		List<Double> weights = new ArrayList<Double>();
-//		for(int i = 0; i < iteration; i++){
-//			weights.add((double) (i*8));
-//			@Global
-//			double gradient = 4*5;
-//		}
-//		return weights.get(0);
-//	}
-	
-	public void test(float data){
-		int userId = 0; long ts = 0;  String text = "" ;
-		long whatever = 0l;
-		int b = 1; long ts2 =ts +1; String newText = text + "_saying_something";
+	public double train() {
+		iteration = 5;
+		List<Double> weights = new ArrayList<Double>();
+		for (int i = 0; i < iteration; i++) {
+			weights.add((double) (i * 8));
+
+			double gradient = 4 * 5;
+		}
+		test(10);
+		return weights.get(0);
 	}
-	
+
+	public void test(float data) {
+		int userId = 0;
+		long ts = 0;
+		String text = "";
+		long whatever = 0l;
+		int b = 1;
+		float c = data +10;
+		long ts2 = ts + 1;
+		String newText = new String(text + "_saying_something");
+	}
+
 	@Collection
-	public void merge(List<Integer> numbers){
-		
+	public void merge(List<Integer> numbers) {
+
 	}
 }

@@ -65,8 +65,10 @@ public class WorkflowRepr {
 		// Synchronization is not a concern here
 		StringBuilder  sb = new StringBuilder();
 		sb.append("\nName: "+ this.name);
-		sb.append("\nSource: "+ this.source);
-		sb.append("\nSink: "+ this.sink);
+		sb.append("\nSource: \n" + this.source.getSchema());
+		sb.append("--------------");
+		sb.append("\nSink: \n"+ this.sink.getSchema());
+		sb.append("--------------");
 		sb.append("\nCode: "+ this.code);
 		return sb.toString();
 		

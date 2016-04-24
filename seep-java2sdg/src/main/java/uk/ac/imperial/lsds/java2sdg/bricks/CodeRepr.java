@@ -13,19 +13,19 @@ public class CodeRepr {
 		this.code = codeLines;
 	}
 	
+	public List<String> getCodeText(){
+		List<String> toreturn = new ArrayList<String>();
+		for(CodeAndLine c : code)
+			toreturn.add(c.code);
+		return toreturn;
+	}
+	
 	public int getInitLine(){
 		return code.get(0).line;
 	}
 	
 	public int getEndLine(){
 		return code.get(code.size()-1).line;
-	}
-	
-	public List<String> getCodeText(){
-		List<String> toreturn = new ArrayList<String>();
-		for(CodeAndLine c : code)
-			toreturn.add(c.code);
-		return toreturn;
 	}
 	
 	@Override

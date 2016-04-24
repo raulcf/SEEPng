@@ -50,9 +50,9 @@ public class CoarseGrainedTEAnalysis {
 				ter.setOutputSchema(sink.getSchema());
 			
 			// check what are the live variables in the first line
-			List<VariableRepr> inputVariables = lvInfo.getLiveVarsAt(code.getInitLine());
+			List<VariableRepr> inputVariables = lvInfo.getLiveInputVarsAt(workflowName, code.getInitLine());
 			// check what are the live variables in the last line
-			List<VariableRepr> outputVariables = lvInfo.getLiveVarsAt(code.getEndLine());
+			List<VariableRepr> outputVariables = lvInfo.getLiveOutputVarsAt(workflowName, code.getEndLine());
 			
 			System.out.println("--------IN------------");
 			inputVariables.forEach( var -> System.out.println(var.getName()));
