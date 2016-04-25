@@ -84,14 +84,27 @@ public class ClusterDatasetRegistry {
 	public void evictDatasetFromCluster(int id) {
 		for(Entry<Integer, Set<DatasetMetadata>> entry : datasetsPerNode.entrySet()) {
 			int key = entry.getKey();
-			datasetsPerNode.get(key).remove(id);		
+			Set<DatasetMetadata> currentDatasets = datasetsPerNode.get(key);
+			int sizea = currentDatasets.size();
+			DatasetMetadata toRemove = null;
+			for(DatasetMetadata dm : currentDatasets) {
+				if(dm.getDatasetId() == id) {
+					toRemove = dm;
+				}
+			}
+			if(toRemove != null) {
+				currentDatasets.remove(toRemove);
+			}
+			int sizeb = currentDatasets.size();
+
+			datasetsPerNode.put(key, currentDatasets);
 		}
 	}
 	
 	private void updateMetrics(Set<DatasetMetadata> managedDatasets) {
 		for(DatasetMetadata dm : managedDatasets) {
 			totalDatasetsGenerated++;
-			if(dm.isInMem()) {
+			if(! dm.isInMem()) {
 				totalDatasetsSpilledToDisk++;
 			}
 		}

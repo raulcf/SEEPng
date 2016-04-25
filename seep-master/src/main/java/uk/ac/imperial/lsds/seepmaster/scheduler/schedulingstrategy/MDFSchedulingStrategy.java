@@ -38,17 +38,26 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			// TODO: pick stage according to the currentBestCandidate
 			Set<Stage> upstream = nextToSchedule.getDependencies();
 			Map<Integer, Set<DataReference>> chosenResultsOfStage = new HashMap<>();
+			Set<Integer> datasetsToEvict = new HashSet<>();
 			for(Stage s : upstream) {
 				int stageId = s.getStageId();
+				Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(stageId);
 				if(chooseCandidates.contains(stageId)) {
 					// Filter out potential inputs of CHOOSE to get only the chosen one
-					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(stageId);
 					chosenResultsOfStage.put(nextToSchedule.getStageId(), inputs);
 				}
+//				else {
+//					for(DataReference dr : inputs) {
+//						datasetsToEvict.add(dr.getId());
+//					}
+//				}
 			}
 			
 			// Say that choose is done and assign results to its downstream stages
 			tracker.setFinished(nextToSchedule, chosenResultsOfStage);
+			
+			// Remove datasets to evict from cluster
+//			tracker.getClusterDatasetRegistry().evictDatasetFromCluster(datasetsToEvict);
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
@@ -119,27 +128,20 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				// Evaluate choose and get list of stages whose values are still useful
 				this.chooseCandidates = sct.choose(evaluatedResults);
 				
+				ClusterDatasetRegistry cr = tracker.getClusterDatasetRegistry();
 				// TODO: difference between evaluatedResults and goOn are datasets to evict
 				for(int stageId : evaluatedResults.keySet()) {
-					List<Integer> stagesToEvict = new ArrayList<>();
 					if(! chooseCandidates.contains(stageId)) {
-						stagesToEvict.add(stageId);
 						// get upstream of CHOOSE (which is my downstream), then go over output results and get all the
 						// datasets Id, which together in a list are the payload of an eviction command.
-						ClusterDatasetRegistry cr = tracker.getClusterDatasetRegistry();
 						Stage choose = finishedStage.getDependants().iterator().next();
-						for(Stage upstream : choose.getDependencies()) {
-							if(upstream.getStageId() == stageId) {
-								Map<Integer, Set<DataReference>> outputs = upstream.getOutputDataReferences();
-								for(Set<DataReference> drsToEvict : outputs.values()) {
-									for(DataReference drToEvict : drsToEvict) {
-										cr.evictDatasetFromCluster(drToEvict.getId());
-									}
-								}
-							}
+						Map<Integer, Set<DataReference>> badInputs = choose.getInputDataReferences();
+						
+						for(DataReference drToEvict : badInputs.get(stageId)) {
+							cr.evictDatasetFromCluster(drToEvict.getId());
 						}
 					}
-				}				
+				}	
 			}
 		}
 		return commands;

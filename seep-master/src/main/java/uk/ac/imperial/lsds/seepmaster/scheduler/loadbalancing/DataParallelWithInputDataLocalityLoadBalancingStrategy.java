@@ -67,8 +67,9 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 			}
 			// FIXME: what is outputdatareferences
 			int euId = c.getId();
+			List<Integer> rankedDatasets = tracker.getClusterDatasetRegistry().getRankedDatasetForNode(euId, tracker.getScheduleDescription());
 			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-					perWorker, nextStage.getOutputDataReferences(), tracker.getClusterDatasetRegistry().getRankedDatasetForNode(euId, tracker.getScheduleDescription()));
+					perWorker, nextStage.getOutputDataReferences(), rankedDatasets);
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
 		}

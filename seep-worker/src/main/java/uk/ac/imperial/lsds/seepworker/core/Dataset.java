@@ -86,6 +86,10 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	public int freeDataset() {
+		if(! cacheFileName.equals("")) {
+			// we dont remove files
+			return 0;
+		}
 		int totalFreedMemory = 0;
 		for(ByteBuffer bb : buffers) {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);

@@ -82,12 +82,16 @@ public class DataReferenceManager {
 		
 		// Free datasets that are no longer part of the list of rankedDatasets
 		int totalFreedMemory = 0;
+		Set<Integer> toRemove = new HashSet<>();
 		for(Integer dId : datasets.keySet()) {
 			if(! rankedDatasets.contains(dId)) {
 				// Eliminate dataset
 				totalFreedMemory = totalFreedMemory + datasets.get(dId).freeDataset();
-				datasets.remove(dId);
+				toRemove.add(dId);
 			}
+		}
+		for(Integer tr : toRemove){
+			datasets.remove(tr);
 		}
 		LOG.info("Total freed memory: {}", totalFreedMemory);
 	}

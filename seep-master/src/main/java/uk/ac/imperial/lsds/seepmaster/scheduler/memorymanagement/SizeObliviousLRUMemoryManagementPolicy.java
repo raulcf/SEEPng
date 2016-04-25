@@ -3,6 +3,7 @@ package uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,11 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 		if(! euId_lru.containsKey(euId)) {
 			return rankedDatasets;
 		}
+		
+		// Now we use the datasets that are alive to prune the datasets in the node
+		removeEvictedDatasets(euId, datasetIds);
+		
+		// We get the datasets in the node, after pruning
 		Map<Integer, Integer> datasetId_timestamp = euId_lru.get(euId);
 		
 		Map<Integer, Integer> sorted = sortByValue(datasetId_timestamp);
@@ -63,6 +69,26 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 			rankedDatasets.add(key);
 		}
 		return rankedDatasets;
+	}
+	
+	private void removeEvictedDatasets(int euId, Set<Integer> datasetIdsToKeep) {
+		Map<Integer, Integer> allEntries = euId_lru.get(euId);
+		
+		// Select entries to remove
+		Set<Integer> toRemove = new HashSet<>();
+		for(int id : allEntries.keySet()) {
+			if(! datasetIdsToKeep.contains(id)) {
+				toRemove.add(id);
+			}
+		}
+		
+		// Remove the selection
+		for(int toRem : toRemove) {
+			allEntries.remove(toRem);
+		}
+		
+		// Update the info
+		euId_lru.put(euId, allEntries);
 	}
 	
 	private Map<Integer, Integer> sortByValue( Map<Integer, Integer> map ) {

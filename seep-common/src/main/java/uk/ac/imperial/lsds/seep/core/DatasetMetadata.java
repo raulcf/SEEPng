@@ -32,4 +32,14 @@ public class DatasetMetadata {
 		return creationCost;
 	}
 	
+	@Override
+	public int hashCode() {
+		return datasetId;
+	}
+	
+	@Override
+	public boolean equals(Object dm) {
+		return dm.hashCode() == this.hashCode();
+	}
+	
 }
