@@ -64,10 +64,10 @@ public class ClusterDatasetRegistry {
 		return this.datasetsPerNode.get(euId).size();
 	}
 
-	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> managedDatasets) {
+	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> managedDatasets, int stageId) {
 		// Update metrics
 		updateMetrics(managedDatasets);
-		mmp.updateDatasetsForNode(euId, managedDatasets);
+		mmp.updateDatasetsForNode(euId, managedDatasets, stageId);
 		this.datasetsPerNode.put(euId, managedDatasets);
 	}
 

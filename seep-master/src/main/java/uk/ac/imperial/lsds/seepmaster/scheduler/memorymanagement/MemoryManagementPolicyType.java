@@ -2,27 +2,16 @@ package uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement;
 
 
 public enum MemoryManagementPolicyType {
-	LRU(0, new SizeObliviousLRUMemoryManagementPolicy()),
-	MDF(1, new MDFMemoryManagementPolicy());
+	LRU(0),
+	MDF(1);
 	
 	int type;
-	MemoryManagementPolicy mmp;
 	
-	MemoryManagementPolicyType(int type, MemoryManagementPolicy mmp) {
+	MemoryManagementPolicyType(int type) {
 		this.type = type;
-		this.mmp = mmp;
 	}
 	
 	public int ofType() {
 		return type;
-	}
-	
-	public static MemoryManagementPolicy clazz(int type){
-		for(MemoryManagementPolicyType sst : MemoryManagementPolicyType.values()){
-			if(sst.ofType() == type){
-				return sst.mmp;
-			}
-		}
-		return null;
 	}
 }

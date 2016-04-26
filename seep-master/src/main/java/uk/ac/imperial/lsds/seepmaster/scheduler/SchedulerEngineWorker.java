@@ -25,7 +25,10 @@ import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MDFMemoryManagementPolicy;
 import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.SizeObliviousLRUMemoryManagementPolicy;
 import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategy;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -46,14 +49,27 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, MemoryManagementPolicy mmp, InfrastructureManager inf, Comm comm, Kryo k) {
+	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, int mmpType, double dmRatio, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.loadBalancingStrategy = loadBalancingStrategy;
+		MemoryManagementPolicy mmp = buildMMP(mmpType, sdesc, dmRatio);
+		
 		this.tracker = new ScheduleTracker(scheduleDescription, mmp);
 		this.inf = inf;
 		this.comm = comm;
 		this.k = k;
+	}
+	
+	private MemoryManagementPolicy buildMMP(int type, ScheduleDescription sd, double dmRatio) {
+		MemoryManagementPolicy mmp = null;
+		if(MemoryManagementPolicyType.LRU.ofType() == type) {
+			mmp = new SizeObliviousLRUMemoryManagementPolicy();
+		}
+		else if(MemoryManagementPolicyType.MDF.ofType() == type) {
+			mmp = new MDFMemoryManagementPolicy(sd, dmRatio);
+		}
+		return mmp;
 	}
 
 	public void stop() {

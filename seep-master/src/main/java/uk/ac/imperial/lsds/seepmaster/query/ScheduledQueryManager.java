@@ -128,7 +128,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 				scheduleDescription, 
 				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)),
 				LoadBalancingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STAGE_ASSIGMENT_STRATEGY)),
-				MemoryManagementPolicyType.clazz(mc.getInt(MasterConfig.MEM_MANAGEMENT_POLICY)),
+				mc.getInt(MasterConfig.MEM_MANAGEMENT_POLICY),
+				mc.getDouble(MasterConfig.DISK_MEM_RATIO),
 				inf, 
 				comm, 
 				k);

@@ -27,7 +27,7 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 	}
 	
 	@Override
-	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> datasetsMetadata) {
+	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> datasetsMetadata, int stageId) {
 		for(DatasetMetadata datasetMetadata : datasetsMetadata) {
 			int datasetId = datasetMetadata.getDatasetId();
 			touchDataset(euId, datasetId);

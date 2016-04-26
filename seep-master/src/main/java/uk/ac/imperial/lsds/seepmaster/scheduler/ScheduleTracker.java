@@ -187,7 +187,7 @@ public class ScheduleTracker {
 		}
 		
 		// Update DatasetRegistry 
-		clusterDatasetRegistry.updateDatasetsForNode(euId, managedDatasets);
+		clusterDatasetRegistry.updateDatasetsForNode(euId, managedDatasets, stageId);
 		
 		// Then notify the stageTracker that the stage was successful
 		currentStageTracker.notifyOk(euId, stageId, results);

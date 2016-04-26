@@ -47,6 +47,9 @@ public class MasterConfig extends Config {
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
 
+	public static final String DISK_MEM_RATIO = "diskmem.ratio";
+	private static final String DISK_MEM_RATIO_DOC = "Ratio between writing/reading to disk and memory";
+
 	static{
 		config = new ConfigDef().define(QUERY_FILE, Type.STRING, "", Importance.HIGH, QUERY_FILE_DOC)
 				.define(BASECLASS_NAME, Type.STRING, "", Importance.HIGH, BASECLASS_NAME_DOC) 
@@ -58,7 +61,8 @@ public class MasterConfig extends Config {
 				.define(SCHED_STRATEGY, Type.INT, 0, Importance.LOW, SCHED_STRATEGY_DOC)
 				.define(MEM_MANAGEMENT_POLICY, Type.INT, 0, Importance.LOW, MEM_MANAGEMENT_POLICY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
-				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC);
+				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC)
+				.define(DISK_MEM_RATIO, Type.DOUBLE, Importance.MEDIUM, DISK_MEM_RATIO_DOC);
 	}
 	
 	public MasterConfig(Map<? extends Object, ? extends Object> originals) {
