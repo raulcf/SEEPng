@@ -62,7 +62,7 @@ public class MasterConfig extends Config {
 				.define(MEM_MANAGEMENT_POLICY, Type.INT, 0, Importance.LOW, MEM_MANAGEMENT_POLICY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
 				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC)
-				.define(DISK_MEM_RATIO, Type.DOUBLE, Importance.MEDIUM, DISK_MEM_RATIO_DOC);
+				.define(DISK_MEM_RATIO, Type.DOUBLE, 1.0, Importance.MEDIUM, DISK_MEM_RATIO_DOC);
 	}
 	
 	public MasterConfig(Map<? extends Object, ? extends Object> originals) {
