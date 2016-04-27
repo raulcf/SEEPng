@@ -83,20 +83,6 @@ public class BufferPool {
 		}
 	}
 	
-//	@Deprecated
-//	public synchronized ByteBuffer _forceBorrowBuffer() {
-//		if(allocatedBuffers.size() > 0) {
-//			ByteBuffer bb = allocatedBuffers.pop();
-//			bb.clear();
-//			usedMemory.inc(minBufferSize);
-//			return bb;
-//		}
-//		else {
-//			usedMemory.inc(minBufferSize);
-//			return ByteBuffer.allocate(minBufferSize);			
-//		}
-//	}
-	
 	public int returnBuffer(ByteBuffer buffer) {
 		int freedMemory = buffer.capacity();
 		usedMemory.dec(minBufferSize);
@@ -110,6 +96,19 @@ public class BufferPool {
 			return false;
 		}
 		return true;
+	}
+	
+	private long estimateCurrentUsedMemory() {
+		long currentMemUsed = allocatedBuffers.size() * minBufferSize;
+		return currentMemUsed;
+	}
+
+	public boolean isThereXMemAvailable(long size) {
+		long cm = estimateCurrentUsedMemory();
+		if(cm + size > totalMemAvailableToBufferPool) {
+			return true;
+		}
+		return false;
 	}
 
 }

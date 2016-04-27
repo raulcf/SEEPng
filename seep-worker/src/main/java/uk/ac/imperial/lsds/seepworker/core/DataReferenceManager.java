@@ -80,6 +80,29 @@ public class DataReferenceManager {
 		
 		this.rankedDatasets = rankedDatasets;
 		
+		freeDatasets();
+		loadToMemoryEvictedDatasets();
+		
+	}
+	
+	private void loadToMemoryEvictedDatasets() {
+		// Iterate in order until detecting the first dataset not in memory
+		for(Integer i : rankedDatasets) {
+			if(datasets.containsKey(i)) {
+				Dataset d = datasets.get(i);
+				if(! cacher.inMem(d)) {
+					// Check if there's enough memory to load it back again
+					long size = d.size();
+					if(bufferPool.isThereXMemAvailable(size)) {
+						LOG.warn("Bringing dataset id: {} back from disk to memory. Size: {}", i, size);
+						cacher.retrieveFromDisk(d);
+					}
+				}
+			}
+		}
+	}
+	
+	private void freeDatasets() {
 		// Free datasets that are no longer part of the list of rankedDatasets
 		int totalFreedMemory = 0;
 		Set<Integer> toRemove = new HashSet<>();

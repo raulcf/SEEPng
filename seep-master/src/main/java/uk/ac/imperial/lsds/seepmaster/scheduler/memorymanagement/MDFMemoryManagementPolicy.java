@@ -57,6 +57,10 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		double factor = Math.min(IOCostForThisDataset, recomputeCost);
 		
 		double precedence = accesses * factor;
+		
+		if(! nodeid_stageid_precedence.containsKey(euId)) {
+			nodeid_stageid_precedence.put(euId, new HashMap<Integer, Double>());
+		}
 		nodeid_stageid_precedence.get(euId).put(stageId, precedence);
 	}
 	
@@ -66,6 +70,9 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		Set<Stage> upstream = s.getDependencies();
 		if(upstream.size() != 1) {
 			LOG.error("upstream of more than 1 when computing recompute cost for stageId: {}" ,stageId);
+		}
+		if(! upstream.iterator().hasNext()) {
+			return recomputeCost; // source stage, cut
 		}
 		int sid = upstream.iterator().next().getStageId();
 		if(! stageid_size.containsKey(stageId)) {

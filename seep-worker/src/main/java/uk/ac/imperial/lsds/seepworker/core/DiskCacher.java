@@ -154,7 +154,7 @@ public class DiskCacher {
 				System.arraycopy(recordSizeBytes, 0, record,0, Integer.SIZE / Byte.SIZE);
 				inputStream.read(record, Integer.SIZE / Byte.SIZE, recordSize);
 				
-				// TODO: No RuntimeEventRegister for now. Does it make sense?
+				// TODO: No RuntimeEventRegister for now. Does it make sense? Raul: yes, it makes sense
 				data.write(record, null);
 				returnedTuples++;
 			}
