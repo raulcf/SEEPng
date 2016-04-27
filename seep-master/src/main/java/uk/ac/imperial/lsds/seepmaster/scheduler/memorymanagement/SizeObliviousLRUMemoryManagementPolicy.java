@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 
 public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementPolicy {
 
@@ -22,19 +23,25 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 	 */	
 	private Map<Integer, Map<Integer, Integer>> euId_lru;
 	
+	private int maxTimestamp = 0;
+	
 	public SizeObliviousLRUMemoryManagementPolicy() {
 		euId_lru = new HashMap<>();
 	}
 	
 	@Override
-	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> datasetsMetadata, int stageId) {
-		for(DatasetMetadata datasetMetadata : datasetsMetadata) {
+	public void updateDatasetsForNode(int euId, DatasetMetadataPackage datasetsMetadata, int stageId) {
+		Set<DatasetMetadata> usedDatasets = datasetsMetadata.usedDatasets;
+		Set<DatasetMetadata> allDatasets = datasetsMetadata.oldDatasets;
+		allDatasets.addAll(datasetsMetadata.newDatasets);
+		registerDatasets(euId, allDatasets);
+		for(DatasetMetadata datasetMetadata : usedDatasets) {
 			int datasetId = datasetMetadata.getDatasetId();
 			touchDataset(euId, datasetId);
 		}
 	}
 	
-	private void touchDataset(int euId, int datasetId) {
+	private void registerDatasets(int euId, Set<DatasetMetadata> allDatasets) {
 		// Make sure we have an entry for the node
 		if(! euId_lru.containsKey(euId)) {
 			euId_lru.put(euId, new HashMap<>());
@@ -43,11 +50,30 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 		Map<Integer, Integer> datasetId_timestamp = euId_lru.get(euId);
 		
 		// Then check whether we have an entry for the datasetId
-		if(! datasetId_timestamp.containsKey(datasetId)) {
-			datasetId_timestamp.put(datasetId, 0);
+		for(DatasetMetadata dm : allDatasets) {
+			int did = dm.getDatasetId();
+			if(! datasetId_timestamp.containsKey(did)) { // If it does not exist we register with maxTimestamp -> fresh in mem
+				datasetId_timestamp.put(did, maxTimestamp);
+			}
 		}
+	}
+	
+	private void touchDataset(int euId, int datasetId) {
+//		// Make sure we have an entry for the node
+//		if(! euId_lru.containsKey(euId)) {
+//			euId_lru.put(euId, new HashMap<>());
+//		}
+//		
+		Map<Integer, Integer> datasetId_timestamp = euId_lru.get(euId);
+//		
+//		// Then check whether we have an entry for the datasetId
+//		if(! datasetId_timestamp.containsKey(datasetId)) {
+//			datasetId_timestamp.put(datasetId, 0);
+//		}
 		int currentTimestamp = datasetId_timestamp.get(datasetId);
-		datasetId_timestamp.put(datasetId, (currentTimestamp + 1)); // touching means increment timestamp
+		int newTimestamp = currentTimestamp + 1;
+		datasetId_timestamp.put(datasetId, newTimestamp); // touching means increment timestamp
+		if (newTimestamp > maxTimestamp) maxTimestamp = newTimestamp;
 	}
 
 	@Override

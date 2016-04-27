@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.seepworker.core.input;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,6 +43,16 @@ public class CoreInput {
 	
 	public Map<Integer, Set<DataReference>> getDataReferences() {
 		return input;
+	}
+	
+	public Set<Integer> getAllDataReferences() {
+		Set<Integer> drefs = new HashSet<>();
+		for(Set<DataReference> drset : input.values()) {
+			for(DataReference dr : drset) {
+				drefs.add(dr.getId());
+			}
+		}
+		return drefs;
 	}
 	
 	public List<InputAdapter> getInputAdapters(){

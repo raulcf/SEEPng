@@ -9,6 +9,7 @@ import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand.Status;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.infrastructure.ControlEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 
@@ -75,7 +76,7 @@ public class ProtocolCommandFactory {
 		return co;
 	}
 
-	public static SeepCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, Set<DatasetMetadata> managedDatasets) {
+	public static SeepCommand buildStageStatusCommand(int stageId, int euId, Status status, Map<Integer, Set<DataReference>> producedOutput, List<RuntimeEvent> runtimeEvents, DatasetMetadataPackage managedDatasets) {
 		StageStatusCommand ssc = new StageStatusCommand(stageId, euId, status, producedOutput, runtimeEvents, managedDatasets);
 		MasterWorkerCommand c = new MasterWorkerCommand(ssc);
 		Command co = new Command(c);

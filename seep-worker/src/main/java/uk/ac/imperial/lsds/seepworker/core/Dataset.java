@@ -77,7 +77,12 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	public long creationCost() {
-		return (this.lastAccessForWriteTime - this.creationTime);
+		if(this.lastAccessForWriteTime > 0) {
+			return (this.lastAccessForWriteTime - this.creationTime);
+		}
+		else {
+			return 0; // because we don't want negative cost
+		}
 	}
 	
 	public List<byte[]> consumeData(int numTuples) {
@@ -225,29 +230,6 @@ public class Dataset implements IBuffer, OBuffer {
 					System.out.println("problem here");
 				}
 				rPtrToBuffer.flip();
-				
-//				if (!readerIterator.hasNext()) {
-//					
-//					//We caught up to the write buffer. Allocate a new buffer for writing
-//					//this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
-//					this.wPtrToBuffer = this.obtainNewWPtrBuffer();
-//					//this.buffers.add(wPtrToBuffer);
-//					this.addBufferToBuffers(wPtrToBuffer);
-//					
-//					
-//					if(! buffers.isEmpty()) {
-//						//Yes, the following looks a bit silly (just getting a new iterator to the position
-//						//of the current one), but it is necessary to allow readerIterator.remove to work 
-//						//without the iterator complaining about concurrent modification due to adding a new
-//						//write buffer to the list.
-//						readerIterator = this.buffers.iterator();
-//						rPtrToBuffer = readerIterator.next();
-//						if (rPtrToBuffer.remaining() == 0) {
-//							return null;
-//						}
-//					}
-//				}
-				
 			}
 			else {
 				// done reading
@@ -256,7 +238,7 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 
 		// FIXME: This is written to handle the case of having empty dataset
-		// howver, that case should be handled in a more principled way, and before
+		// however, that case should be handled in a more principled way, and before
 		if(! rPtrToBuffer.hasRemaining()) {
 			return null;
 		}

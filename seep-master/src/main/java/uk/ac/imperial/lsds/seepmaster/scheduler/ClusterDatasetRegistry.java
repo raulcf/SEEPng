@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
 
@@ -64,11 +65,13 @@ public class ClusterDatasetRegistry {
 		return this.datasetsPerNode.get(euId).size();
 	}
 
-	public void updateDatasetsForNode(int euId, Set<DatasetMetadata> managedDatasets, int stageId) {
+	public void updateDatasetsForNode(int euId, DatasetMetadataPackage managedDatasets, int stageId) {
+		Set<DatasetMetadata> all = managedDatasets.newDatasets;
+		all.addAll(managedDatasets.oldDatasets);
 		// Update metrics
-		updateMetrics(managedDatasets);
+		updateMetrics(all);
 		mmp.updateDatasetsForNode(euId, managedDatasets, stageId);
-		this.datasetsPerNode.put(euId, managedDatasets);
+		this.datasetsPerNode.put(euId, all);
 	}
 
 	public List<Integer> getRankedDatasetForNode(int euId, ScheduleDescription schedDesc) {
@@ -101,8 +104,8 @@ public class ClusterDatasetRegistry {
 		}
 	}
 	
-	private void updateMetrics(Set<DatasetMetadata> managedDatasets) {
-		for(DatasetMetadata dm : managedDatasets) {
+	private void updateMetrics(Set<DatasetMetadata> all) {
+		for(DatasetMetadata dm : all) {
 			totalDatasetsGenerated++;
 			if(! dm.isInMem()) {
 				totalDatasetsSpilledToDisk++;

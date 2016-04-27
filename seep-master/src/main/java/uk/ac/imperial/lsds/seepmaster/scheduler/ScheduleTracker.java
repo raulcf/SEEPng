@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
@@ -175,7 +176,7 @@ public class ScheduleTracker {
 			int stageId, 
 			Map<Integer, Set<DataReference>> results, 
 			List<RuntimeEvent> runtimeEvents,
-			Set<DatasetMetadata> managedDatasets) {
+			DatasetMetadataPackage managedDatasets) {
 		// Keep runtimeEvents of last executed Stage
 		if(runtimeEvents.size() > 0) {
 			this.runtimeEventsInLastStageExecution = true;

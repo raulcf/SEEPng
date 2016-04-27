@@ -23,6 +23,7 @@ import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
@@ -119,17 +120,32 @@ public class DataReferenceManager {
 		LOG.info("Total freed memory: {}", totalFreedMemory);
 	}
 	
-	public Set<DatasetMetadata> getManagedDatasetsMetadata() {
-		Set<DatasetMetadata> datasets = new HashSet<>();
-		for(Dataset d : this.datasets.values()) {
+	public DatasetMetadataPackage getManagedDatasetsMetadata(Set<Integer> usedSet) {
+		Set<DatasetMetadata> oldDatasets = new HashSet<>();
+		Set<DatasetMetadata> newDatasets = new HashSet<>();
+		Set<DatasetMetadata> usedDatasets = new HashSet<>();
+		
+		for(Dataset d : this.datasets.values()) { // Iterate over all datasets
 			int id = d.id();
 			long size = d.size();
 			boolean inMem = datasetIsInMem(id);
 			long estimatedCreationCost = d.creationCost();
 			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost);
-			datasets.add(dm);
+			// Classify then as old (non used by this stage) and new (used by this stage)
+			if(rankedDatasets.contains(id)) {
+				oldDatasets.add(dm);
+			}
+			else {
+				newDatasets.add(dm);
+			}
+			// Then also add those (repeated reference) that were used by this stage
+			if(usedSet.contains(id)) {
+				usedDatasets.add(dm);
+			}
 		}
-		return datasets;
+		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets);
+		
+		return dmp;
 	}
 	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
