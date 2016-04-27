@@ -64,6 +64,12 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 		Map<Integer, Integer> datasetId_timestamp = euId_lru.get(euId);
 		
 		Map<Integer, Integer> sorted = sortByValue(datasetId_timestamp);
+//		System.out.println("LRU VALUES");
+//		for(Integer v : sorted.values()) {
+//			System.out.print(v+" - ");
+//		}
+//		System.out.println();
+		
 		// TODO: may break ordering due to keyset returning a set ?
 		for(Integer key : sorted.keySet()) {
 			rankedDatasets.add(key);
