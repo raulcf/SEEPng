@@ -85,11 +85,17 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 			return recomputeCost; // source stage, cut
 		}
 		int sid = upstream.iterator().next().getStageId();
-		if(! stageid_size.containsKey(stageId)) {
+		if(! stageid_size.containsKey(sid)) {
 			return recomputeCost; // make sure this is not selected, as it does not exist yet
 		}
 		long size = stageid_size.get(sid);
 		long cost = stageid_cost.get(sid);
+		
+		//FIXME: temporal hack
+		if(cost < 0) {
+			return recomputeCost;
+		}
+		
 		double percDataInMem = stageid_ratio_inmem.get(sid);
 		
 		recomputeCost = cost + percDataInMem * (size * dmRatio);
