@@ -203,6 +203,13 @@ public class Conductor {
 			ns.initSelector();
 			ns.startSelector();
 		}
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE) ||
+		   coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
+			FileSelector fsel = DataStoreSelectorFactory.maybeConfigureFileSelector(coreInput, coreOutput, 
+					wc, null, myIp, wc.getInt(WorkerConfig.DATA_PORT));
+			fsel.initSelector();
+			fsel.startSelector();
+		}
 		
 		// Request (possibly) remote chunks in case of scheduling a shuffled stage
 		if(s.hasPartitionedState()) {
