@@ -249,6 +249,9 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		byte[] data = new byte[size];
 		rPtrToBuffer.get(data);
+		if(data.length == 4) {
+			System.out.println("");
+		}
 		return data;
 	}
 		
@@ -267,6 +270,10 @@ public class Dataset implements IBuffer, OBuffer {
 			if ((readSuccess = inputStream.read(recordSizeBytes)) != -1) {
 				//Convert the bytes giving us the size to an int and read exactly the next record
 				int recordSize = ByteBuffer.wrap(recordSizeBytes).getInt();
+				if(recordSize == 0) {
+					inputStream.close();
+					return null; // is this correct?
+				}
 				byte[] record = new byte[recordSize + Integer.BYTES];
 				System.arraycopy(recordSizeBytes, 0, record,0, Integer.BYTES);
 				inputStream.read(record, Integer.BYTES, recordSize);

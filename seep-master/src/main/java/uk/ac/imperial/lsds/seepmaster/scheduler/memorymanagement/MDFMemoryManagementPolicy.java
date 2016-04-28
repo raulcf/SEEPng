@@ -91,9 +91,9 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		long cost = stageid_cost.get(sid);
 		
 		//FIXME: temporal hack
-		if(cost < 0) {
-			return recomputeCost;
-		}
+//		if(cost < 0) {
+//			return recomputeCost;
+//		}
 		
 		double percDataInMem = stageid_ratio_inmem.get(sid);
 		
