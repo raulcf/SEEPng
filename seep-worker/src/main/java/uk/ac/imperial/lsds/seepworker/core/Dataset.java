@@ -9,9 +9,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
@@ -50,7 +50,7 @@ public class Dataset implements IBuffer, OBuffer {
 		this.bufferPool = bufferPool;
 		this.wPtrToBuffer = obtainInitialNewWPtrBuffer();
 		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
-		this.buffers = new LinkedList<>();
+		this.buffers = new ConcurrentLinkedQueue<>();
 		//this.buffers.add(wPtrToBuffer);
 		this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
@@ -66,10 +66,24 @@ public class Dataset implements IBuffer, OBuffer {
 		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);
-		this.buffers = new LinkedList<>();
+		this.buffers = new ConcurrentLinkedQueue<>();
 		//this.buffers.add(wPtrToBuffer);
 		this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
+	}
+	
+	public void resetDataset() {
+		if(wPtrToBuffer != null) {
+			bufferPool.returnBuffer(wPtrToBuffer);
+		}
+		this.wPtrToBuffer = obtainInitialNewWPtrBuffer();
+		this.buffers = new ConcurrentLinkedQueue<>();
+		//this.buffers.add(wPtrToBuffer);
+		this.addBufferToBuffers(wPtrToBuffer);
+		readerIterator = null;
+		rPtrToBuffer = null;
+		totalDataWrittenToThisDataset = 0;
+		cacheFilePosition = 0;
 	}
 	
 	public long size() {
@@ -96,18 +110,22 @@ public class Dataset implements IBuffer, OBuffer {
 			return 0;
 		}
 		int totalFreedMemory = 0;
-		for(ByteBuffer bb : buffers) {
-			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
+		synchronized(buffers) {
+			for(ByteBuffer bb : buffers) {
+				totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
+			}
 		}
 		return totalFreedMemory;
 	}
 	
 	private void addBufferToBuffers(ByteBuffer buf) {
-		if(buf != null) {
-			buffers.add(buf);
-		}
-		else {
-			System.out.println(buf);
+		synchronized(buffers){
+			if(buf != null) {
+				buffers.add(buf);
+			}
+			else {
+				System.out.println(buf);
+			}
 		}
 	}
 	
@@ -169,31 +187,33 @@ public class Dataset implements IBuffer, OBuffer {
 		return bb;
 	}
 	
-	public byte[] consumeDataFromMemoryForCopy() {
+	public synchronized byte[] consumeDataFromMemoryForCopy() {
+		synchronized(buffers) {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
 			readerIterator = this.buffers.iterator();
 		}
-		
-		// Get next buffer for reading
-		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
-			// When the buffer is read completely we return it to the pool
-			if(rPtrToBuffer != null) {
-				if(buffers.size() > 0) {
-					readerIterator.remove(); 
-					bufferPool.returnBuffer(rPtrToBuffer);
+		synchronized(readerIterator) {	
+			// Get next buffer for reading
+			if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
+				// When the buffer is read completely we return it to the pool
+				if(rPtrToBuffer != null) {
+					if(buffers.size() > 0) {
+						readerIterator.remove(); 
+						bufferPool.returnBuffer(rPtrToBuffer);
+					}
+				}
+				if(readerIterator.hasNext()) {
+					rPtrToBuffer = readerIterator.next();
+					rPtrToBuffer.flip();			
+				}
+				else {
+					// done reading
+					return null;
 				}
 			}
-			if(readerIterator.hasNext()) {
-				rPtrToBuffer = readerIterator.next();
-				rPtrToBuffer.flip();			
-			}
-			else {
-				// done reading
-				return null;
-			}
-		}
-
+		} // sync readerIterator
+		} // sync buffers
 		// FIXME: This is written to handle the case of having empty dataset
 		// howver, that case should be handled in a more principled way, and before
 		if(! rPtrToBuffer.hasRemaining()) {
@@ -212,11 +232,13 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private byte[] consumeDataFromMemory() {
+		synchronized(buffers) {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
 			readerIterator = this.buffers.iterator();
 		}
-		
+		} // sync buffers
+		synchronized(readerIterator) {
 		// Get next buffer for reading
 		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
 			// When the buffer is read completely we return it to the pool
@@ -230,6 +252,27 @@ public class Dataset implements IBuffer, OBuffer {
 					System.out.println("problem here");
 				}
 				rPtrToBuffer.flip();
+			}	
+				if (!readerIterator.hasNext()) {	
+ 					//We caught up to the write buffer. Allocate a new buffer for writing
+ 					//this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
+ 					this.wPtrToBuffer = this.obtainNewWPtrBuffer();
+ 					//this.buffers.add(wPtrToBuffer);
+ 					this.addBufferToBuffers(wPtrToBuffer);
+ 					
+ 					
+ 					if(! buffers.isEmpty()) {
+ 						//Yes, the following looks a bit silly (just getting a new iterator to the position
+ 						//of the current one), but it is necessary to allow readerIterator.remove to work 
+ 						//without the iterator complaining about concurrent modification due to adding a new
+ 						//write buffer to the list.
+ 						readerIterator = this.buffers.iterator();
+ 						rPtrToBuffer = readerIterator.next();
+ 						if (rPtrToBuffer.remaining() == 0) {
+ 							return null;
+ 						}
+ 					}
+ 				}
 			}
 			else {
 				// done reading

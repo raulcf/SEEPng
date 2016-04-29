@@ -97,15 +97,10 @@ public class BufferPool {
 		}
 		return true;
 	}
-	
-	private long estimateCurrentUsedMemory() {
-		long currentMemUsed = allocatedBuffers.size() * minBufferSize;
-		return currentMemUsed;
-	}
 
 	public boolean isThereXMemAvailable(long size) {
-		long cm = estimateCurrentUsedMemory();
-		if(cm + size > totalMemAvailableToBufferPool) {
+		long availableMemory = totalMemAvailableToBufferPool - usedMemory.getCount();
+		if(size < availableMemory) {
 			return true;
 		}
 		return false;

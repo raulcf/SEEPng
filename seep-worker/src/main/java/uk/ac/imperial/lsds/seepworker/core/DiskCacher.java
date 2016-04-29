@@ -135,6 +135,8 @@ public class DiskCacher {
 		int returnedTuples = 0;
 		String cacheFileName = filenames.get(data.id());
 		try {
+			// We reset the structures that were used by this dataset while still living in memory
+			data.resetDataset();
 			//Unsetting this first is necessary - otherwise the write we use to place the record
 			//back in memory will just be appended back to the file.
 			long filePosition = data.cacheFileLocation();
