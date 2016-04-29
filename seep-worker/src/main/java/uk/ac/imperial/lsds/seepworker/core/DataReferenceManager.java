@@ -288,12 +288,22 @@ public class DataReferenceManager {
 				spilledDatasets.add(datasetId);
 			}
 			else {
+				List<Integer> candidatesToSpill = new ArrayList<>();
+				long potentialFreedMemory = 0;
 				for(Integer i : rankedDatasets) { 
 					// We find the first dataset in the list that is in memory and send it to disk
 					// TODO: is one enough? how to know?
 					if(this.datasetIsInMem(i)) {
+						Dataset candidate = datasets.get(i);
+						long thisSize = candidate.size();
+						candidatesToSpill.add(i);
+						potentialFreedMemory += thisSize;
+//						if(potentialFreeMemory > 0) {
+//							
+//						}
 						sendDatasetToDisk(i);
 						spilledDatasets.add(i);
+						candidate.freeDataset();
 					}
 				}
 			}
