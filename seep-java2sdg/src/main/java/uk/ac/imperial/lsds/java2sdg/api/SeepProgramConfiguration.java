@@ -24,7 +24,6 @@ public class SeepProgramConfiguration {
 	 * API to declare a new workflow that does not have a sink
 	 * @param name The name of the workflow
 	 * @param inputDataStore The input data store
-	 * @param inputSchema The schema of the input data
 	 */
 	public void newWorkflow(String name, DataStore inputDataStore){
 		newWorkflow(name, inputDataStore, null);
@@ -34,9 +33,7 @@ public class SeepProgramConfiguration {
 	 * API to declare a new workflow that has a sink
 	 * @param name The name of the workflow
 	 * @param inputDataStore The input data store
-	 * @param inputSchema The schema of the input data
 	 * @param outputDataStore The output data store
-	 * @param outputSchema The schema of the output data
 	 */
 	public void newWorkflow(String name, DataStore inputDataStore, DataStore outputDataStore){
 		if(workflows.containsKey(name))

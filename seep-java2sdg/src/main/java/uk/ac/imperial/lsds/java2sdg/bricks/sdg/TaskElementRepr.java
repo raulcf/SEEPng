@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.imperial.lsds.seep.api.data.Schema;
@@ -15,8 +16,17 @@ public class TaskElementRepr {
 	private List<VariableRepr> outputVariables;
 	private Schema outputSchema;
 	
+	private boolean isSouce = false;
+	private boolean isSink = false;
+	
+	
 	public TaskElementRepr(int id){
 		this.id = id;
+		this.downstreams = new ArrayList<Integer>();
+		this.upstreams = new ArrayList<Integer>();
+		this.inputVariables = new ArrayList<VariableRepr>();
+		this.code = new ArrayList<String>();
+		this.outputVariables = new ArrayList<VariableRepr>();
 	}
 
 	public TaskElementRepr(int id, TaskElementRepr ter,
@@ -101,6 +111,22 @@ public class TaskElementRepr {
 		sb.append("\n" );
 		sb.append("\t\t  OutputSchema: "+ outputSchema+ "\n");
 		return sb.toString();
+	}
+
+	public boolean isSouce() {
+		return isSouce;
+	}
+
+	public boolean isSink() {
+		return isSink;
+	}
+
+	public void setSouce(boolean isSouce) {
+		this.isSouce = isSouce;
+	}
+
+	public void setSink(boolean isSink) {
+		this.isSink = isSink;
 	}
 
 }

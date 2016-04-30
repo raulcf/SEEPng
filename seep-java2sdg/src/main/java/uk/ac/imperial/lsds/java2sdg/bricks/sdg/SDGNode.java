@@ -5,7 +5,7 @@ import java.util.Map;
 public class SDGNode {
 
 	/* Each SDGNode must have a unique ID - keep the total Nodes count here*/
-	private static int sdgCount= 0;
+	private static int sdgCount = 0;
 	private int id = 0;
 	private String name;
 	private Map<Integer, TaskElementRepr> taskElements;
