@@ -202,6 +202,9 @@ public class Dataset implements IBuffer, OBuffer {
 		for(ByteBuffer bb : buffers) {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
 		}
+		if(this.wPtrToBuffer != null) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(wPtrToBuffer);
+		}
 		
 		return totalFreedMemory;
 	}
@@ -327,6 +330,7 @@ public class Dataset implements IBuffer, OBuffer {
 		return data;
 	}
 	
+	@Deprecated
 	private byte[] consumeDataFromMemory() {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
@@ -391,6 +395,7 @@ public class Dataset implements IBuffer, OBuffer {
 		return data;
 	}
 	
+	@Deprecated
 	private byte[] consumeDataFromDisk() {
 		FileInputStream inputStream;
 		try {
@@ -468,6 +473,7 @@ public class Dataset implements IBuffer, OBuffer {
 							wPtrToBuffer.flip();
 							rPtrToBuffer = wPtrToBuffer;
 							is.close();
+//							if(wPtrToBuffer.limit() == 0) return null;
 							wPtrToBuffer = null;
 						}
 						else {
@@ -483,6 +489,7 @@ public class Dataset implements IBuffer, OBuffer {
 								wPtrToBuffer.flip();
 								rPtrToBuffer = wPtrToBuffer;
 								is.close();
+//								if(wPtrToBuffer.limit() == 0) return null;
 								wPtrToBuffer = null;
 							}
 							else {
@@ -506,6 +513,7 @@ public class Dataset implements IBuffer, OBuffer {
 						wPtrToBuffer.flip();
 						rPtrToBuffer = wPtrToBuffer;
 						// no need to close stream as it does not exist
+//						if(wPtrToBuffer.limit() == 0) return null;
 						wPtrToBuffer = null;
 					}
 					else {

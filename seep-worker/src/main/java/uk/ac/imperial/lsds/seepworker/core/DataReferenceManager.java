@@ -240,7 +240,7 @@ public class DataReferenceManager {
 	
 	public void retrieveDatasetFromDisk(int datasetId) {
 		// Safety check, is there enough memory available
-		long memRequired = datasets.get(datasetId).size();
+		long memRequired = datasets.get(datasetId).size() + bufferPool.getMinimumBufferSize();
 		boolean enoughMem = bufferPool.isThereXMemAvailable(memRequired);
 		if(! enoughMem) {
 			LOG.error("Impossible to load to memory: Not enough mem available");
