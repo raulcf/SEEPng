@@ -24,6 +24,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.CodeGenerator;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.QueryBuilder;
 import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
@@ -58,7 +59,7 @@ public class Conductor {
 		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath, workflowBodies);
 		
 		for(Map.Entry<String, WorkflowRepr> w : workflows.entrySet())
-			System.out.println("W "+ w.getKey() + " V: "+ w.getValue().toString());
+			System.out.println("Workflow: "+ w.getKey() + " V: "+ w.getValue().toString());
 		
 		/** Build partial SDGs from workflows **/
 		// Perform live variable analysis and retrieve information
@@ -79,39 +80,47 @@ public class Conductor {
 			break;
 		}
 		
+		System.out.println("ALL PARTIAL SDGs: ");
+		for(PartialSDGRepr p : partialSDGs)
+			System.out.println(p.toString());
+		
 		/** Build SDG from partial SDGs **/
 		SDGRepr sdg = SDGRepr.createSDGFromPartialSDG(partialSDGs);
 		
-		/** Output generated SDG **/
+//		/** Output generated SDG **/
 		OutputTarget ot = OutputTarget.ofType(cc.getInt(CompilerConfig.TARGET_OUTPUT));
 		String outputName = cc.getString(CompilerConfig.OUTPUT_FILE);
-		switch(ot){
+		switch (ot) {
 		case DOT:
 			LOG.info("Exporting SDG to DOT file..");
-			
+
 			LOG.info("Exporting SDG to DOT file...OK");
 			break;
 		case GEXF:
 			LOG.info("Exporting SDG to GEXF file...");
-			
+
 			LOG.info("Exporting SDG to GEXF file...OK");
 			break;
 		case X_JAR:
 			LOG.info("Exporting SDG to SEEP runnable query JAR...");
-			for(SDGNode n : sdg.getSdgNodes()){
+			for (SDGNode n : sdg.getSdgNodes()) {
 				System.out.println("-----------");
 				System.out.println(n.toString());
 				System.out.println("-----------");
 			}
-			List<SDGNode> sdgNodes = CodeGenerator.assemble(sdg).getSdgNodes();
-//			List<OperatorBlock> assembledCode = CodeGenerator.assemble(sdg);
+
+			SDGRepr assembledSDG = CodeGenerator.assemble(sdg);
 			QueryBuilder qBuilder = new QueryBuilder();
-			qBuilder.generateDummyQueryPlanDriver(sdgNodes.get(0));
-			
+			qBuilder.generateQueryPlanDriver(assembledSDG);
+			// List<SDGNode> sdgNodes =
+			// CodeGenerator.assemble(sdg).getSdgNodes();
+			// qBuilder.generateDummyQueryPlanDriver(sdgNodes.get(0));
+
 			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;
 		default:
-			
+			LOG.error("Unkown Output OPTION {} ", ot);
+
 		}
 		
 	}

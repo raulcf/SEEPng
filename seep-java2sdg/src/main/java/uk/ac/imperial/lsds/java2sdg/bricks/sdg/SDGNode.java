@@ -61,6 +61,17 @@ public class SDGNode {
 		this.builtCode = buildCode;
 	}
 	
+	/**
+	 * Need to know the type of the Node
+	 */
+	public boolean isSource(){
+		return (this.taskElements.size()==1) && this.taskElements.values().iterator().next().isSouce();
+	}
+	
+	public boolean isSink(){
+		return (this.taskElements.size()==1) && this.taskElements.values().iterator().next().isSink();
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();

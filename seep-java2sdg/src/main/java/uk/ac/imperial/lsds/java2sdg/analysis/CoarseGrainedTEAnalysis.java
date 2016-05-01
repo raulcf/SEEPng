@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.codehaus.janino.Java.BasicType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +62,25 @@ public class CoarseGrainedTEAnalysis {
 			List<VariableRepr> inputVariables = lvInfo.getLiveInputVarsAt(workflowName, code.getInitLine());
 			// check what are the live variables in the last line
 			List<VariableRepr> outputVariables = lvInfo.getLiveOutputVarsAt(workflowName, code.getEndLine());
+			
+			//What about Schema vars?? add them here!
+			//TODO: pgaref FIX STRING - JAnino type - hardcoded to bytes!
+			for( String var : source.getSchema().names() ) {
+				if(source.getSchema().getField(var).toString() == "INT"){
+					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
+					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
+				}
+				else if(source.getSchema().getField(var).toString() == "STRING"){
+					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.BYTE), var));
+					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.BYTE), var));
+				}
+				else if(source.getSchema().getField(var).toString() == "LONG"){
+					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
+					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
+				}
+			}
+			
+			
 			
 //			System.out.println("--------IN------------");
 //			inputVariables.forEach( var -> System.out.println(var.getName()));
