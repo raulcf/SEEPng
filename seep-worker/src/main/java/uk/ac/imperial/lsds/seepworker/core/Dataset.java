@@ -63,13 +63,7 @@ public class Dataset implements IBuffer, OBuffer {
 			String name = drm.createDatasetOnDisk(id);
 			this.setCachedLocation(name);
 		}
-		
-		//this.wPtrToBuffer = obtainInitialNewWPtrBuffer(onDisk);
-		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
-		
 		this.buffers = new ConcurrentLinkedQueue<>();
-		//this.buffers.add(wPtrToBuffer);
-		//this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 
@@ -81,12 +75,7 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		// Get cache buffer, always one available
 		this.wPtrToBuffer = bufferPool.getCacheBuffer();
-		
-		//this.wPtrToBuffer = obtainInitialNewWPtrBuffer(false);
-		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		this.buffers = new ConcurrentLinkedQueue<>();
-		//this.buffers.add(wPtrToBuffer);
-		//this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
@@ -99,14 +88,9 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		// Get cache buffer, always one available
 		this.wPtrToBuffer = bufferPool.getCacheBuffer();
-		
-//		this.wPtrToBuffer = obtainInitialNewWPtrBuffer(false);
-		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);
 		this.buffers = new ConcurrentLinkedQueue<>();
-		//this.buffers.add(wPtrToBuffer);
-		//this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
@@ -119,7 +103,6 @@ public class Dataset implements IBuffer, OBuffer {
 			System.out.println("NO DATA TO SPILL");
 			System.exit(-1);
 		}
-//		this.addBufferToBuffers(wPtrToBuffer);
 		readerIterator = this.buffers.iterator();
 		return readerIterator;
 	}
@@ -477,8 +460,6 @@ public class Dataset implements IBuffer, OBuffer {
 				}
 				if(readerIterator.hasNext()) {
 					rPtrToBuffer = readerIterator.next();
-//					rPtrToBuffer.flip();
-//					rPtrToBuffer.limit(24);
 				}
 				else {
 					// No more buffers available, read the write buffer
@@ -506,7 +487,6 @@ public class Dataset implements IBuffer, OBuffer {
 							if(wPtrToBuffer != null) {
 								wPtrToBuffer.flip();
 								rPtrToBuffer = wPtrToBuffer;
-								//cacheFilePosition += minBufSize + 1; // 4 limit size
 								is.close();
 								wPtrToBuffer = null;
 							}
@@ -522,7 +502,6 @@ public class Dataset implements IBuffer, OBuffer {
 								if(wPtrToBuffer != null) {
 									wPtrToBuffer.flip();
 									rPtrToBuffer = wPtrToBuffer;
-									//cacheFilePosition += minBufSize + 1; // 4 limit size
 									is.close();
 									wPtrToBuffer = null;
 								}

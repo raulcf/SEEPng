@@ -265,7 +265,7 @@ public class DataReferenceManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} 
+		}
 		finally {
 			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
 		}
