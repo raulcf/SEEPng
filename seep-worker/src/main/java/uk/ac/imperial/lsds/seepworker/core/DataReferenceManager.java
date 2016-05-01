@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class DataReferenceManager {
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
 		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID) + rnd;
 		this.bufferPool = BufferPool.createBufferPool(wc);
-		this.cacher = DiskCacher.makeDiskCacher();
+		this.cacher = DiskCacher.makeDiskCacher(wc);
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -95,8 +96,16 @@ public class DataReferenceManager {
 					// Check if there's enough memory to load it back again
 					long size = d.size();
 					if(bufferPool.isThereXMemAvailable(size)) {
-						LOG.warn("Bringing dataset id: {} back from disk to memory. Size: {}", i, size);
-						cacher.retrieveFromDisk(d);
+						this.retrieveDatasetFromDisk(i);
+//						LOG.warn("Bringing dataset id: {} back from disk to memory. Size: {}", i, size);
+//						try {
+//							cacher.retrieveFromDisk(d);
+//						} 
+//						catch (FileNotFoundException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//						LOG.warn("Finished returning cached Dataset to memory, id -> {}", i);
 					}
 				}
 			}
@@ -146,6 +155,23 @@ public class DataReferenceManager {
 		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets);
 		
 		return dmp;
+	}
+	
+	public OBuffer _manageNewDataReferenceBackupOnDisk(DataReference dataRef) {
+		int id = dataRef.getId();
+		Dataset newDataset = null;
+		if(! catalogue.containsKey(id)) {
+			LOG.info("Start managing new DataReference, id -> {}", id);
+			catalogue.put(id, dataRef);
+			// TODO: will become more complex...
+			newDataset = Dataset.newDatasetOnDisk(dataRef, bufferPool, this);
+			//newDataset = new Dataset(dataRef, bufferPool, this);
+			datasets.put(id, newDataset);
+		}
+		else {
+			LOG.warn("Attempt to register an already existent DataReference, id -> {}", id);
+		}
+		return newDataset;
 	}
 	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
@@ -217,14 +243,20 @@ public class DataReferenceManager {
 	
 	public void sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
-		cacher.cacheToDisk(datasets.get(datasetId));
-		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+		int freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
+		LOG.info("Cached to disk, id -> {}, freedMemory -> {}", datasetId, freedMemory);
 	}
 	
-	public int retrieveDatasetFromDisk(int datasetId) {
+	public void retrieveDatasetFromDisk(int datasetId) {
 		try {
 			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
-			return cacher.retrieveFromDisk(datasets.get(datasetId));
+			try {
+				cacher.retrieveFromDisk(datasets.get(datasetId));
+			} 
+			catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} finally {
 			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
 		}

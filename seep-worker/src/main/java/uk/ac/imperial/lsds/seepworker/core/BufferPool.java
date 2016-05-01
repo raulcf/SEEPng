@@ -21,7 +21,7 @@ public class BufferPool {
 	private final int minBufferSize;
 	private final long totalMemAvailableToBufferPool;
 	private Deque<ByteBuffer> allocatedBuffers;
-	
+		
 	// Metrics
 	// usedMemory is allocated memory that is currently used by some Dataset
 	// Note that the total memory usage may be higher, as buffers are pooled and not
@@ -39,7 +39,6 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.warn("TEMPORAL-> dangling buffer pools");
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
-		usedMemory.inc(minBufferSize);
 	}
 	
 	private BufferPool(WorkerConfig wc) {
@@ -48,7 +47,6 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
-		usedMemory.inc(minBufferSize);
 	}
 	
 	public static BufferPool createBufferPool(WorkerConfig wc) {
@@ -83,6 +81,11 @@ public class BufferPool {
 		}
 	}
 	
+	public ByteBuffer getCacheBuffer() {
+		ByteBuffer bb = ByteBuffer.allocate(minBufferSize);
+		return bb;
+	}
+	
 	public int returnBuffer(ByteBuffer buffer) {
 		int freedMemory = buffer.capacity();
 		usedMemory.dec(minBufferSize);
@@ -92,7 +95,7 @@ public class BufferPool {
 	
 	private boolean enoughMemoryAvailable() {
 		// Any headroom should have been incorporated on bufferPool creation (e.g. aprox. constant mem usage on steady state)
-		if(usedMemory.getCount() + minBufferSize >= totalMemAvailableToBufferPool) {
+		if(usedMemory.getCount() + minBufferSize > totalMemAvailableToBufferPool) {
 			return false;
 		}
 		return true;

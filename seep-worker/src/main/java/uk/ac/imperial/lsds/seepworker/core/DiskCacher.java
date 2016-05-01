@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,10 +11,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
 /***
  * Class to move Datasets between disk and memory, as requested (by the DataReferenceManager).
@@ -26,13 +31,16 @@ public class DiskCacher {
 	private Map<Integer, String> filenames;
 	private static DiskCacher instance;
 	
-	private DiskCacher() {
+	private WorkerConfig wc;
+	
+	private DiskCacher(WorkerConfig wc) {
 		filenames = new HashMap<Integer, String>();
+		this.wc = wc;
 	}
 
-	public static DiskCacher makeDiskCacher() {
+	public static DiskCacher makeDiskCacher(WorkerConfig wc) {
 		if(instance == null) {
-			instance = new DiskCacher();
+			instance = new DiskCacher(wc);
 		}
 		return instance;
 	}
@@ -49,6 +57,57 @@ public class DiskCacher {
 		return cacheFileName;
 	}
 	
+	private String getCacheFileName(int id) {
+		String cacheFileName = "";
+		if(filenames == null) {
+			System.out.println("filenames null");
+		}
+		if (filenames.containsKey(id)) {
+			//Already on disk. We could claim victory and return, but this will allow us to cache any
+			//items stuck in memory (see comment below).
+			cacheFileName = filenames.get(id);
+		} else {
+			//Changing to abs might lead to a conflict (HIGHLY unlikely, needs a DataSet with the opposite 
+			//ID cached at exactly the same time), but files that start with - are annoying in console
+			//debugging.
+			cacheFileName = Math.abs(id) + "_" + System.currentTimeMillis() + ".cached";
+			filenames.put(id, cacheFileName);
+		}
+		return cacheFileName;
+	}
+	
+	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+		String cacheFileName = getCacheFileName(data.id());
+		
+		// Prepare channel
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(cacheFileName), wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
+		
+		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
+		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
+		
+		while(buffers.hasNext()) {
+			ByteBuffer bb = buffers.next();
+//			if(buffers.hasNext()) { // last buffer stays for writing
+//				bb.flip();
+			byte[] payload = bb.array();
+			int limit = bb.limit();
+			bos.write(limit);
+			bos.write(payload, 0, payload.length);
+//			}
+		}
+		
+		// close
+		int freedMemory = data.completeTransferToDisk();
+		
+		bos.flush();
+		bos.close();
+		
+		data.setCachedLocation(cacheFileName);
+		LOG.debug("Content is spilled to: {}", cacheFileName);
+		
+		return freedMemory;
+	}
+	
 	/***
 	 * Moves a Dataset to disk. If the Dataset is already on disk we try to move everything to
 	 * disk anyway. This is because there can be some rare instances with multithreading when
@@ -60,7 +119,7 @@ public class DiskCacher {
 	 * @throws IOException
 	 * @return The number of records sent to disk.
 	 */
-	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+	public int _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = "";
 		int cachedRecords = 0;
 		//if(data.id() == null) {System.out.println("ID");}
@@ -121,12 +180,33 @@ public class DiskCacher {
 		return cachedRecords;
 	}
 	
+	public void retrieveFromDisk(Dataset data) throws FileNotFoundException {
+		
+		// Get cache file
+		String cacheFileName = filenames.get(data.id());
+		// Prepare dataset for trasnfer to memory
+		ByteBuffer currentPointer = data.prepareForTransferToMemory();
+		
+		int bbSize = wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE);
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(cacheFileName), bbSize);
+
+		data.transferToMemory(bis, bbSize);
+		
+		data.completeTransferToMemory(currentPointer);
+		
+		data.unsetCachedLocation();
+		filenames.remove(data.id());
+		if (filenames.containsKey(data.id())) {
+			data.setCachedLocation(filenames.get(data.id()));
+		}
+	}
+	
 	/**
 	 * Returns a Dataset from disk to memory.
 	 * @param data
 	 * @return The number of records returned to memory.
 	 */
-	public int retrieveFromDisk(Dataset data) {
+	public int _retrieveFromDisk(Dataset data) {
 		if (!filenames.containsKey(data.id())) {
 			//No file on disk, so exactly zero ITuples can be returned to memory.
 			return 0;

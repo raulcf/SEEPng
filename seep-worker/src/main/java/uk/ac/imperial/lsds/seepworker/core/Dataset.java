@@ -1,5 +1,7 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -42,17 +44,49 @@ public class Dataset implements IBuffer, OBuffer {
 	// dataset in a helper class, and do the management outside this. Open issue for this.
 	private String cacheFileName = "";
 	private long cacheFilePosition = 0;
+	
+	public static Dataset newDatasetOnDisk(DataReference dataRef,
+			BufferPool bufferPool, DataReferenceManager drm) {
+		return new Dataset(dataRef, bufferPool, drm, true);
+	}
+	
+	public Dataset(DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm, boolean onDisk) {
+		this.drm = drm;
+		this.dataReference = dataReference;
+		this.id = dataReference.getId();
+		this.bufferPool = bufferPool;
+		
+		// Get cache buffer, always one available
+		this.wPtrToBuffer = bufferPool.getCacheBuffer();
+		// If dataset is to be created on disk:
+		if(onDisk) {
+			String name = drm.createDatasetOnDisk(id);
+			this.setCachedLocation(name);
+		}
+		
+		//this.wPtrToBuffer = obtainInitialNewWPtrBuffer(onDisk);
+		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
+		
+		this.buffers = new ConcurrentLinkedQueue<>();
+		//this.buffers.add(wPtrToBuffer);
+		//this.addBufferToBuffers(wPtrToBuffer);
+		this.creationTime = System.nanoTime();
+	}
 
 	public Dataset(DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm) {
 		this.drm = drm;
 		this.dataReference = dataReference;
 		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
-		this.wPtrToBuffer = obtainInitialNewWPtrBuffer();
-		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
+		
+		// Get cache buffer, always one available
+		this.wPtrToBuffer = bufferPool.getCacheBuffer();
+		
+		//this.wPtrToBuffer = obtainInitialNewWPtrBuffer(false);
+		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		this.buffers = new ConcurrentLinkedQueue<>();
 		//this.buffers.add(wPtrToBuffer);
-		this.addBufferToBuffers(wPtrToBuffer);
+		//this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
@@ -62,16 +96,132 @@ public class Dataset implements IBuffer, OBuffer {
 		this.dataReference = dr;
 		this.id = id;
 		this.bufferPool = bufferPool;
-		this.wPtrToBuffer = obtainInitialNewWPtrBuffer();
-		assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
+		
+		// Get cache buffer, always one available
+		this.wPtrToBuffer = bufferPool.getCacheBuffer();
+		
+//		this.wPtrToBuffer = obtainInitialNewWPtrBuffer(false);
+		//assert(this.wPtrToBuffer != null); // enough memory available for the initial buffer
 		// This data is ready to be simply copied over
 		wPtrToBuffer.put(syntheticData);
 		this.buffers = new ConcurrentLinkedQueue<>();
 		//this.buffers.add(wPtrToBuffer);
-		this.addBufferToBuffers(wPtrToBuffer);
+		//this.addBufferToBuffers(wPtrToBuffer);
 		this.creationTime = System.nanoTime();
 	}
 	
+	/**
+	 * Call this method before moving a dataset to disk
+	 * @return
+	 */
+	public Iterator<ByteBuffer> prepareForTransferToDisk() {
+		if(!(this.buffers.size() > 0)) {
+			System.out.println("NO DATA TO SPILL");
+			System.exit(-1);
+		}
+//		this.addBufferToBuffers(wPtrToBuffer);
+		readerIterator = this.buffers.iterator();
+		return readerIterator;
+	}
+	
+	public ByteBuffer prepareForTransferToMemory() {
+		ByteBuffer bb = this.wPtrToBuffer;
+		this.buffers = new ConcurrentLinkedQueue<>();
+		return bb;
+	}
+	
+	/**
+	 * Call this method after moving a dataset buffers to disk
+	 * @return
+	 */
+	public int completeTransferToDisk() {
+		if(!(this.buffers.size() > 0)) {
+			System.out.println("NO DATA TO SPILL");
+			System.exit(-1);
+		}
+		
+		readerIterator = this.buffers.iterator();
+		
+		int freedMemory = 0;
+		while(readerIterator.hasNext()) {
+			ByteBuffer bb = readerIterator.next();
+			freedMemory += bufferPool.returnBuffer(bb);
+			readerIterator.remove();
+			//this.wPtrToBuffer = null;
+//			if(! readerIterator.hasNext()) {
+//				// if this is the last buffer, do not return (used for writing)
+//				this.wPtrToBuffer = bb;
+//			}
+//			else {
+//				freedMemory += bufferPool.returnBuffer(bb);
+//				readerIterator.remove();
+//			}
+		}
+		return freedMemory;
+	}
+	
+	public void transferToMemory(BufferedInputStream bis, int bbSize) {
+		boolean goOn = true;
+		while(goOn) {
+			int limit = 0;
+			ByteBuffer bb = null;
+			try {
+				limit = bis.read();
+				if(limit == -1) {
+					goOn = false;
+					bis.close();
+					continue;
+				}
+				bb = bufferPool.borrowBuffer();
+				int read = 0;
+				if(bb == null) { // Run out of memory, we can try with the cached buffer
+					read = bis.read(wPtrToBuffer.array());
+				}
+				else {
+					read = bis.read(bb.array());
+				}
+				if(read == -1) {
+					goOn = false;
+					bufferPool.returnBuffer(bb);
+					bis.close();
+					continue;
+				}
+			} 
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			// Add read buffer to memory
+			if(bb == null) {
+				wPtrToBuffer.limit(limit);
+				wPtrToBuffer.flip();
+				this.addBufferToBuffers(wPtrToBuffer);
+			}
+			else {
+				bb.limit(limit);
+				this.addBufferToBuffers(bb);
+			}
+		}
+	}
+	
+	public void completeTransferToMemory(ByteBuffer currentPointer) {
+		//this.wPtrToBuffer = currentPointer;
+		// Just get the tail of the queue
+//		Iterator<ByteBuffer> it = buffers.iterator();
+//		while(it.hasNext()) {
+//			ByteBuffer bb = it.next();
+//			if(! it.hasNext()) {
+//				this.wPtrToBuffer = bb;
+//			}
+//		}
+//		this.addBufferToBuffers(currentPointer);
+		
+		// Reset dataset so that it can be read again
+		this.readerIterator = null;
+		this.rPtrToBuffer = null;
+		this.cacheFilePosition = 0;
+	}
+	
+	@Deprecated
 	public void resetDataset() {
 		int size = 0;
 		if(rPtrToBuffer != null) {
@@ -82,7 +232,7 @@ public class Dataset implements IBuffer, OBuffer {
 		if(wPtrToBuffer != null) {
 			bufferPool.returnBuffer(wPtrToBuffer);
 		}
-		this.wPtrToBuffer = obtainInitialNewWPtrBuffer();
+		this.wPtrToBuffer = obtainInitialNewWPtrBuffer(false);
 		this.buffers = new ConcurrentLinkedQueue<>();
 		//this.buffers.add(wPtrToBuffer);
 		this.addBufferToBuffers(wPtrToBuffer);
@@ -105,37 +255,32 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 	}
 	
-	public List<byte[]> consumeData(int numTuples) {
-		// TODO: Implement
-		return null;
-	}
-	
 	public int freeDataset() {
-//		if(! cacheFileName.equals("")) {
-//			// we dont remove files
-//			return 0;
-//		}
 		int totalFreedMemory = 0;
-		synchronized(buffers) {
-			for(ByteBuffer bb : buffers) {
-				totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
-			}
+		for(ByteBuffer bb : buffers) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(bb);
 		}
+		
 		return totalFreedMemory;
 	}
 	
-	private void addBufferToBuffers(ByteBuffer buf) {
-		synchronized(buffers){
-			if(buf != null) {
-				buffers.add(buf);
-			}
-			else {
-				System.out.println(buf);
-			}
+	public void addBufferToBuffers(ByteBuffer buf) {
+		if(buf != null) {
+			buffers.add(buf);
+		}
+		else {
+			System.out.println("ERROR ADDING EMPTY BUFFER TO MEMORY");
+			System.exit(-1);
 		}
 	}
 	
-	private ByteBuffer obtainInitialNewWPtrBuffer() {
+	@Deprecated
+	private ByteBuffer obtainInitialNewWPtrBuffer(boolean onDisk) {
+		if(onDisk) {
+			String name = drm.createDatasetOnDisk(id);
+			this.setCachedLocation(name);
+			return bufferPool.getCacheBuffer();
+		}
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		while(bb == null) {
 			// free some memory from the node: true/false
@@ -144,11 +289,10 @@ public class Dataset implements IBuffer, OBuffer {
 			if(spilledDatasets.isEmpty()) {
 				// no more memory available, allocate buffer on disk
 				
-				// CREATE FILE ON DISK 
+				// CREATE FILE ON DISK
 				String name = drm.createDatasetOnDisk(id);
 				this.setCachedLocation(name);
 				 
-				
 				break;
 			}
 			else {
@@ -193,33 +337,30 @@ public class Dataset implements IBuffer, OBuffer {
 		return bb;
 	}
 	
-	public synchronized byte[] consumeDataFromMemoryForCopy() {
-		synchronized(buffers) {
+	@Deprecated
+	public  byte[] consumeDataFromMemoryForCopy() {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
 			readerIterator = this.buffers.iterator();
 		}
-		synchronized(readerIterator) {	
-			// Get next buffer for reading
-			if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
-				// When the buffer is read completely we return it to the pool
-				if(rPtrToBuffer != null) {
-					if(buffers.size() > 0) {
-						readerIterator.remove(); 
-						bufferPool.returnBuffer(rPtrToBuffer);
-					}
-				}
-				if(readerIterator.hasNext()) {
-					rPtrToBuffer = readerIterator.next();
-					rPtrToBuffer.flip();			
-				}
-				else {
-					// done reading
-					return null;
+		// Get next buffer for reading
+		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
+			// When the buffer is read completely we return it to the pool
+			if(rPtrToBuffer != null) {
+				if(buffers.size() > 0) {
+					readerIterator.remove(); 
+					bufferPool.returnBuffer(rPtrToBuffer);
 				}
 			}
-		} // sync readerIterator
-		} // sync buffers
+			if(readerIterator.hasNext()) {
+				rPtrToBuffer = readerIterator.next();
+				rPtrToBuffer.flip();			
+			}
+			else {
+				// done reading
+				return null;
+			}
+		}
 		// FIXME: This is written to handle the case of having empty dataset
 		// howver, that case should be handled in a more principled way, and before
 		if(! rPtrToBuffer.hasRemaining()) {
@@ -233,13 +374,11 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private byte[] consumeDataFromMemory() {
-		synchronized(buffers) {
 		// Lazily initialize Iterator
 		if(readerIterator == null) {
 			readerIterator = this.buffers.iterator();
 		}
-		} // sync buffers
-		synchronized(readerIterator) {
+		
 		// Get next buffer for reading
 		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
 			// When the buffer is read completely we return it to the pool
@@ -274,13 +413,12 @@ public class Dataset implements IBuffer, OBuffer {
 // 						}
 // 					}
 // 				}
-			}
+			
 			else {
 				// done reading
 				return null;
 			}
 		}
-
 		// FIXME: This is written to handle the case of having empty dataset
 		// however, that case should be handled in a more principled way, and before
 		if(! rPtrToBuffer.hasRemaining()) {
@@ -298,7 +436,7 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		return data;
 	}
-		
+	
 	private byte[] consumeDataFromDisk() {
 		FileInputStream inputStream;
 		try {
@@ -339,6 +477,100 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 			
 	public byte[] consumeData() {
+		// Try to read from rPtrToBuffer
+		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
+			// MEMORY
+			if (cacheFileName.equals("")) {
+				if(readerIterator == null) {
+					readerIterator = this.buffers.iterator();
+				}
+				if(readerIterator.hasNext()) {
+					rPtrToBuffer = readerIterator.next();
+//					rPtrToBuffer.flip();
+//					rPtrToBuffer.limit(24);
+				}
+				else {
+					// No more buffers available, read the write buffer
+					if(wPtrToBuffer != null) {
+						wPtrToBuffer.flip();
+						rPtrToBuffer = wPtrToBuffer;
+						wPtrToBuffer = null;
+					}
+					else {
+						return null;
+					}
+				}
+			}
+			// DISK
+			else {
+				try {
+					int minBufSize = bufferPool.getMinimumBufferSize();
+					FileInputStream is = new FileInputStream(cacheFileName);
+					try {
+						is.getChannel().position(cacheFilePosition);
+						byte[] d = new byte[minBufSize];
+						int limit = is.read();
+						if(limit == -1) {
+							// if the write buffer still contains data
+							if(wPtrToBuffer != null) {
+								wPtrToBuffer.flip();
+								rPtrToBuffer = wPtrToBuffer;
+								cacheFilePosition += minBufSize + 1; // 4 limit size
+								is.close();
+								wPtrToBuffer = null;
+							}
+							else {
+								is.close();
+								return null;
+							}
+						}
+						else {
+						int read = is.read(d);
+							if(read == -1) {
+								// if the write buffer still contains data
+								if(wPtrToBuffer != null) {
+									wPtrToBuffer.flip();
+									rPtrToBuffer = wPtrToBuffer;
+									cacheFilePosition += minBufSize + 1; // 4 limit size
+									is.close();
+									wPtrToBuffer = null;
+								}
+								else {
+									is.close();
+									return null;
+								}
+							}
+							else if (read != minBufSize) {
+								System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
+								System.exit(-1);
+							}
+							else {
+								rPtrToBuffer = ByteBuffer.wrap(d);
+								cacheFilePosition += minBufSize + 1; // 4 limit size
+								is.close();
+							}
+						}
+					} 
+					catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} 
+				catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		// At this point we have rPtrToBuffer
+		int size = rPtrToBuffer.getInt();
+		byte[] data = new byte[size];
+		rPtrToBuffer.get(data);
+		return data;
+	}
+	
+	public byte[] _consumeData() {
 
 		byte[] data = null;
 		if (cacheFileName.equals("")) {
@@ -377,6 +609,55 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	@Override
 	public boolean write(byte[] data, RuntimeEventRegister reg) {
+		int dataSize = data.length;
+		totalDataWrittenToThisDataset = totalDataWrittenToThisDataset + dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		this.lastAccessForWriteTime = System.nanoTime();
+		
+		// Try to write to cache buffer first
+		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
+			// When buffer is full, then we check whether this dataset is in memory or not
+			if (!cacheFileName.equals("")) { // disk
+				transferBBToDisk();
+				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+			}
+			else { // memory
+				wPtrToBuffer.flip();
+				this.addBufferToBuffers(wPtrToBuffer); // add full buffer
+				this.wPtrToBuffer = this.obtainNewWPtrBuffer(); // try to get a new one
+			}
+		}
+		
+		// Write size and data to cache buffer. Here it is guaranteed to exist
+		wPtrToBuffer.putInt(dataSize);
+		wPtrToBuffer.put(data);
+		
+		return true;
+	}
+	
+	private void transferBBToDisk() {
+		BufferedOutputStream bos = null;
+		try {
+			// Open file to append buffer
+			bos = new BufferedOutputStream(new FileOutputStream(cacheFileName, true), bufferPool.getMinimumBufferSize());
+			int limit = wPtrToBuffer.limit();
+			byte[] payload = wPtrToBuffer.array();
+			bos.write(limit);
+			bos.write(payload, 0, payload.length);
+			bos.flush();
+			bos.close();
+		}
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public boolean _write(byte[] data, RuntimeEventRegister reg) {
 		totalDataWrittenToThisDataset = totalDataWrittenToThisDataset + data.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		this.lastAccessForWriteTime = System.nanoTime();
 		
