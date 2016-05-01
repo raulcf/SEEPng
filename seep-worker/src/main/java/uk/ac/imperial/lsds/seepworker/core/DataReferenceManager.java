@@ -94,18 +94,9 @@ public class DataReferenceManager {
 				Dataset d = datasets.get(i);
 				if(! cacher.inMem(d)) {
 					// Check if there's enough memory to load it back again
-					long size = d.size();
+					long size = d.size() + bufferPool.getMinimumBufferSize(); // Overcalculate to account for cached buffer
 					if(bufferPool.isThereXMemAvailable(size)) {
 						this.retrieveDatasetFromDisk(i);
-//						LOG.warn("Bringing dataset id: {} back from disk to memory. Size: {}", i, size);
-//						try {
-//							cacher.retrieveFromDisk(d);
-//						} 
-//						catch (FileNotFoundException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//						LOG.warn("Finished returning cached Dataset to memory, id -> {}", i);
 					}
 				}
 			}

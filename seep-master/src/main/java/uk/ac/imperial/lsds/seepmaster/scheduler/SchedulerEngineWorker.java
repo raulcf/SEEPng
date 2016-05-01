@@ -18,7 +18,6 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;

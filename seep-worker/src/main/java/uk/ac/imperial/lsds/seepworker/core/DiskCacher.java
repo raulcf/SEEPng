@@ -66,7 +66,8 @@ public class DiskCacher {
 			//Already on disk. We could claim victory and return, but this will allow us to cache any
 			//items stuck in memory (see comment below).
 			cacheFileName = filenames.get(id);
-		} else {
+		} 
+		else {
 			//Changing to abs might lead to a conflict (HIGHLY unlikely, needs a DataSet with the opposite 
 			//ID cached at exactly the same time), but files that start with - are annoying in console
 			//debugging.
@@ -213,7 +214,7 @@ public class DiskCacher {
 		String cacheFileName = filenames.get(data.id());
 		try {
 			// We reset the structures that were used by this dataset while still living in memory
-			data.resetDataset();
+//			data.resetDataset();
 			//Unsetting this first is necessary - otherwise the write we use to place the record
 			//back in memory will just be appended back to the file.
 			long filePosition = data.cacheFileLocation();

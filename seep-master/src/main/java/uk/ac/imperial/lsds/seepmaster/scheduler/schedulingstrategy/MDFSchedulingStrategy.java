@@ -38,7 +38,6 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			// TODO: pick stage according to the currentBestCandidate
 			Set<Stage> upstream = nextToSchedule.getDependencies();
 			Map<Integer, Set<DataReference>> chosenResultsOfStage = new HashMap<>();
-			Set<Integer> datasetsToEvict = new HashSet<>();
 			for(Stage s : upstream) {
 				int stageId = s.getStageId();
 				Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(stageId);
@@ -46,18 +45,10 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 					// Filter out potential inputs of CHOOSE to get only the chosen one
 					chosenResultsOfStage.put(nextToSchedule.getStageId(), inputs);
 				}
-//				else {
-//					for(DataReference dr : inputs) {
-//						datasetsToEvict.add(dr.getId());
-//					}
-//				}
 			}
 			
 			// Say that choose is done and assign results to its downstream stages
 			tracker.setFinished(nextToSchedule, chosenResultsOfStage);
-			
-			// Remove datasets to evict from cluster
-//			tracker.getClusterDatasetRegistry().evictDatasetFromCluster(datasetsToEvict);
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
