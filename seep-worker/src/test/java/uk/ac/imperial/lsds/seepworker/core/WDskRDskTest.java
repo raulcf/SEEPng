@@ -29,8 +29,8 @@ public class WDskRDskTest {
 		final int tupleSize = 8 + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		final int numTuples = 10;
 		//Basing the buffer sizes on the tuple size lets us control running out of memory
-		final int maxBufferSize = numTuples * tupleSize;
-		final int minBufferAllocation = 2 * tupleSize;
+		final int maxBufferSize = 2 * numTuples * tupleSize;
+		final int minBufferAllocation = 2 * tupleSize; // + 3 to change offsets
 		
 		
 		Properties p = new Properties();
