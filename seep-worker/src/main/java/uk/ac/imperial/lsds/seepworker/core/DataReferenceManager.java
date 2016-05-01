@@ -248,6 +248,14 @@ public class DataReferenceManager {
 	}
 	
 	public void retrieveDatasetFromDisk(int datasetId) {
+		// Safety check, is there enough memory available
+		long memRequired = datasets.get(datasetId).size();
+		boolean enoughMem = bufferPool.isThereXMemAvailable(memRequired);
+		if(! enoughMem) {
+			LOG.error("Impossible to load to memory: Not enough mem available");
+			return;
+		}
+		
 		try {
 			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
 			try {
@@ -257,7 +265,8 @@ public class DataReferenceManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} finally {
+		} 
+		finally {
 			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
 		}
 	}
@@ -321,18 +330,12 @@ public class DataReferenceManager {
 			}
 			else {
 				List<Integer> candidatesToSpill = new ArrayList<>();
-				long potentialFreedMemory = 0;
 				for(Integer i : rankedDatasets) { 
 					// We find the first dataset in the list that is in memory and send it to disk
 					// TODO: is one enough? how to know?
 					if(this.datasetIsInMem(i)) {
 						Dataset candidate = datasets.get(i);
-						long thisSize = candidate.size();
 						candidatesToSpill.add(i);
-						potentialFreedMemory += thisSize;
-//						if(potentialFreeMemory > 0) {
-//							
-//						}
 						sendDatasetToDisk(i);
 						spilledDatasets.add(i);
 						candidate.freeDataset();

@@ -87,13 +87,10 @@ public class DiskCacher {
 		
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
-//			if(buffers.hasNext()) { // last buffer stays for writing
-//				bb.flip();
 			byte[] payload = bb.array();
 			int limit = bb.limit();
 			bos.write(limit);
 			bos.write(payload, 0, payload.length);
-//			}
 		}
 		
 		// close

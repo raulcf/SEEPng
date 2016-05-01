@@ -73,7 +73,6 @@ public class WMemSDskWDskLMemRMemTest {
 			drm.sendDatasetToDisk(testDataset.getDataReference().getId());
 		} 
 		catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

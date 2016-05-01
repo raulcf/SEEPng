@@ -147,15 +147,6 @@ public class Dataset implements IBuffer, OBuffer {
 			ByteBuffer bb = readerIterator.next();
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
-			//this.wPtrToBuffer = null;
-//			if(! readerIterator.hasNext()) {
-//				// if this is the last buffer, do not return (used for writing)
-//				this.wPtrToBuffer = bb;
-//			}
-//			else {
-//				freedMemory += bufferPool.returnBuffer(bb);
-//				readerIterator.remove();
-//			}
 		}
 		return freedMemory;
 	}
@@ -515,7 +506,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(wPtrToBuffer != null) {
 								wPtrToBuffer.flip();
 								rPtrToBuffer = wPtrToBuffer;
-								cacheFilePosition += minBufSize + 1; // 4 limit size
+								//cacheFilePosition += minBufSize + 1; // 4 limit size
 								is.close();
 								wPtrToBuffer = null;
 							}
@@ -525,13 +516,13 @@ public class Dataset implements IBuffer, OBuffer {
 							}
 						}
 						else {
-						int read = is.read(d);
+							int read = is.read(d);
 							if(read == -1) {
 								// if the write buffer still contains data
 								if(wPtrToBuffer != null) {
 									wPtrToBuffer.flip();
 									rPtrToBuffer = wPtrToBuffer;
-									cacheFilePosition += minBufSize + 1; // 4 limit size
+									//cacheFilePosition += minBufSize + 1; // 4 limit size
 									is.close();
 									wPtrToBuffer = null;
 								}
@@ -549,7 +540,7 @@ public class Dataset implements IBuffer, OBuffer {
 								cacheFilePosition += minBufSize + 1; // 4 limit size
 								is.close();
 							}
-						}
+						} // else
 					} 
 					catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -640,9 +631,12 @@ public class Dataset implements IBuffer, OBuffer {
 			// Open file to append buffer
 			bos = new BufferedOutputStream(new FileOutputStream(cacheFileName, true), bufferPool.getMinimumBufferSize());
 			int limit = wPtrToBuffer.limit();
+			if(limit == 0) {
+				System.out.println("");
+			}
 			byte[] payload = wPtrToBuffer.array();
 			bos.write(limit);
-			bos.write(payload, 0, payload.length);
+			bos.write(payload);
 			bos.flush();
 			bos.close();
 		}
