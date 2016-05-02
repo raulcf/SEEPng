@@ -38,7 +38,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
 import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
 import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.Stream;
 
-public class GEXFExporter implements SDGExporter{
+public class GEXFExporter { // implements SDGExporter{
 
 	//singleton instance
 	private static volatile GEXFExporter instance = null; 

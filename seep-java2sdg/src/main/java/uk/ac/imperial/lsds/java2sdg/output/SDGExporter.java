@@ -10,10 +10,8 @@
  ******************************************************************************/
 package uk.ac.imperial.lsds.java2sdg.output;
 
-import java.util.List;
-
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
 
 public interface SDGExporter {
-	public void export(List<OperatorBlock> sdg, String filename);
+	public void export(SDGRepr sdg, String filename);
 }

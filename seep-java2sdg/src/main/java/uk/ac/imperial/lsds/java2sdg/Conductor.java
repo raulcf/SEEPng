@@ -7,8 +7,6 @@ import org.codehaus.janino.Java;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.minlog.Log;
-
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.CoarseGrainedTEAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis;
@@ -24,9 +22,9 @@ import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.CodeGenerator;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.QueryBuilder;
+import uk.ac.imperial.lsds.java2sdg.output.DOTExporter;
 import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
 
 public class Conductor {
@@ -93,7 +91,7 @@ public class Conductor {
 		switch (ot) {
 		case DOT:
 			LOG.info("Exporting SDG to DOT file..");
-
+			 DOTExporter.getInstance().export(sdg, outputName);
 			LOG.info("Exporting SDG to DOT file...OK");
 			break;
 		case GEXF:
@@ -108,14 +106,9 @@ public class Conductor {
 				System.out.println(n.toString());
 				System.out.println("-----------");
 			}
-
 			SDGRepr assembledSDG = CodeGenerator.assemble(sdg);
 			QueryBuilder qBuilder = new QueryBuilder();
-			qBuilder.generateQueryPlanDriver(assembledSDG);
-			// List<SDGNode> sdgNodes =
-			// CodeGenerator.assemble(sdg).getSdgNodes();
-			// qBuilder.generateDummyQueryPlanDriver(sdgNodes.get(0));
-
+			qBuilder.buildAndPackageQuery(assembledSDG);
 			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;
 		default:
