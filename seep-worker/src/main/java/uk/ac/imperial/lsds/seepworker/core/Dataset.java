@@ -78,6 +78,19 @@ public class Dataset implements IBuffer, OBuffer {
 		this.creationTime = System.nanoTime();
 	}
 	
+	public Dataset(int id, DataReference dataReference, BufferPool bufferPool, DataReferenceManager drm) {
+		this.id = id;
+		this.drm = drm;
+		this.dataReference = dataReference;
+		this.id = dataReference.getId();
+		this.bufferPool = bufferPool;
+		
+		// Get cache buffer, always one available
+		this.wPtrToBuffer = this.obtainInitialNewWPtrBuffer();
+		this.buffers = new ConcurrentLinkedQueue<>();
+		this.creationTime = System.nanoTime();
+	}
+	
 	public Dataset(int id, byte[] syntheticData, DataReference dr, BufferPool bufferPool) {
 		// This method does not need the DataReferenceManager as it's only used for producing data
 		// one cannot write to it
@@ -435,13 +448,25 @@ public class Dataset implements IBuffer, OBuffer {
 		return null;
 	}
 	
-	private void prepareDatasetForFutureRead() {
+	public void prepareDatasetForFutureRead() {
 		// For memory read only this is enough
 //		rPtrToBuffer.flip(); //Reset the current rPtrToBuffer pointer
 		wPtrToBuffer = rPtrToBuffer; // Set wPtrToBuffer to that one
 		rPtrToBuffer = null;
 		readerIterator = this.buffers.iterator();
 		// Flip all memory buffers
+		while(readerIterator.hasNext()) {
+			readerIterator.next().flip();
+		}
+		readerIterator = null; // Reset and let consumer create this again as needed
+		// For file operations, reset
+		cacheFilePosition = 0;
+	}
+	
+	public void prepareSyntheticDatasetForRead() {
+//		wPtrToBuffer.flip();
+		rPtrToBuffer = null;
+		readerIterator = this.buffers.iterator();
 		while(readerIterator.hasNext()) {
 			readerIterator.next().flip();
 		}

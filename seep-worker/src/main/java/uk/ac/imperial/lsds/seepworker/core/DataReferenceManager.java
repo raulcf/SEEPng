@@ -277,6 +277,30 @@ public class DataReferenceManager {
 		return datasets.get(dr.getId());
 	}
 	
+	public IBuffer _getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
+		Dataset d = new Dataset(syntheticDatasetGenerator, dr, bufferPool, this);
+		
+		Schema s = dr.getDataStore().getSchema();
+		byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
+		int tupleSizeWithOverhead = tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		// Filling dataset with data (may or may not spill to disk)
+		int numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
+		int totalWritten = 0;
+		for (int i = 0; i < numTuples; i++) {
+			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
+			totalWritten += srcData.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
+			d.write(srcData, null);
+		}
+		
+		LOG.info("Synthetic dataset with {} tuples, size: {}", numTuples, totalWritten);
+		
+		d.prepareSyntheticDatasetForRead();
+		
+		datasets.put(syntheticDatasetGenerator, d);
+		return d;
+	}
+	
 	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
 		
 		ByteBuffer d = ByteBuffer.allocate(sizeOfDataToGenerate);
