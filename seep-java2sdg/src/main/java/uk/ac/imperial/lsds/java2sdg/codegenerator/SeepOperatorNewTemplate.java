@@ -201,9 +201,9 @@ public class SeepOperatorNewTemplate {
 	 *
 	 */
 	
-	public static String getSchemaInstance(Schema sc){
+	public static String getSchemaInstance(Schema sc, String variableName){
 		StringBuffer schemaInstance = new StringBuffer();
-		schemaInstance.append("Schema schema = Schema.SchemaBuilder.getInstance()");
+		schemaInstance.append("Schema " + variableName +" = Schema.SchemaBuilder.getInstance()");
 		for(int i =0; i < sc.names().length; i++){
 			schemaInstance.append(".newField(Type."+sc.getField(sc.names()[i]) + ", \""+sc.names()[i]+"\")" );
 		}

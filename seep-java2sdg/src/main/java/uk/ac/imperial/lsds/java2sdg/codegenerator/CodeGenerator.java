@@ -42,7 +42,7 @@ public class CodeGenerator {
 				LOG.debug("Single-TE");
 				TaskElementRepr te = node.getTaskElements().values().iterator().next();
 				builtCode = SeepOperatorNewTemplate.getCodeForSingleOp(te);
-				LOG.debug("BuiltCode {}" + builtCode);
+				LOG.debug("Opearator Code: {}", builtCode);
 
 			} else {
 				LOG.error("SDGRepr with empty TaskElement List!");
