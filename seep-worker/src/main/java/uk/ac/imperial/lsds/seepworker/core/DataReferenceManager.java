@@ -116,6 +116,7 @@ public class DataReferenceManager {
 		}
 		for(Integer tr : toRemove){
 			datasets.remove(tr);
+			catalogue.remove(tr);
 		}
 		LOG.info("Total freed memory: {}", totalFreedMemory);
 	}

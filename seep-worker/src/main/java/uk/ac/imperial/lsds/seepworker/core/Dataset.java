@@ -58,10 +58,10 @@ public class Dataset implements IBuffer, OBuffer {
 		// Get cache buffer, always one available
 		this.wPtrToBuffer = this.obtainInitialNewWPtrBuffer();
 		// If dataset is to be created on disk:
-		if(onDisk) {
-			String name = drm.createDatasetOnDisk(id);
-			this.setCachedLocation(name);
-		}
+//		if(onDisk) {
+//			String name = drm.createDatasetOnDisk(id);
+//			this.setCachedLocation(name);
+//		}
 		this.buffers = new ConcurrentLinkedQueue<>();
 		this.creationTime = System.nanoTime();
 	}
@@ -434,6 +434,21 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		return null;
 	}
+	
+	private void prepareDatasetForFutureRead() {
+		// For memory read only this is enough
+//		rPtrToBuffer.flip(); //Reset the current rPtrToBuffer pointer
+		wPtrToBuffer = rPtrToBuffer; // Set wPtrToBuffer to that one
+		rPtrToBuffer = null;
+		readerIterator = this.buffers.iterator();
+		// Flip all memory buffers
+		while(readerIterator.hasNext()) {
+			readerIterator.next().flip();
+		}
+		readerIterator = null; // Reset and let consumer create this again as needed
+		// For file operations, reset
+		cacheFilePosition = 0;
+	}
 			
 	public byte[] consumeData() {
 		// Try to read from rPtrToBuffer
@@ -454,6 +469,7 @@ public class Dataset implements IBuffer, OBuffer {
 						wPtrToBuffer = null;
 					}
 					else {
+						prepareDatasetForFutureRead();
 						return null;
 					}
 				}
@@ -478,6 +494,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 						else {
 							is.close();
+							prepareDatasetForFutureRead();
 							return null;
 						}
 					}
@@ -494,6 +511,7 @@ public class Dataset implements IBuffer, OBuffer {
 							}
 							else {
 								is.close();
+								prepareDatasetForFutureRead();
 								return null;
 							}
 						}
@@ -518,6 +536,7 @@ public class Dataset implements IBuffer, OBuffer {
 					}
 					else {
 						// no need to close stream as it does not exist
+						prepareDatasetForFutureRead();
 						return null;
 					}
 				}
