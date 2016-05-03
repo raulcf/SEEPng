@@ -82,7 +82,6 @@ public class Dataset implements IBuffer, OBuffer {
 		this.id = id;
 		this.drm = drm;
 		this.dataReference = dataReference;
-		this.id = dataReference.getId();
 		this.bufferPool = bufferPool;
 		
 		// Get cache buffer, always one available
@@ -452,12 +451,18 @@ public class Dataset implements IBuffer, OBuffer {
 		// For memory read only this is enough
 //		rPtrToBuffer.flip(); //Reset the current rPtrToBuffer pointer
 		wPtrToBuffer = rPtrToBuffer; // Set wPtrToBuffer to that one
-		rPtrToBuffer = null;
-		readerIterator = this.buffers.iterator();
-		// Flip all memory buffers
-		while(readerIterator.hasNext()) {
-			readerIterator.next().flip();
+		if(wPtrToBuffer.position() == wPtrToBuffer.limit()) {
+			wPtrToBuffer.flip();
 		}
+		if(wPtrToBuffer.position() == 8192) {
+			System.out.println("HERE");
+		}
+		rPtrToBuffer = null;
+//		readerIterator = this.buffers.iterator();
+		// Flip all memory buffers
+//		while(readerIterator.hasNext()) {
+//			readerIterator.next().flip();
+//		}
 		readerIterator = null; // Reset and let consumer create this again as needed
 		// For file operations, reset
 		cacheFilePosition = 0;
@@ -465,11 +470,12 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	public void prepareSyntheticDatasetForRead() {
 //		wPtrToBuffer.flip();
+		wPtrToBuffer = rPtrToBuffer;
 		rPtrToBuffer = null;
-		readerIterator = this.buffers.iterator();
-		while(readerIterator.hasNext()) {
-			readerIterator.next().flip();
-		}
+//		readerIterator = this.buffers.iterator();
+//		while(readerIterator.hasNext()) {
+//			readerIterator.next().flip();
+//		}
 		readerIterator = null; // Reset and let consumer create this again as needed
 		// For file operations, reset
 		cacheFilePosition = 0;
@@ -485,12 +491,20 @@ public class Dataset implements IBuffer, OBuffer {
 				}
 				if(readerIterator.hasNext()) {
 					rPtrToBuffer = readerIterator.next();
+					if(rPtrToBuffer.position() == rPtrToBuffer.limit()) {
+						rPtrToBuffer.flip();
+					}
 				}
 				else {
 					// No more buffers available, read the write buffer
 					if(wPtrToBuffer != null) {
-						wPtrToBuffer.flip();
+						if(wPtrToBuffer.position() != 0) {
+							wPtrToBuffer.flip();
+						}
 						rPtrToBuffer = wPtrToBuffer;
+						if(rPtrToBuffer.limit() == 0) {
+							System.out.println("B");
+						}
 						wPtrToBuffer = null;
 					}
 					else {
@@ -511,8 +525,13 @@ public class Dataset implements IBuffer, OBuffer {
 					if(limit == -1) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
-							wPtrToBuffer.flip();
+							if(wPtrToBuffer.position() != 0) {
+								wPtrToBuffer.flip();
+							}
 							rPtrToBuffer = wPtrToBuffer;
+							if(rPtrToBuffer.limit() == 0) {
+								System.out.println("D");
+							}
 							is.close();
 //							if(wPtrToBuffer.limit() == 0) return null;
 							wPtrToBuffer = null;
@@ -528,8 +547,13 @@ public class Dataset implements IBuffer, OBuffer {
 						if(read == -1) {
 							// if the write buffer still contains data
 							if(wPtrToBuffer != null) {
-								wPtrToBuffer.flip();
+								if(wPtrToBuffer.position() != 0) {
+									wPtrToBuffer.flip();
+								}
 								rPtrToBuffer = wPtrToBuffer;
+								if(rPtrToBuffer.limit() == 0) {
+									System.out.println("F");
+								}
 								is.close();
 //								if(wPtrToBuffer.limit() == 0) return null;
 								wPtrToBuffer = null;
@@ -546,6 +570,9 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 						else {
 							rPtrToBuffer = ByteBuffer.wrap(d);
+							if(rPtrToBuffer.limit() == 0) {
+								System.out.println("H");
+							}
 							cacheFilePosition += minBufSize + 1; // 4 limit size
 							is.close();
 						}
@@ -553,8 +580,13 @@ public class Dataset implements IBuffer, OBuffer {
 				}
 				catch (FileNotFoundException fnfe) {
 					if(wPtrToBuffer != null) {
-						wPtrToBuffer.flip();
+						if(wPtrToBuffer.position() != 0) {
+							wPtrToBuffer.flip();
+						}
 						rPtrToBuffer = wPtrToBuffer;
+						if(rPtrToBuffer.limit() == 0) {
+							System.out.println("I");
+						}
 						// no need to close stream as it does not exist
 //						if(wPtrToBuffer.limit() == 0) return null;
 						wPtrToBuffer = null;

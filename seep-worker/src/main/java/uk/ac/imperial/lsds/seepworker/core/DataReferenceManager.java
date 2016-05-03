@@ -277,7 +277,7 @@ public class DataReferenceManager {
 		return datasets.get(dr.getId());
 	}
 	
-	public IBuffer _getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
+	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
 		Dataset d = new Dataset(syntheticDatasetGenerator, dr, bufferPool, this);
 		
 		Schema s = dr.getDataStore().getSchema();
@@ -301,7 +301,7 @@ public class DataReferenceManager {
 		return d;
 	}
 	
-	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
+	public IBuffer _getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
 		
 		ByteBuffer d = ByteBuffer.allocate(sizeOfDataToGenerate);
 		
