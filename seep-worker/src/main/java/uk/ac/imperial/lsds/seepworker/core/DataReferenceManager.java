@@ -278,7 +278,8 @@ public class DataReferenceManager {
 	}
 	
 	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
-		Dataset d = new Dataset(syntheticDatasetGenerator, dr, bufferPool, this);
+//		Dataset d = new Dataset(syntheticDatasetGenerator, dr, bufferPool, this);
+		Dataset d = new Dataset(dr.getId(), dr, bufferPool, this);
 		
 		Schema s = dr.getDataStore().getSchema();
 		byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
@@ -297,7 +298,7 @@ public class DataReferenceManager {
 		
 		d.prepareSyntheticDatasetForRead();
 		
-		datasets.put(syntheticDatasetGenerator, d);
+		datasets.put(dr.getId(), d);
 		return d;
 	}
 	
