@@ -281,7 +281,7 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	public void prepareSyntheticDatasetForRead() {
 //		wPtrToBuffer.flip();
-		wPtrToBuffer = rPtrToBuffer;
+//		wPtrToBuffer = rPtrToBuffer;
 		rPtrToBuffer = null;
 //		readerIterator = this.buffers.iterator();
 //		while(readerIterator.hasNext()) {

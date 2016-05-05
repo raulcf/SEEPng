@@ -300,6 +300,7 @@ public class DataReferenceManager {
 		LOG.info("Synthetic dataset with {} tuples, size: {}", numTuples, totalWritten);
 		
 		d.prepareSyntheticDatasetForRead();
+//		d.prepareDatasetForFutureRead();
 		
 		return d;
 	}
