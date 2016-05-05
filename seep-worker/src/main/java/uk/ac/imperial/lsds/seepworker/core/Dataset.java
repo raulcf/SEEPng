@@ -240,29 +240,6 @@ public class Dataset implements IBuffer, OBuffer {
 			bb = bufferPool.getCacheBuffer();
 		}
 		return bb;
-//		while(bb == null) {
-//			// free some memory from the node: true/false
-//			// Notify DRM we run out of memory and get ids of spilled to disk datasets
-//			List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
-//			if(spilledDatasets.isEmpty()) {
-//				// no more memory available, allocate buffer on disk
-//				
-//				// CREATE FILE ON DISK
-//				String name = drm.createDatasetOnDisk(id);
-//				this.setCachedLocation(name);
-//				 
-//				break;
-//			}
-//			else {
-//				System.out.println("non empty");
-//				for(int a : spilledDatasets) {
-//					System.out.print(a + " ");
-//				}
-//			}
-//			// if true then try again
-//			bb = bufferPool.borrowBuffer();
-//		}
-//		return bb;
 	}
 	
 	private ByteBuffer obtainNewWPtrBuffer() {
@@ -278,174 +255,8 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 		}
 		return bb;
-		
-//		while(bb == null) {
-//			// free some memory from the node: true/false
-//			// Notify DRM we run out of memory and get ids of spilled to disk datasets
-//			List<Integer> spilledDatasets = drm.spillDatasetsToDisk(id);
-//			if(spilledDatasets.isEmpty()) {
-//				System.out.println("test1");
-//				// no more memory available, allocate buffer on disk
-//				try {
-//					drm.sendDatasetToDisk(id);
-//				} 
-//				catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//				break;
-//			}
-//			else {
-//				System.out.println("non empty");
-//				for(int a : spilledDatasets) {
-//					System.out.print(a + " ");
-//				}
-//			}
-//			// if true then try again
-//			bb = bufferPool.borrowBuffer();
-//		}
-//		return bb;
 	}
 	
-	@Deprecated
-	public  byte[] consumeDataFromMemoryForCopy() {
-		// Lazily initialize Iterator
-		if(readerIterator == null) {
-			readerIterator = this.buffers.iterator();
-		}
-		// Get next buffer for reading
-		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
-			// When the buffer is read completely we return it to the pool
-			if(rPtrToBuffer != null) {
-				if(buffers.size() > 0) {
-					readerIterator.remove(); 
-					bufferPool.returnBuffer(rPtrToBuffer);
-				}
-			}
-			if(readerIterator.hasNext()) {
-				rPtrToBuffer = readerIterator.next();
-				rPtrToBuffer.flip();			
-			}
-			else {
-				// done reading
-				return null;
-			}
-		}
-		// FIXME: This is written to handle the case of having empty dataset
-		// howver, that case should be handled in a more principled way, and before
-		if(! rPtrToBuffer.hasRemaining()) {
-			return null;
-		}
-
-		int size = rPtrToBuffer.getInt();
-		byte[] data = new byte[size];
-		rPtrToBuffer.get(data);
-		return data;
-	}
-	
-	@Deprecated
-	private byte[] consumeDataFromMemory() {
-		// Lazily initialize Iterator
-		if(readerIterator == null) {
-			readerIterator = this.buffers.iterator();
-		}
-		
-		// Get next buffer for reading
-		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
-			// When the buffer is read completely we return it to the pool
-			if(rPtrToBuffer != null) {
-				readerIterator.remove();
-				bufferPool.returnBuffer(rPtrToBuffer);
-			}
-			if(readerIterator.hasNext()) {
-				rPtrToBuffer = readerIterator.next();
-				if(rPtrToBuffer == null) {
-					System.out.println("problem here");
-				}
-				rPtrToBuffer.flip();
-			}	
-//				if (!readerIterator.hasNext()) {	
-// 					//We caught up to the write buffer. Allocate a new buffer for writing
-// 					//this.wPtrToBuffer = bufferPool._forceBorrowBuffer();
-// 					this.wPtrToBuffer = this.obtainNewWPtrBuffer();
-// 					//this.buffers.add(wPtrToBuffer);
-// 					this.addBufferToBuffers(wPtrToBuffer);
-// 					
-// 					
-// 					if(! buffers.isEmpty()) {
-// 						//Yes, the following looks a bit silly (just getting a new iterator to the position
-// 						//of the current one), but it is necessary to allow readerIterator.remove to work 
-// 						//without the iterator complaining about concurrent modification due to adding a new
-// 						//write buffer to the list.
-// 						readerIterator = this.buffers.iterator();
-// 						rPtrToBuffer = readerIterator.next();
-// 						if (rPtrToBuffer.remaining() == 0) {
-// 							return null;
-// 						}
-// 					}
-// 				}
-			
-			else {
-				// done reading
-				return null;
-			}
-		}
-		// FIXME: This is written to handle the case of having empty dataset
-		// however, that case should be handled in a more principled way, and before
-		if(! rPtrToBuffer.hasRemaining()) {
-			return null;
-		}
-
-		int size = rPtrToBuffer.getInt();
-		if(size == 0) {
-			return null; // done reading? FIXME: should not happen
-		}
-		byte[] data = new byte[size];
-		rPtrToBuffer.get(data);
-		if(data.length == 4) {
-			System.out.println("");
-		}
-		return data;
-	}
-	
-	@Deprecated
-	private byte[] consumeDataFromDisk() {
-		FileInputStream inputStream;
-		try {
-			inputStream = new FileInputStream(cacheFileName);
-			inputStream.getChannel().position(cacheFilePosition);
-			
-			//It is used, in the while condition just below, but Eclipse's analyzer isn't 
-			//smart enough to figure that out. This just saves us a warning.
-			@SuppressWarnings("unused")
-			int readSuccess;
-			byte[] recordSizeBytes = new byte[Integer.BYTES];
-			//If there is another record the next few bytes will be an int containing the size of said record.
-			if ((readSuccess = inputStream.read(recordSizeBytes)) != -1) {
-				//Convert the bytes giving us the size to an int and read exactly the next record
-				int recordSize = ByteBuffer.wrap(recordSizeBytes).getInt();
-				if(recordSize == 0) {
-					inputStream.close();
-					return null; // is this correct?
-				}
-				byte[] record = new byte[recordSize + Integer.BYTES];
-				System.arraycopy(recordSizeBytes, 0, record,0, Integer.BYTES);
-				inputStream.read(record, Integer.BYTES, recordSize);
-				
-				cacheFilePosition += Integer.BYTES + recordSize;
-				inputStream.close();
-				return record;
-			}
-			inputStream.close();
-			return null;
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
 	
 	public void prepareDatasetForFutureRead() {
 		// For memory read only this is enough
@@ -613,19 +424,6 @@ public class Dataset implements IBuffer, OBuffer {
 		return data;
 	}
 	
-	public byte[] _consumeData() {
-
-		byte[] data = null;
-		if (cacheFileName.equals("")) {
-			data = consumeDataFromMemory();
-		}
-		else {
-			data = consumeDataFromDisk();
-		}
-		
-		return data;
-	}
-	
 	public Schema getSchemaForDataset() {
 		return this.dataReference.getDataStore().getSchema();
 	}
@@ -700,73 +498,6 @@ public class Dataset implements IBuffer, OBuffer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	
-	public boolean _write(byte[] data, RuntimeEventRegister reg) {
-		totalDataWrittenToThisDataset = totalDataWrittenToThisDataset + data.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
-		this.lastAccessForWriteTime = System.nanoTime();
-		
-		// If the dataset is a file, then write to the file
-		if (!cacheFileName.equals("")) {
-			//If this dataset has been cached to disk write the data there instead of using up memory
-			try {
-				DataOutputStream cacheStream = new DataOutputStream(new FileOutputStream(cacheFileName, true));
-				cacheStream.writeInt(data.length);
-				cacheStream.write(data);
-				cacheStream.flush();
-				cacheStream.close();
-				return true;
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException ioe) {
-				// TODO Auto-generated catch block
-				ioe.printStackTrace();
-			}
-			return false;
-		}
-		
-		// if it is not a file (for now) then try to write to memory
-		// Check whether we have memory space to write data
-		// if not try to borrow buffer, if this fails, spill to disk
-		int dataSize = data.length;
-		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
-			// Borrow a new buffer and add to the collection
-			this.wPtrToBuffer = this.obtainNewWPtrBuffer();
-			this.addBufferToBuffers(wPtrToBuffer);
-		}
-		
-		
-		// It could be that while trying to allocate more memory, this one is exhausted and the dataset is moved to disk
-		// Just in case, double check, if that happened write to disk and if not .... ***
-		// Check if dataset was spilled to disk, in which case we need to write there
-		if (!cacheFileName.equals("")) {
-			//If this dataset has been cached to disk write the data there instead of using up memory
-			try {
-				DataOutputStream cacheStream = new DataOutputStream(new FileOutputStream(cacheFileName, true));
-				cacheStream.writeInt(data.length);
-				cacheStream.write(data);
-				cacheStream.flush();
-				cacheStream.close();
-				return true;
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException ioe) {
-				// TODO Auto-generated catch block
-				ioe.printStackTrace();
-			}
-			return false;
-		}
-		else {
-			// ...*** if not then write to memory
-			// If dataset is living in memory we write it directly
-			wPtrToBuffer.putInt(dataSize);
-			wPtrToBuffer.put(data);
-		}
-		
-		return true;
 	}
 	
 	public void setCachedLocation(String filename) {
