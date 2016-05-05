@@ -605,6 +605,9 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		// At this point we have rPtrToBuffer
 		int size = rPtrToBuffer.getInt();
+		if(size == 0) {
+			System.out.println();
+		}
 		byte[] data = new byte[size];
 		rPtrToBuffer.get(data);
 		return data;
