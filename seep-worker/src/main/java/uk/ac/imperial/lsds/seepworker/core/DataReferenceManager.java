@@ -277,7 +277,7 @@ public class DataReferenceManager {
 		return datasets.get(dr.getId());
 	}
 	
-	public IBuffer getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
+	public IBuffer getSyntheticDataset(DataReference dr, long sizeOfDataToGenerate) {
 		Dataset d = new Dataset(dr.getId(), dr, bufferPool, this);
 		
 		// Store dataset already, in case it needs to be spilled to disk while writing
@@ -289,7 +289,7 @@ public class DataReferenceManager {
 		int tupleSizeWithOverhead = tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		
 		// Filling dataset with data (may or may not spill to disk)
-		int numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
+		long numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
 		int totalWritten = 0;
 		for (int i = 0; i < numTuples; i++) {
 			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());

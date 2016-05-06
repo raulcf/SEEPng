@@ -22,7 +22,7 @@ public class Base implements QueryComposer {
 
 	private int sel;
 	private int cost;
-	private int isize;
+	private long isize;
 	private boolean incremental_choose;
 	private int fanout;
 	
@@ -41,7 +41,7 @@ public class Base implements QueryComposer {
 				this.cost = new Integer(qParams[(i+1)]);
 			}
 			else if(token.equals(isize)) {
-				this.isize = new Integer(qParams[(i+1)]);
+				this.isize = new Long(qParams[(i+1)]);
 			}
 			else if(token.equals(incrementalchoose)){
 				this.incremental_choose = new Boolean(qParams[(i+1)]);

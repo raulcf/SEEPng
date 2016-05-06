@@ -48,7 +48,7 @@ public class CoreInputFactory {
 				}
 				else if(dr.getDataStore().type().equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
 					DataStore ds = dr.getDataStore();
-					int sizeOfGeneratedData = new Integer(ds.getConfig().getProperty(SyntheticSourceConfig.GENERATED_SIZE));
+					long sizeOfGeneratedData = new Long(ds.getConfig().getProperty(SyntheticSourceConfig.GENERATED_SIZE));
 					LOG.info("Created synthetic dataset of size: {}", sizeOfGeneratedData);
 					ib = drm.getSyntheticDataset(dr, sizeOfGeneratedData);
 				}
