@@ -69,7 +69,7 @@ public class Base implements QueryComposer {
 		
 		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
 		for(int i = 0; i < fanout; i++) {
-			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(), operatorId++);
+			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i), operatorId++);
 			LogicalOperator eval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
 			adderOne.connectTo(branch, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 			branch.connectTo(eval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));

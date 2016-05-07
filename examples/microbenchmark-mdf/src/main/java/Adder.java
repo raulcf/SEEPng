@@ -17,6 +17,8 @@ public class Adder implements SeepTask {
 	private String adderId;
 	private boolean used;
 	
+	private int totalCalls = 0;
+	
 	public Adder() {
 		selectivity = 1.;
 		adderId = UUID.randomUUID().toString();
@@ -36,6 +38,8 @@ public class Adder implements SeepTask {
 
 	@Override
 	public void processData(ITuple data, API api) {
+		totalCalls++;
+		
 		int userId = data.getInt("userId");
 		long value = data.getLong("value");
 		processed++;
@@ -58,7 +62,7 @@ public class Adder implements SeepTask {
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		System.out.println(this + " - TC: " + totalCalls);
 	}
 
 	@Override

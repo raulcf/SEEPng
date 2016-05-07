@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,12 @@ public class ClusterDatasetRegistry {
 	
 	private int totalDatasetsGenerated = 0;
 	private int totalDatasetsSpilledToDisk = 0;
+	private int totalDiskAccesses = 0;
+	private int totalMemAccesses = 0;
+	
+	private Map<Integer, Long> dataset_diskAccessedData = new HashMap<>();
+	private Map<Integer, Long> dataset_memAccessedData = new HashMap<>();
+	private List<Double> avMemoryHistoric = new ArrayList<>();
 	
 	public int totalDatasetsGeneratedDuringSchedule() {
 		return this.totalDatasetsGenerated;
@@ -35,6 +42,31 @@ public class ClusterDatasetRegistry {
 	
 	public int totalDatasetsSpilledToDiskDuringSchedule() {
 		return this.totalDatasetsSpilledToDisk;
+	}
+	
+	public String getHistoricMemUtilization() {
+		StringBuffer tr = new StringBuffer();
+		System.out.println("history mem util size: " + avMemoryHistoric.size());
+		for(double d : avMemoryHistoric) {
+			tr.append(" "+d+" ");
+		}
+		return tr.toString();
+	}
+	
+	public int percentageOfTotalDataAccessedFromMem() {
+		long totalMemoryAccessedData = 0;
+		for(Long d : this.dataset_memAccessedData.values()) {
+			totalMemoryAccessedData = totalMemoryAccessedData + d;
+		}
+		long totalDiskAccessedData = 0;
+		for(Long d : this.dataset_diskAccessedData.values()) {
+			totalDiskAccessedData = totalDiskAccessedData + d;
+		}
+		System.out.println(totalMemoryAccessedData);
+		System.out.println(totalDiskAccessedData);
+		if(totalDiskAccessedData == 0) return 1;
+		int ratio = (int)(totalMemoryAccessedData/totalDiskAccessedData);
+		return ratio;
 	}
 	
 	public ClusterDatasetRegistry(MemoryManagementPolicy mmp) {
@@ -68,6 +100,8 @@ public class ClusterDatasetRegistry {
 	public void updateDatasetsForNode(int euId, DatasetMetadataPackage managedDatasets, int stageId) {
 		Set<DatasetMetadata> all = managedDatasets.newDatasets;
 		all.addAll(managedDatasets.oldDatasets);
+		double clusterAvailableMemory = managedDatasets.availableMemory;
+		avMemoryHistoric.add(clusterAvailableMemory);
 		// Update metrics
 		updateMetrics(all);
 		mmp.updateDatasetsForNode(euId, managedDatasets, stageId);
@@ -106,6 +140,13 @@ public class ClusterDatasetRegistry {
 	
 	private void updateMetrics(Set<DatasetMetadata> all) {
 		for(DatasetMetadata dm : all) {
+			int diskAccess = dm.getDiskAccess();
+			int memAccess = dm.getMemAccess();
+			long datasetSize = dm.getSize();
+			long totalDataAccessedFromDisk = diskAccess * datasetSize;
+			long totalDataAccessedFromMem = memAccess * datasetSize;
+			this.dataset_diskAccessedData.put(dm.getDatasetId(), totalDataAccessedFromDisk);
+			this.dataset_memAccessedData.put(dm.getDatasetId(), totalDataAccessedFromMem); // Update alwayw with latest results
 			totalDatasetsGenerated++;
 			if(! dm.isInMem()) {
 				totalDatasetsSpilledToDisk++;

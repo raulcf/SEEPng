@@ -131,7 +131,12 @@ public class DataReferenceManager {
 			long size = d.size();
 			boolean inMem = datasetIsInMem(id);
 			long estimatedCreationCost = d.creationCost();
-			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost);
+			int diskAccess = d.getDiskAccess();
+			if(diskAccess != 0) {
+				System.out.println();
+			}
+			int memAccess = d.getMemAccess();
+			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost, diskAccess, memAccess);
 			// Classify then as old (non used by this stage) and new (used by this stage)
 			if(rankedDatasets.contains(id)) {
 				oldDatasets.add(dm);
@@ -144,7 +149,8 @@ public class DataReferenceManager {
 				usedDatasets.add(dm);
 			}
 		}
-		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets);
+		double availableMemory = bufferPool.getPercAvailableMemory();
+		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets, availableMemory);
 		
 		return dmp;
 	}

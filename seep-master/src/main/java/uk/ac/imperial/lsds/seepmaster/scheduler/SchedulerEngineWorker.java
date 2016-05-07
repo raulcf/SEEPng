@@ -89,9 +89,13 @@ public class SchedulerEngineWorker implements Runnable {
 				int totalSpilledDatasets = tracker.getClusterDatasetRegistry().totalDatasetsSpilledToDiskDuringSchedule();
 				double ratio = (double)totalSpilledDatasets/(double)totalDatasets;
 				double ratioMemory = (1 - ratio);
+				int ratioMemVSDiskAccessedData = tracker.getClusterDatasetRegistry().percentageOfTotalDataAccessedFromMem();
+				String memUtilization = tracker.getClusterDatasetRegistry().getHistoricMemUtilization();
 				LOG.info("Total datasets generated in schedule: {}", totalDatasets);
 				LOG.info("Total datasets spilled during schedule: {}", totalSpilledDatasets);
 				LOG.info("Ratio hit/miss: {}", ratioMemory);
+				LOG.info("Ratio memAccessedData/diskAccessedData: {}", ratioMemVSDiskAccessedData);
+				LOG.info("Historic mem utilization: {}", memUtilization);
 				work = false;
 				continue;
 			}

@@ -109,4 +109,9 @@ public class BufferPool {
 		return false;
 	}
 
+	public double getPercAvailableMemory() {
+		double availableMemory = totalMemAvailableToBufferPool - usedMemory.getCount();
+		return availableMemory/(double)totalMemAvailableToBufferPool;
+	}
+
 }

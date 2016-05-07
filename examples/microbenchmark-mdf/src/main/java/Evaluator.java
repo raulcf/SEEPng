@@ -8,14 +8,16 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 
 public class Evaluator implements SeepTask {
 
+	private int totalCalls = 0;
+	
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		System.out.println(this + " - TC: " + totalCalls);
 	}
 
 	@Override
 	public void processData(ITuple arg0, API arg1) {
+		totalCalls++;
 		// do some calculation with the utility function 
 		arg1.storeEvaluateResults(System.currentTimeMillis()); // a long, as an abstract notion of quality
 		// propagate the results downstream

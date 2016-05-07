@@ -133,6 +133,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 					}
 					if(! callback.isContinuousTask()) {
 						if(allStreamsFinished(trackFinishedStreams)) {
+							task.close();
 							callback.notifyOk(api.getRuntimeEvents()); // notify and pass all generated runtime events
 							working = false;
 							// FIXME: hack -> just exhaust the iterator to force out of the loop

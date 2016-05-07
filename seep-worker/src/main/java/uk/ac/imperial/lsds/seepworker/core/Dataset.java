@@ -44,6 +44,9 @@ public class Dataset implements IBuffer, OBuffer {
 	private String cacheFileName = "";
 	private long cacheFilePosition = 0;
 	
+	private int diskAccess;
+	private int memAccess;
+	
 	public static Dataset newDatasetOnDisk(DataReference dataRef,
 			BufferPool bufferPool, DataReferenceManager drm) {
 		return new Dataset(dataRef, bufferPool, drm, true);
@@ -209,6 +212,24 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 	}
 	
+	@Deprecated
+	public void markAcess() {
+		if (!cacheFileName.equals("")) {
+			diskAccess++;
+		}
+		else {
+			memAccess++;
+		}
+	}
+	
+	public int getDiskAccess() {
+		return diskAccess;
+	}
+	
+	public int getMemAccess() {
+		return memAccess;
+	}
+	
 	public int freeDataset() {
 		int totalFreedMemory = 0;
 		for(ByteBuffer bb : buffers) {
@@ -260,20 +281,19 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	public void prepareDatasetForFutureRead() {
 		// For memory read only this is enough
-//		rPtrToBuffer.flip(); //Reset the current rPtrToBuffer pointer
 		wPtrToBuffer = rPtrToBuffer; // Set wPtrToBuffer to that one
-		if(wPtrToBuffer.position() == wPtrToBuffer.limit()) {
-			wPtrToBuffer.flip();
-		}
-		if(wPtrToBuffer.position() == 8192) {
-			System.out.println("HERE");
-		}
-		rPtrToBuffer = null;
-//		readerIterator = this.buffers.iterator();
-		// Flip all memory buffers
-//		while(readerIterator.hasNext()) {
-//			readerIterator.next().flip();
+//		if(wPtrToBuffer.position() == wPtrToBuffer.limit()) {
+//			wPtrToBuffer.flip();
 //		}
+//		if(wPtrToBuffer.position() == 8192) {
+//			System.out.println("HERE");
+//		}
+		rPtrToBuffer = null;
+		readerIterator = this.buffers.iterator();
+		// Flip all memory buffers
+		while(readerIterator.hasNext()) {
+			readerIterator.next().flip();
+		}
 		readerIterator = null; // Reset and let consumer create this again as needed
 		// For file operations, reset
 		cacheFilePosition = 0;
@@ -297,6 +317,7 @@ public class Dataset implements IBuffer, OBuffer {
 		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
 			// MEMORY
 			if (cacheFileName.equals("")) {
+				memAccess++;
 				if(readerIterator == null) {
 					readerIterator = this.buffers.iterator();
 				}
@@ -326,6 +347,7 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 			// DISK
 			else {
+				diskAccess++;
 				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
@@ -481,14 +503,12 @@ public class Dataset implements IBuffer, OBuffer {
 			// Open file to append buffer
 			bos = new BufferedOutputStream(new FileOutputStream(cacheFileName, true), bufferPool.getMinimumBufferSize());
 			int limit = wPtrToBuffer.limit();
-			if(limit == 0) {
-				System.out.println("");
-			}
 			byte[] payload = wPtrToBuffer.array();
 			bos.write(limit);
 			bos.write(payload);
 			bos.flush();
 			bos.close();
+			bufferPool.returnBuffer(wPtrToBuffer);
 		}
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -546,5 +566,4 @@ public class Dataset implements IBuffer, OBuffer {
 		// TODO Auto-generated method stub
 		
 	}
-
 }
