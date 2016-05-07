@@ -508,7 +508,7 @@ public class Dataset implements IBuffer, OBuffer {
 			bos.write(payload);
 			bos.flush();
 			bos.close();
-			bufferPool.returnBuffer(wPtrToBuffer);
+//			bufferPool.returnBuffer(wPtrToBuffer);
 		}
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
