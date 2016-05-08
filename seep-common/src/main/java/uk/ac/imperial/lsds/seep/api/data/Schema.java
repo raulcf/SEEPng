@@ -165,7 +165,7 @@ public class Schema {
 			schemaId++; // always increasing schemaId to ensure unique id
 			this.fields.clear();
 			this.names.clear();
-			return toReturn; 
+			return toReturn;
 		}
 	}
 	
