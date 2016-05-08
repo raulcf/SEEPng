@@ -1,20 +1,55 @@
-package uk.ac.imperial.lsds.seep.integration.performance.microbenchmarks;
+package uk.ac.imperial.lsds.seep.api.data;
 
-import uk.ac.imperial.lsds.seep.api.data.OTuple;
-import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
-import uk.ac.imperial.lsds.seep.api.data.Type;
 
 public class OTupleCreationTest {
 
-	int period = 1000; // 1 second
+int period = 1000; // 1 second
 	
 	public static void main(String args[]){
 		
 		OTupleCreationTest otct = new OTupleCreationTest(); 
 //		otct.allIn(); // creating OTuple on demand always
 //		otct.allOut(); // creating as much out as possible
-		otct.allOutUnsafe(); // unsafe creation
+//		otct.allOutUnsafe(); // unsafe creation
+		
+		int num = 100000000; // 100M
+		
+		long s1 = System.nanoTime();
+		otct.createSafeOTuple(num);
+		long e1 = System.nanoTime();
+		
+		long s2 = System.nanoTime();
+		otct.createUnsafeOTuple(num);
+		long e2 = System.nanoTime();
+		
+		System.out.println("Time to create "+num+" tuples with safe:  " + (e1-s1));
+		System.out.println("Time to create "+num+" tuples with UNsafe:  " + (e2-s2));
+		
+	}
+	
+	public void createSafeOTuple(int num) {
+		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+		int userId = 0;
+		long ts = 0;
+		String[] fields = new String[]{"userId", "ts"};
+		Object[] values = new Object[]{userId, ts};
+		while(num > 0) {
+			num--;
+			byte[] ser = OTuple.create(schema, fields, values);
+		}
+ 	}
+	
+	public void createUnsafeOTuple(int num) {
+		Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").build();
+		int userId = 0;
+		long ts = 0;
+		Object[] values = new Object[]{userId, ts};
+		Type[] types = new Type[]{Type.INT, Type.LONG};
+		while(num > 0) {
+			num--;
+			byte[] ser = OTuple.createUnsafe(types, values, 12);
+		}
 	}
 	
 	public void allIn(){
