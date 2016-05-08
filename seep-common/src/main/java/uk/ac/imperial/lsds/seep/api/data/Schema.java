@@ -242,5 +242,13 @@ public class Schema {
 			encoding = newencoding;
 		}
 	}
+
+	public int sizeOfTuple() {
+		int totalSize = 0;
+		for(int i = 0; i < fields.length; i++) {
+			totalSize = totalSize + fields[i].sizeOf(new Object());
+		}
+		return totalSize;
+	}
 	
 }

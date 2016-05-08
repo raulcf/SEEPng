@@ -36,25 +36,40 @@ public class Adder implements SeepTask {
 		// TODO Auto-generated method stub
 	}
 
+	boolean first = true;
+	int idx_userid = 0;
+	int idx_value = 0;
+	
+	Type[] types = new Type[]{Type.INT, Type.LONG};
+	
 	@Override
 	public void processData(ITuple data, API api) {
+		
+		// setup method not included in scheduled mode
+		if(first) {
+			first = false;
+			idx_userid = data.getIndexFor("userId");
+			idx_value = data.getIndexFor("value");
+		}
+		
 		totalCalls++;
 		
-		int userId = data.getInt("userId");
-		long value = data.getLong("value");
+//		int userId = data.getInt("userId");
+//		long value = data.getLong("value");
+		int userId = data.getInt(idx_userid);
+		long value = data.getLong(idx_value);
 		processed++;
 		
 		if (!used) {
 			System.out.println(adderId + " has started with selectivity " + selectivity);
 			used = true;
 		}
-		
-		//System.out.println(adderId +" processed " + userId);
-		
+				
 		value++;
 		
 		while (((double)sent/(double)processed) < selectivity) {
-			byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
+//			byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
+			byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
 			api.send(processedData);
 			sent++;
 		}

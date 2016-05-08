@@ -291,14 +291,17 @@ public class DataReferenceManager {
 		datasets.put(dr.getId(), d);
 		
 		Schema s = dr.getDataStore().getSchema();
-		byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
+//		byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
+		int size = s.sizeOfTuple();
+		byte[] tuple = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
 		int tupleSizeWithOverhead = tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
 		
 		// Filling dataset with data (may or may not spill to disk)
 		long numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
 		int totalWritten = 0;
 		for (int i = 0; i < numTuples; i++) {
-			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
+//			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
+			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
 			totalWritten += srcData.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
 			d.write(srcData, null);
 		}
