@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -21,6 +23,8 @@ import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.OutgoingConnectionRequest;
 import uk.ac.imperial.lsds.seep.core.DataStoreSelector;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
@@ -60,10 +64,11 @@ public class DataReferenceManager {
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
 		this.datasets = new HashMap<>();
+		int rnd = new Random().nextInt();
 		// Get from WC the data reference ID for the synthetic generator and create a dataset for it
-		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID);
+		this.syntheticDatasetGenerator = wc.getInt(WorkerConfig.SYNTHETIC_DATA_GENERATOR_ID) + rnd;
 		this.bufferPool = BufferPool.createBufferPool(wc);
-		this.cacher = DiskCacher.makeDiskCacher();
+		this.cacher = DiskCacher.makeDiskCacher(wc);
 	}
 	
 	public static DataReferenceManager makeDataReferenceManager(WorkerConfig wc) {
@@ -74,17 +79,97 @@ public class DataReferenceManager {
 	}
 	
 	public void updateRankedDatasets(List<Integer> rankedDatasets) {
+		
 		this.rankedDatasets = rankedDatasets;
 		
-		// TODO: Trigger enforcement policy now??
+		freeDatasets();
+		loadToMemoryEvictedDatasets();
+		
 	}
 	
-	public Set<Integer> getManagedDatasets() {
-		Set<Integer> datasets = new HashSet<>();
-		for(Integer i : this.datasets.keySet()) {
-			datasets.add(i);
+	private void loadToMemoryEvictedDatasets() {
+		// Iterate in order until detecting the first dataset not in memory
+		for(Integer i : rankedDatasets) {
+			if(datasets.containsKey(i)) {
+				Dataset d = datasets.get(i);
+				if(! cacher.inMem(d)) {
+					// Check if there's enough memory to load it back again
+					long size = d.size() + bufferPool.getMinimumBufferSize(); // Overcalculate to account for cached buffer
+					if(bufferPool.isThereXMemAvailable(size)) {
+						this.retrieveDatasetFromDisk(i);
+					}
+				}
+			}
 		}
-		return datasets;
+	}
+	
+	private void freeDatasets() {
+		// Free datasets that are no longer part of the list of rankedDatasets
+		int totalFreedMemory = 0;
+		Set<Integer> toRemove = new HashSet<>();
+		for(Integer dId : datasets.keySet()) {
+			if(! rankedDatasets.contains(dId)) {
+				// Eliminate dataset
+				totalFreedMemory = totalFreedMemory + datasets.get(dId).freeDataset();
+				toRemove.add(dId);
+			}
+		}
+		for(Integer tr : toRemove){
+			datasets.remove(tr);
+			catalogue.remove(tr);
+		}
+		LOG.info("Total freed memory: {}", totalFreedMemory);
+	}
+	
+	public DatasetMetadataPackage getManagedDatasetsMetadata(Set<Integer> usedSet) {
+		Set<DatasetMetadata> oldDatasets = new HashSet<>();
+		Set<DatasetMetadata> newDatasets = new HashSet<>();
+		Set<DatasetMetadata> usedDatasets = new HashSet<>();
+		
+		for(Dataset d : this.datasets.values()) { // Iterate over all datasets
+			int id = d.id();
+			long size = d.size();
+			boolean inMem = datasetIsInMem(id);
+			long estimatedCreationCost = d.creationCost();
+			int diskAccess = d.getDiskAccess();
+			if(diskAccess != 0) {
+				System.out.println();
+			}
+			int memAccess = d.getMemAccess();
+			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost, diskAccess, memAccess);
+			// Classify then as old (non used by this stage) and new (used by this stage)
+			if(rankedDatasets.contains(id)) {
+				oldDatasets.add(dm);
+			}
+			else {
+				newDatasets.add(dm);
+			}
+			// Then also add those (repeated reference) that were used by this stage
+			if(usedSet.contains(id)) {
+				usedDatasets.add(dm);
+			}
+		}
+		double availableMemory = bufferPool.getPercAvailableMemory();
+		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets, availableMemory);
+		
+		return dmp;
+	}
+	
+	public OBuffer _manageNewDataReferenceBackupOnDisk(DataReference dataRef) {
+		int id = dataRef.getId();
+		Dataset newDataset = null;
+		if(! catalogue.containsKey(id)) {
+			LOG.info("Start managing new DataReference, id -> {}", id);
+			catalogue.put(id, dataRef);
+			// TODO: will become more complex...
+			newDataset = Dataset.newDatasetOnDisk(dataRef, bufferPool, this);
+			//newDataset = new Dataset(dataRef, bufferPool, this);
+			datasets.put(id, newDataset);
+		}
+		else {
+			LOG.warn("Attempt to register an already existent DataReference, id -> {}", id);
+		}
+		return newDataset;
 	}
 	
 	public OBuffer manageNewDataReference(DataReference dataRef) {
@@ -147,17 +232,39 @@ public class DataReferenceManager {
 		return null;
 	}
 	
-	public void sendDatasetToDisk(int datasetId) throws IOException {
-		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
-		cacher.cacheToDisk(datasets.get(datasetId));
+	public String createDatasetOnDisk(int datasetId) {
+		LOG.info("Creating Dataset on disk, id -> {}", datasetId);
+		String name = cacher.createDatasetOnDisk(datasetId);
 		LOG.info("Finished caching Dataset to disk, id -> {}", datasetId);
+		return name;
 	}
 	
-	public int retrieveDatasetFromDisk(int datasetId) {
+	public void sendDatasetToDisk(int datasetId) throws IOException {
+		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
+		int freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
+		LOG.info("Cached to disk, id -> {}, freedMemory -> {}", datasetId, freedMemory);
+	}
+	
+	public void retrieveDatasetFromDisk(int datasetId) {
+		// Safety check, is there enough memory available
+		long memRequired = datasets.get(datasetId).size() + bufferPool.getMinimumBufferSize();
+		boolean enoughMem = bufferPool.isThereXMemAvailable(memRequired);
+		if(! enoughMem) {
+			LOG.error("Impossible to load to memory: Not enough mem available");
+			return;
+		}
+		
 		try {
 			LOG.info("Returning cached Dataset to memory, id -> {}", datasetId);
-			return cacher.retrieveFromDisk(datasets.get(datasetId));
-		} finally {
+			try {
+				cacher.retrieveFromDisk(datasets.get(datasetId));
+			} 
+			catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		finally {
 			LOG.info("Finished returning cached Dataset to memory, id -> {}", datasetId);
 		}
 	}
@@ -176,10 +283,40 @@ public class DataReferenceManager {
 		return datasets.get(dr.getId());
 	}
 	
-	public IBuffer getSyntheticDataset(DataReference dr) {
+	public IBuffer getSyntheticDataset(DataReference dr, long sizeOfDataToGenerate) {
+		Dataset d = new Dataset(dr.getId(), dr, bufferPool, this);
 		
-		// TODO: basic generation of data
-		ByteBuffer d = ByteBuffer.allocate(3999);
+		// Store dataset already, in case it needs to be spilled to disk while writing
+		// in the below lines
+		datasets.put(dr.getId(), d);
+		
+		Schema s = dr.getDataStore().getSchema();
+//		byte[] tuple = OTuple.create(s, s.names(), s.randomValues());
+		int size = s.sizeOfTuple();
+		byte[] tuple = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
+		int tupleSizeWithOverhead = tuple.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		
+		// Filling dataset with data (may or may not spill to disk)
+		long numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
+		int totalWritten = 0;
+		for (int i = 0; i < numTuples; i++) {
+//			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
+			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
+			totalWritten += srcData.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
+			d.write(srcData, null);
+		}
+		
+		LOG.info("Synthetic dataset with {} tuples, size: {}", numTuples, totalWritten);
+		
+		d.prepareSyntheticDatasetForRead();
+//		d.prepareDatasetForFutureRead();
+		
+		return d;
+	}
+	
+	public IBuffer _getSyntheticDataset(DataReference dr, int sizeOfDataToGenerate) {
+		
+		ByteBuffer d = ByteBuffer.allocate(sizeOfDataToGenerate);
 		
 		// Generate synthetic data
 		Schema s = dr.getDataStore().getSchema();
@@ -199,7 +336,6 @@ public class DataReferenceManager {
 				// stop when no more data fits
 				goOn = false;
 			}
-			
 		}
 		//Copy only the written bytes
 		byte[] dataToForward = new byte[totalWritten];
@@ -211,18 +347,34 @@ public class DataReferenceManager {
 		datasets.put(syntheticDatasetGenerator, synthetic);
 		return synthetic;
 	}
-
+	
 	public List<Integer> spillDatasetsToDisk(int datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
 		List<Integer> spilledDatasets = new ArrayList<>();
 		
-		// TODO: USE THE RANKED datasets, if available, to make the decision here
 		try {
-			sendDatasetToDisk(datasetId);
-			spilledDatasets.add(datasetId);
-		} catch (IOException e) {
+			if(rankedDatasets == null) {
+				sendDatasetToDisk(datasetId);
+				spilledDatasets.add(datasetId);
+			}
+			else {
+				List<Integer> candidatesToSpill = new ArrayList<>();
+				for(Integer i : rankedDatasets) { 
+					// We find the first dataset in the list that is in memory and send it to disk
+					// TODO: is one enough? how to know?
+					if(this.datasetIsInMem(i)) {
+						Dataset candidate = datasets.get(i);
+						candidatesToSpill.add(i);
+						sendDatasetToDisk(i);
+						spilledDatasets.add(i);
+						candidate.freeDataset();
+					}
+				}
+			}
+		}
+		catch (IOException io) {
 			LOG.error("While trying to spill dataset: {} to disk", datasetId);
-			e.printStackTrace();
+			io.printStackTrace();
 		}
 		
 		return spilledDatasets;

@@ -13,4 +13,5 @@ include \
 	"simple-shuffle-query",
 	"simple-dag-memorymng",
 	"simple-mdf-schedule",
-    "microbenchmark-mdf"
+    "microbenchmark-mdf",
+    "microbenchmark2-mdf"

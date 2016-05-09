@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +16,14 @@ import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ClusterDatasetRegistry;
+import uk.ac.imperial.lsds.seepmaster.scheduler.CommandToNode;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	@Override
-	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, InfrastructureManager inf, ClusterDatasetRegistry cdr) {
+	public List<CommandToNode> assignWorkToWorkers(Stage nextStage, InfrastructureManager inf, ScheduleTracker tracker) {
 		// moved in from previously external method
 		Set<Connection> conns = getWorkersInvolvedInStage(nextStage, inf);
 		
@@ -64,8 +67,9 @@ public class DataParallelWithInputDataLocalityLoadBalancingStrategy implements L
 			}
 			// FIXME: what is outputdatareferences
 			int euId = c.getId();
+			List<Integer> rankedDatasets = tracker.getClusterDatasetRegistry().getRankedDatasetForNode(euId, tracker.getScheduleDescription());
 			esc = ProtocolCommandFactory.buildScheduleStageCommand(nextStageId, 
-					perWorker, nextStage.getOutputDataReferences(), cdr.getRankedDatasetForNode(euId));
+					perWorker, nextStage.getOutputDataReferences(), rankedDatasets);
 			CommandToNode ctn = new CommandToNode(esc, c);
 			commands.add(ctn);
 		}

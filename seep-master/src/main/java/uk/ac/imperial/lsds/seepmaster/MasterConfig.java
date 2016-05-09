@@ -37,12 +37,18 @@ public class MasterConfig extends Config {
     public static final String SCHED_STRATEGY = "scheduling.strategy.type";
     private static final String SCHED_STRATEGY_DOC = "The scheduling strategy for scheduled queries: sequential(0), mdf(3) etc";
     
+    public static final String MEM_MANAGEMENT_POLICY = "memory.management.policy";
+    private static final String MEM_MANAGEMENT_POLICY_DOC = "The mem mng policy to rank datasets according to their priority to live in memory";
+    
     public static final String SCHED_STAGE_ASSIGMENT_STRATEGY = "scheduling.stageassignment.type";
     private static final String SCHED_STAGE_ASSIGMENT_STRATEGY_DOC = "Choose the strategy to assign work to workers";
     
     public static final String PROPERTIES_FILE = "properties.file";
     public static final String PROPERTIES_RESOURCE_FILE = "config.properties";
     private static final String PROPERTIES_FILE_DOC = "Optional argument to indicate a properties file";
+
+	public static final String DISK_MEM_RATIO = "diskmem.ratio";
+	private static final String DISK_MEM_RATIO_DOC = "Ratio between writing/reading to disk and memory";
 
 	static{
 		config = new ConfigDef().define(QUERY_FILE, Type.STRING, "", Importance.HIGH, QUERY_FILE_DOC)
@@ -53,8 +59,10 @@ public class MasterConfig extends Config {
 				.define(CONTROL_PORT, Type.INT, 3500, Importance.HIGH, CONTROL_PORT_DOC)
 				.define(UI_TYPE, Type.INT, 0, Importance.HIGH, UI_TYPE_DOC)
 				.define(SCHED_STRATEGY, Type.INT, 0, Importance.LOW, SCHED_STRATEGY_DOC)
+				.define(MEM_MANAGEMENT_POLICY, Type.INT, 0, Importance.LOW, MEM_MANAGEMENT_POLICY_DOC)
 				.define(PROPERTIES_FILE, Type.STRING, Importance.LOW, PROPERTIES_FILE_DOC)
-				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC);
+				.define(SCHED_STAGE_ASSIGMENT_STRATEGY, Type.INT, 0, Importance.MEDIUM, SCHED_STAGE_ASSIGMENT_STRATEGY_DOC)
+				.define(DISK_MEM_RATIO, Type.DOUBLE, 1.0, Importance.MEDIUM, DISK_MEM_RATIO_DOC);
 	}
 	
 	public MasterConfig(Map<? extends Object, ? extends Object> originals) {

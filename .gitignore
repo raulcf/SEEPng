@@ -71,6 +71,9 @@ examples/simple-mdf-schedule/build/
 examples/microbenchmark-mdf/.gitignore
 examples/microbenchmark-mdf/.settings/
 examples/microbenchmark-mdf/build/
+examples/microbenchmark2-mdf/.gitignore
+examples/microbenchmark2-mdf/.settings/
+examples/microbenchmark2-mdf/build/
 
 deploy/
 dist/

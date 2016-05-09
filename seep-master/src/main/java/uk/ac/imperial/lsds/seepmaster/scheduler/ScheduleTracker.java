@@ -11,10 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
 
 public class ScheduleTracker {
 
@@ -34,7 +37,7 @@ public class ScheduleTracker {
 	private boolean runtimeEventsInLastStageExecution = false;
 	private Map<Integer, List<RuntimeEvent>> lastStageRuntimeEvents = null;
 	
-	public ScheduleTracker(ScheduleDescription scheduleDescription) {
+	public ScheduleTracker(ScheduleDescription scheduleDescription, MemoryManagementPolicy mmp) {
 		this.scheduleDescription = scheduleDescription;
 		this.stages = this.scheduleDescription.getStages();
 		status = ScheduleStatus.NON_INITIALIZED;
@@ -53,7 +56,7 @@ public class ScheduleTracker {
 			scheduleStatus.put(stage, StageStatus.WAITING);
 		}
 		this.lastStageRuntimeEvents = new HashMap<>();
-		this.clusterDatasetRegistry = new ClusterDatasetRegistry();
+		this.clusterDatasetRegistry = new ClusterDatasetRegistry(mmp);
 	}
 	
 	public ScheduleDescription getScheduleDescription() {
@@ -173,7 +176,7 @@ public class ScheduleTracker {
 			int stageId, 
 			Map<Integer, Set<DataReference>> results, 
 			List<RuntimeEvent> runtimeEvents,
-			Set<Integer> managedDatasets) {
+			DatasetMetadataPackage managedDatasets) {
 		// Keep runtimeEvents of last executed Stage
 		if(runtimeEvents.size() > 0) {
 			this.runtimeEventsInLastStageExecution = true;
@@ -185,7 +188,7 @@ public class ScheduleTracker {
 		}
 		
 		// Update DatasetRegistry 
-		clusterDatasetRegistry.updateDatasetsForNode(euId, managedDatasets);
+		clusterDatasetRegistry.updateDatasetsForNode(euId, managedDatasets, stageId);
 		
 		// Then notify the stageTracker that the stage was successful
 		currentStageTracker.notifyOk(euId, stageId, results);

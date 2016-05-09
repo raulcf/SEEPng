@@ -1,6 +1,9 @@
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
@@ -35,13 +38,13 @@ public class Choose implements SeepChooseTask {
 	}
 
 	@Override
-	public Integer choose(Map<Integer, List<Object>> arg0) {
+	public Set<Integer> choose(Map<Integer, List<Object>> arg0) {
+		Set<Integer> chosenOne = new HashSet<>();
 		System.out.println("CHOOSE btw:");
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			System.out.print(obj.getKey() + " or ");
 		}
 		long highestQuality = -666;
-		int chosenOne = -666;
 		for(Entry<Integer, List<Object>> obj : arg0.entrySet()) {
 			for(Object o : obj.getValue()) {
 				// I know the type, as I wrote the evaluators
@@ -49,7 +52,7 @@ public class Choose implements SeepChooseTask {
 				System.out.println("is " +quality+ " > " +highestQuality + " ?");
 				if(quality > highestQuality) {
 					highestQuality = quality;
-					chosenOne = obj.getKey();
+					chosenOne.add(obj.getKey());
 				}
 			}
 		}

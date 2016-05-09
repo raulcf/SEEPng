@@ -21,7 +21,7 @@ public class BufferPool {
 	private final int minBufferSize;
 	private final long totalMemAvailableToBufferPool;
 	private Deque<ByteBuffer> allocatedBuffers;
-	
+		
 	// Metrics
 	// usedMemory is allocated memory that is currently used by some Dataset
 	// Note that the total memory usage may be higher, as buffers are pooled and not
@@ -39,7 +39,6 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.warn("TEMPORAL-> dangling buffer pools");
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
-		usedMemory.inc(minBufferSize);
 	}
 	
 	private BufferPool(WorkerConfig wc) {
@@ -48,11 +47,14 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
-		usedMemory.inc(minBufferSize);
 	}
 	
 	public static BufferPool createBufferPool(WorkerConfig wc) {
 		return new BufferPool(wc);
+	}
+	
+	public int getMinimumBufferSize() {
+		return this.minBufferSize;
 	}
 	
 	/**
@@ -69,7 +71,6 @@ public class BufferPool {
 			return bb;
 		}
 		else {
-			// TODO: at some point we'll need to set up a ceiling here, for now just let it die...
 			if(enoughMemoryAvailable()){
 				usedMemory.inc(minBufferSize);
 				return ByteBuffer.allocate(minBufferSize);
@@ -80,17 +81,37 @@ public class BufferPool {
 		}
 	}
 	
-	public void returnBuffer(ByteBuffer buffer) {
+	public ByteBuffer getCacheBuffer() {
+		ByteBuffer bb = ByteBuffer.allocate(minBufferSize);
+		return bb;
+	}
+	
+	public int returnBuffer(ByteBuffer buffer) {
+		int freedMemory = buffer.capacity();
 		usedMemory.dec(minBufferSize);
 		allocatedBuffers.add(buffer);
+		return freedMemory;
 	}
 	
 	private boolean enoughMemoryAvailable() {
 		// Any headroom should have been incorporated on bufferPool creation (e.g. aprox. constant mem usage on steady state)
-		if(usedMemory.getCount() + minBufferSize >= totalMemAvailableToBufferPool) {
+		if(usedMemory.getCount() + minBufferSize > totalMemAvailableToBufferPool) {
 			return false;
 		}
 		return true;
+	}
+
+	public boolean isThereXMemAvailable(long size) {
+		long availableMemory = totalMemAvailableToBufferPool - usedMemory.getCount();
+		if(size < availableMemory) {
+			return true;
+		}
+		return false;
+	}
+
+	public double getPercAvailableMemory() {
+		double availableMemory = totalMemAvailableToBufferPool - usedMemory.getCount();
+		return availableMemory/(double)totalMemAvailableToBufferPool;
 	}
 
 }

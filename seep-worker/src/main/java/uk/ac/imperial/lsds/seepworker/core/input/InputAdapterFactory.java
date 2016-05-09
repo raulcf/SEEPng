@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
-import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.comm.IOComm;
@@ -51,6 +50,7 @@ public class InputAdapterFactory {
 			
 			// Exception, when SYNTHETIC, simply add Dataset and continue
 			if(type.equals(DataStoreType.SEEP_SYNTHETIC_GEN)) {
+//				((Dataset)ib).markAcess();
 				datasets.add((Dataset)ib);
 				continue;
 			}
@@ -69,6 +69,7 @@ public class InputAdapterFactory {
 					if(! (ib instanceof Dataset)) {
 						// throw error
 					}
+//					((Dataset)ib).markAcess();
 					datasets.add((Dataset)ib);
 				}
 				else {

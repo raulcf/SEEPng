@@ -28,6 +28,8 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
@@ -37,11 +39,12 @@ import uk.ac.imperial.lsds.seepmaster.LifecycleManager;
 import uk.ac.imperial.lsds.seepmaster.MasterConfig;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.ExecutionUnit;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
-import uk.ac.imperial.lsds.seepmaster.scheduler.LoadBalancingStrategyType;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
-import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategyType;
 
 public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 
@@ -126,6 +129,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 				scheduleDescription, 
 				SchedulingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STRATEGY)),
 				LoadBalancingStrategyType.clazz(mc.getInt(MasterConfig.SCHED_STAGE_ASSIGMENT_STRATEGY)),
+				mc.getInt(MasterConfig.MEM_MANAGEMENT_POLICY),
+				mc.getDouble(MasterConfig.DISK_MEM_RATIO),
 				inf, 
 				comm, 
 				k);
@@ -233,7 +238,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		int opId = slo.getOperatorId();
 		if(opsAlreadyInSchedule.contains(opId)) {
 			// Create dependency with the stage governing opId in this case and return
-			Stage dependency = stageResponsibleFor(opId);
+			Stage dependency = stageResponsibleFor(opId, stages);
 			parent.dependsOn(dependency);
 			return;
 		}
@@ -258,7 +263,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		if(stage.hasMultipleInput()) {
 			for(UpstreamConnection uc : slo.upstreamConnections()) {
 				SeepLogicalOperator upstreamOp = (SeepLogicalOperator) uc.getUpstreamOperator();
-				stageId++;
+				stageId = stages.size();
 				buildScheduleFromStage(stage, upstreamOp, opsAlreadyInSchedule, slq, stages, stageId);
 			}
 		// If not explore the previous op
@@ -270,8 +275,8 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		}
 	}
 	
-	private Stage stageResponsibleFor(int opId) {
-		for(Stage s : scheduleDescription.getStages()) {
+	private Stage stageResponsibleFor(int opId, Set<Stage> currentStages) {
+		for(Stage s : currentStages) {
 			if(s.responsibleFor(opId)) {
 				return s;
 			}
@@ -393,7 +398,7 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 		Map<Integer, Set<DataReference>> results = ssc.getResultDataReference();
 		StageStatusCommand.Status status = ssc.getStatus();
 		List<RuntimeEvent> runtimeEvents = ssc.getRuntimeEvents();
-		Set<Integer> managedDatasets = ssc.getManagedDatasets();
+		DatasetMetadataPackage managedDatasets = ssc.getManagedDatasets();
 		seWorker.newStageStatus(stageId, euId, results, status, runtimeEvents, managedDatasets);
 	}
 	

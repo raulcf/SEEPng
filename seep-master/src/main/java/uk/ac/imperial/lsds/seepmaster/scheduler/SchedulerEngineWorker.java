@@ -1,7 +1,5 @@
 package uk.ac.imperial.lsds.seepmaster.scheduler;
 
-import static com.codahale.metrics.MetricRegistry.name;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,14 +18,19 @@ import uk.ac.imperial.lsds.seep.comm.Comm;
 import uk.ac.imperial.lsds.seep.comm.Connection;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
-import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
+import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageStatus;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
 import uk.ac.imperial.lsds.seepmaster.infrastructure.master.InfrastructureManager;
+import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MDFMemoryManagementPolicy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicyType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.SizeObliviousLRUMemoryManagementPolicy;
+import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategy;
 
-import com.codahale.metrics.Timer;
 import com.esotericsoftware.kryo.Kryo;
 
 public class SchedulerEngineWorker implements Runnable {
@@ -46,14 +49,27 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
-	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, InfrastructureManager inf, Comm comm, Kryo k) {
+	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, int mmpType, double dmRatio, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
 		this.loadBalancingStrategy = loadBalancingStrategy;
-		this.tracker = new ScheduleTracker(scheduleDescription);
+		MemoryManagementPolicy mmp = buildMMP(mmpType, sdesc, dmRatio);
+		
+		this.tracker = new ScheduleTracker(scheduleDescription, mmp);
 		this.inf = inf;
 		this.comm = comm;
 		this.k = k;
+	}
+	
+	private MemoryManagementPolicy buildMMP(int type, ScheduleDescription sd, double dmRatio) {
+		MemoryManagementPolicy mmp = null;
+		if(MemoryManagementPolicyType.LRU.ofType() == type) {
+			mmp = new SizeObliviousLRUMemoryManagementPolicy();
+		}
+		else if(MemoryManagementPolicyType.MDF.ofType() == type) {
+			mmp = new MDFMemoryManagementPolicy(sd, dmRatio);
+		}
+		return mmp;
 	}
 
 	public void stop() {
@@ -69,6 +85,17 @@ public class SchedulerEngineWorker implements Runnable {
 				long scheduleFinish = System.nanoTime();
 				long totalScheduleTime = scheduleFinish - scheduleStart;
 				LOG.info("[END JOB] !!! {}", totalScheduleTime);
+				int totalDatasets = tracker.getClusterDatasetRegistry().totalDatasetsGeneratedDuringSchedule();
+				int totalSpilledDatasets = tracker.getClusterDatasetRegistry().totalDatasetsSpilledToDiskDuringSchedule();
+				double ratio = (double)totalSpilledDatasets/(double)totalDatasets;
+				double ratioMemory = (1 - ratio);
+				int ratioMemVSDiskAccessedData = tracker.getClusterDatasetRegistry().percentageOfTotalDataAccessedFromMem();
+				String memUtilization = tracker.getClusterDatasetRegistry().getHistoricMemUtilization();
+				LOG.info("Total datasets generated in schedule: {}", totalDatasets);
+				LOG.info("Total datasets spilled during schedule: {}", totalSpilledDatasets);
+				LOG.info("Ratio hit/miss: {}", ratioMemory);
+				LOG.info("Ratio memAccessedData/diskAccessedData: {}", ratioMemVSDiskAccessedData);
+				LOG.info("Historic mem utilization: {}", memUtilization);
 				work = false;
 				continue;
 			}
@@ -89,7 +116,7 @@ public class SchedulerEngineWorker implements Runnable {
 			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			
 			// TODO: (parallel sched) make this receive a list of stages
-			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker.getClusterDatasetRegistry());
+			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker);
 			commands.addAll(schedCommands); // append scheduling commands to the commands necessary to send to the cluster
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
@@ -190,7 +217,7 @@ public class SchedulerEngineWorker implements Runnable {
 			Map<Integer, Set<DataReference>> results, 
 			StageStatusCommand.Status status,
 			List<RuntimeEvent> runtimeEvents,
-			Set<Integer> managedDatasets) {
+			DatasetMetadataPackage managedDatasets) {
 		switch(status) {
 		case OK:
 			LOG.info("EU {} finishes stage {}", euId, stageId);

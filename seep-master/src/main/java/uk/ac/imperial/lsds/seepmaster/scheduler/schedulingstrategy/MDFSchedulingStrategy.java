@@ -1,7 +1,8 @@
-package uk.ac.imperial.lsds.seepmaster.scheduler;
+package uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,12 +14,14 @@ import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
 import uk.ac.imperial.lsds.seep.comm.protocol.Command;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ClusterDatasetRegistry;
+import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class MDFSchedulingStrategy implements SchedulingStrategy {
 
 	private Map<Integer, List<Object>> evaluatedResults = new HashMap<>();
 	
-	private int currentBestCandidate = -1;
+	private Set<Integer> chooseCandidates = new HashSet<>();
 	
 	@Override
 	public Stage next(ScheduleTracker tracker, Map<Integer, List<RuntimeEvent>> rEvents) {
@@ -36,9 +39,10 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			Set<Stage> upstream = nextToSchedule.getDependencies();
 			Map<Integer, Set<DataReference>> chosenResultsOfStage = new HashMap<>();
 			for(Stage s : upstream) {
-				if(s.getStageId() == currentBestCandidate) {
+				int stageId = s.getStageId();
+				Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(stageId);
+				if(chooseCandidates.contains(stageId)) {
 					// Filter out potential inputs of CHOOSE to get only the chosen one
-					Set<DataReference> inputs = nextToSchedule.getInputDataReferences().get(currentBestCandidate);
 					chosenResultsOfStage.put(nextToSchedule.getStageId(), inputs);
 				}
 			}
@@ -48,7 +52,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			
 			// Reset CHOOSE structures to support next potential choose
 			evaluatedResults = new HashMap<>();
-			currentBestCandidate = -1;
+			chooseCandidates = new HashSet<>();
 			
 			// Call recursively to next so that we give worker a stage to schedule
 			nextToSchedule = next(tracker, null);
@@ -113,17 +117,22 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 				}
 				evaluatedResults.put(finishedStage.getStageId(), evalResult);
 				// Evaluate choose and get list of stages whose values are still useful
-				this.currentBestCandidate = sct.choose(evaluatedResults);
+				this.chooseCandidates = sct.choose(evaluatedResults);
 				
+				ClusterDatasetRegistry cr = tracker.getClusterDatasetRegistry();
 				// TODO: difference between evaluatedResults and goOn are datasets to evict
 				for(int stageId : evaluatedResults.keySet()) {
-					List<Integer> stagesToEvict = new ArrayList<>();
-					if(stageId != currentBestCandidate) {
-						stagesToEvict.add(stageId);
+					if(! chooseCandidates.contains(stageId)) {
 						// get upstream of CHOOSE (which is my downstream), then go over output results and get all the
 						// datasets Id, which together in a list are the payload of an eviction command.
+						Stage choose = finishedStage.getDependants().iterator().next();
+						Map<Integer, Set<DataReference>> badInputs = choose.getInputDataReferences();
+						
+						for(DataReference drToEvict : badInputs.get(stageId)) {
+							cr.evictDatasetFromCluster(drToEvict.getId());
+						}
 					}
-				}
+				}	
 			}
 		}
 		return commands;

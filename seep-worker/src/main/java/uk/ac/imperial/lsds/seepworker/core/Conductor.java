@@ -12,8 +12,6 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.kryo.Kryo;
-
 import uk.ac.imperial.lsds.seep.api.ConnectionType;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataReference.ServeMode;
@@ -38,7 +36,6 @@ import uk.ac.imperial.lsds.seep.infrastructure.DataEndPoint;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
 import uk.ac.imperial.lsds.seep.scheduler.Stage;
 import uk.ac.imperial.lsds.seep.scheduler.StageType;
-import uk.ac.imperial.lsds.seep.util.Utils;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 import uk.ac.imperial.lsds.seepworker.comm.ControlAPIImplementation;
 import uk.ac.imperial.lsds.seepworker.comm.NetworkSelector;
@@ -46,6 +43,8 @@ import uk.ac.imperial.lsds.seepworker.core.input.CoreInput;
 import uk.ac.imperial.lsds.seepworker.core.input.CoreInputFactory;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutput;
 import uk.ac.imperial.lsds.seepworker.core.output.CoreOutputFactory;
+
+import com.esotericsoftware.kryo.Kryo;
 
 public class Conductor {
 
@@ -203,6 +202,13 @@ public class Conductor {
 			ns.initSelector();
 			ns.startSelector();
 		}
+		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE) ||
+		   coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {
+			FileSelector fsel = DataStoreSelectorFactory.maybeConfigureFileSelector(coreInput, coreOutput, 
+					wc, null, myIp, wc.getInt(WorkerConfig.DATA_PORT));
+			fsel.initSelector();
+			fsel.startSelector();
+		}
 		
 		// Request (possibly) remote chunks in case of scheduling a shuffled stage
 		if(s.hasPartitionedState()) {
@@ -329,7 +335,7 @@ public class Conductor {
 		}
 
 		public void notifyOk(List<RuntimeEvent> runtimeEvents) {
-			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasets());
+			masterApi.scheduleTaskStatus(masterConn, stageId, euId, Status.OK, refToProducedOutput, runtimeEvents, drm.getManagedDatasetsMetadata(coreInput.getAllDataReferences()));
 		}
 		
 	}
