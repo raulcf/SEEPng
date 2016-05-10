@@ -1,12 +1,13 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -78,24 +79,23 @@ public class DiskCacher {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel
-		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(cacheFileName), wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
+		WritableByteChannel writer = Channels.newChannel(new FileOutputStream(cacheFileName));
 		
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
 		
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
-			byte[] payload = bb.array();
-			int limit = bb.limit();
-			bos.write(limit);
-			bos.write(payload, 0, payload.length);
+			bb.flip();
+			ByteBuffer size = ByteBuffer.allocate(Integer.BYTES).putInt(bb.limit());
+			writer.write(size);
+			writer.write(bb);
 		}
 		
 		// close
 		int freedMemory = data.completeTransferToDisk();
 		
-		bos.flush();
-		bos.close();
+		writer.close();
 		
 		data.setCachedLocation(cacheFileName);
 		LOG.debug("Content is spilled to: {}", cacheFileName);
