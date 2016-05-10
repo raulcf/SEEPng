@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -86,6 +87,7 @@ public class DiskCacher {
 		
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
+			//TODO: Is this line necessary? Or should it first be checked to see if bb was already flipped?
 			bb.flip();
 			ByteBuffer size = ByteBuffer.allocate(Integer.BYTES).putInt(bb.limit());
 			writer.write(size);
@@ -110,10 +112,9 @@ public class DiskCacher {
 		// Prepare dataset for trasnfer to memory
 		ByteBuffer currentPointer = data.prepareForTransferToMemory();
 		
-		int bbSize = wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE);
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(cacheFileName), bbSize);
-
-		data.transferToMemory(bis, bbSize);
+		ReadableByteChannel reader = Channels.newChannel(new FileInputStream(cacheFileName));
+		
+		data.transferToMemory(reader);
 		
 		data.completeTransferToMemory(currentPointer);
 		

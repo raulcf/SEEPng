@@ -1,8 +1,6 @@
 package uk.ac.imperial.lsds.seepworker.core;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -148,27 +146,21 @@ public class Dataset implements IBuffer, OBuffer {
 		return freedMemory;
 	}
 	
-	public void transferToMemory(BufferedInputStream bis, int bbSize) {
+	public void transferToMemory(ReadableByteChannel bis) {
 		boolean goOn = true;
 		while(goOn) {
 			int limit = 0;
 			ByteBuffer bb = null;
 			try {
-				limit = bis.read();
-				if(limit == -1) {
-					goOn = false;
-					bis.close();
-					continue;
-				}
 				bb = bufferPool.borrowBuffer();
 				int read = 0;
 				if(bb == null) { // Run out of memory, we can try with the cached buffer
-					read = bis.read(wPtrToBuffer.array());
+					read = bis.read(wPtrToBuffer);
 				}
 				else {
-					read = bis.read(bb.array());
+					read = bis.read(bb);
 				}
-				if(read == -1) {
+				if(read <= 0) {
 					goOn = false;
 					bufferPool.returnBuffer(bb);
 					bis.close();
