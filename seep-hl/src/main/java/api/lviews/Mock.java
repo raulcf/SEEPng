@@ -1,12 +1,18 @@
 package api.lviews;
 
+import java.util.List;
 import java.util.Set;
 
 import api.objects.Locatable;
+import ir.Traceable;
 
 public class Mock<T extends Locatable> implements LogicalView<T>{
 
+	// Traceable attributes
 	private int id;
+	private String name;
+	private List<Traceable> inputs;
+	private List<Traceable> outputs;
 	
 	public Mock (int id) {
 		this.id = id;
@@ -16,37 +22,9 @@ public class Mock<T extends Locatable> implements LogicalView<T>{
 		return new Mock(id);
 	}
 	
-	/**
-	 * Implementation of Traceable interface
-	 */
-	
 	@Override
 	public int getId() {
 		return id;
-	}
-	
-	@Override
-	public void setName(String name) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addInput(int id) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void addOutput(int id) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	/**

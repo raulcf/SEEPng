@@ -1,21 +1,22 @@
 package api;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import api.lviews.LogicalView;
 import api.lviews.Mock;
 import api.objects.Locatable;
 import api.placing.Partitioner;
 import api.topology.Cluster;
-import ir.Dummy;
+import ir.TraceSeed;
+import ir.Traceable;
 
 public class APIImplementation implements API {
 	
 	private int id = 0;
 	
-	private Map<Integer, Dummy> dummies = new HashMap<>();
+	private Map<Integer, Traceable> traces = new HashMap<>();
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
@@ -30,15 +31,19 @@ public class APIImplementation implements API {
 	@Override
 	public <T extends Locatable> LogicalView<T> readFromPath(String filename) {
 		// Creates a new task with an id
-		Dummy d = new Dummy(id++);
+		int seedId = id++;
+		TraceSeed d = new TraceSeed(seedId);
 		d.setName("readFromPath: " + filename);
 		// The task has 1 output
 		Mock m = Mock.makeMockLogicalView(id++);
+		Set<T> objs = m.getObjects();
 		int oId = m.getId();
 		// The output is added to the task
-		d.addOutput(oId);
+		for(T obj : objs) {
+			d.addOutput(obj);
+		}
 		// Store the created object
-		dummies.put(id, d);
+		traces.put(seedId, d);
 		
 		// return so that execution of the program can continue
 		return m;
@@ -46,8 +51,15 @@ public class APIImplementation implements API {
 
 	@Override
 	public <T extends Locatable> void writeToPath(LogicalView<T> lv, String filename) {
-		// TODO Auto-generated method stub
+		int seedId = id++;
+		TraceSeed d = new TraceSeed(seedId);
+		d.setName("writeToPath: " + filename);
 		
+		//int iId = lv.getId();
+		for(T obj : lv.getObjects()) {
+			d.addInput(obj);
+		}
+		traces.put(seedId, d);
 	}
 	
 	/**
@@ -56,7 +68,19 @@ public class APIImplementation implements API {
 
 	@Override
 	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv, Cluster c) {
-		// TODO Auto-generated method stub
+		
+		TraceSeed st = new TraceSeed(id++); // this will be translated into more specific actions, such as move there, or come here
+		st.setName("blockDistribution ");
+		// input objects
+		for(T obj : lv.getObjects()) {
+			st.addInput(obj);
+		}
+		
+		//output objects (may be the same, identity, but may be in a different position)
+		for(T obj : lv.getObjects()) {
+			st.addOutput(obj);
+		}
+		
 		return false;
 	}
 

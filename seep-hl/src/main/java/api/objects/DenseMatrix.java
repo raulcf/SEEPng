@@ -3,6 +3,8 @@ package api.objects;
 import java.util.List;
 
 import api.topology.GridPosition;
+import ir.TraceSeed;
+import ir.Traceable;
 
 public class DenseMatrix implements Locatable {
 
@@ -12,12 +14,34 @@ public class DenseMatrix implements Locatable {
 	private GridPosition gridPosition;
 	
 	public DenseMatrix addMatrix(DenseMatrix m) {
+		// Trace action
 		
+		TraceSeed ts = new TraceSeed(100); // this op
+		ts.setName("addMatrix");
+		this.addOutput(ts); // to chain with the existing object
+		ts.addInput(this);
+		
+		// actual operation would occur here
+		// FIXME: instead of this, we'd pass the new matrix
+		ts.addOutput(this);
+		
+		// perform operation
 		return this;
 	}
 	
 	public DenseMatrix multiply(DenseMatrix m) {
-		// TODO:
+		// Trace action
+		
+		TraceSeed ts = new TraceSeed(100); // this op
+		ts.setName("multiply");
+		this.addOutput(ts); // to chain with the existing object
+		ts.addInput(this);
+		
+		// actual operation would occur here
+		// FIXME: instead of this, we'd pass the new matrix
+		ts.addOutput(this);
+		
+		// perform operation
 		return this;
 	}
 	
@@ -48,6 +72,52 @@ public class DenseMatrix implements Locatable {
 	@Override
 	public void moveTo(int i, int j) {
 		// TODO change gridPosition
+		
+	}
+	
+	/**
+	 * Implementation of Traceable interface (extended by Locatable)
+	 */
+
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setName(String name) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addInput(Traceable t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addOutput(Traceable t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void isInputOf(Traceable t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void isOutputOf(Traceable t) {
+		// TODO Auto-generated method stub
 		
 	}
 
