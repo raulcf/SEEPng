@@ -14,14 +14,36 @@ import ir.Traceable;
 
 public class APIImplementation implements API {
 	
+	private Cluster c;
+	
 	private int id = 0;
 	
 	private Map<Integer, Traceable> traces = new HashMap<>();
 	
 	@Override
+	public void addCluster(Cluster c) {
+		this.c = c;
+	}
+	
+	@Override
+	public int gridRows() {
+		return this.c.gridRows();
+	}
+
+	@Override
+	public int gridCols() {
+		return this.c.gridCols();
+	}
+	
+	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	@Override
+	public Map<Integer, Traceable> getTraces() {
+		return traces;
 	}
 	
 	/**
@@ -67,7 +89,7 @@ public class APIImplementation implements API {
 	 */
 
 	@Override
-	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv, Cluster c) {
+	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv) {
 		
 		TraceSeed st = new TraceSeed(id++); // this will be translated into more specific actions, such as move there, or come here
 		st.setName("blockDistribution ");
@@ -85,44 +107,43 @@ public class APIImplementation implements API {
 	}
 
 	@Override
-	public <T extends Locatable> boolean cyclicDistribution(LogicalView<T> lv, Cluster c) {
+	public <T extends Locatable> boolean cyclicDistribution(LogicalView<T> lv) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean blockCyclicDistribution(LogicalView<T> lv, Cluster c) {
+	public <T extends Locatable> boolean blockCyclicDistribution(LogicalView<T> lv) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean shuffleDistribution(LogicalView<T> lv, Cluster c) {
+	public <T extends Locatable> boolean shuffleDistribution(LogicalView<T> lv) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean partitionAndBlockDistribution(LogicalView<T> lv, Cluster c, Partitioner p) {
+	public <T extends Locatable> boolean partitionAndBlockDistribution(LogicalView<T> lv, Partitioner p) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean partitionAndCyclicDistribution(LogicalView<T> lv, Cluster c, Partitioner p) {
+	public <T extends Locatable> boolean partitionAndCyclicDistribution(LogicalView<T> lv, Partitioner p) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean partitionAndBlockCyclicDistribution(LogicalView<T> lv, Cluster c,
-			Partitioner p) {
+	public <T extends Locatable> boolean partitionAndBlockCyclicDistribution(LogicalView<T> lv,	Partitioner p) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public <T extends Locatable> boolean partitionAndShuffleDistribution(LogicalView<T> lv, Cluster c, Partitioner p) {
+	public <T extends Locatable> boolean partitionAndShuffleDistribution(LogicalView<T> lv, Partitioner p) {
 		// TODO Auto-generated method stub
 		return false;
 	}

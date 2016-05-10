@@ -1,11 +1,13 @@
 package api;
 
+import java.util.Map;
+
 import api.io.IO;
 import api.lviews.LogicalView;
 import api.objects.Locatable;
 import api.placing.DataLayout;
 import api.topology.Cluster;
-import api.topology.ClusterImplementation;
+import ir.Traceable;
 
 /**
  * Contains the API that developers use to write their applications.
@@ -16,7 +18,11 @@ import api.topology.ClusterImplementation;
  */
 public interface API extends IO, DataLayout {
 
-	final Cluster c = new ClusterImplementation();
+	public Map<Integer, Traceable> getTraces();
+
+	public void addCluster(Cluster c);
+	public int gridRows();
+	public int gridCols();
 	
 	public <T extends Locatable> LogicalView<T> createLogicalView();
 	
