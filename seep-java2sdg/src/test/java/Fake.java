@@ -5,14 +5,11 @@ import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.annotations.Collection;
-import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 
 public class Fake implements SeepProgram {
 
@@ -38,7 +35,7 @@ public class Fake implements SeepProgram {
 		DataStore fileSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
 		
 		spc.newWorkflow("train(int userId, long ts, String text)", netSrc, netSnk);
-//		spc.newWorkflow("test(float data)", netSrc, fileSnk); // input and output schema are the same
+//		spc.newWorkflow("test(int userId, long ts, String text)", netSrc, netSnk);
 		return spc;
 	}
 	
@@ -48,10 +45,13 @@ public class Fake implements SeepProgram {
 		ts = ts +1l;
 		text += "_processed";
 		int count =0;
-		System.out.println("ID: "+ ts + " TS: "+ ts + "Txt: "+ text);		
+		if( (userId % 100000) == 0){
+			System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);
+		}
+//		System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);		
 		List weights = new ArrayList();
 		weights.add(new Double("100"));
-		System.out.println("GOT: " + weights.get(0));
+//		System.out.println("GOT: " + weights.get(0));
 		
 		
 //		for (int i = 0; i < iteration; i++) {
@@ -63,15 +63,14 @@ public class Fake implements SeepProgram {
 //		return weights.get(0);
 	}
 
-//	public void test(float data) {
-//		int userId = 0;
-//		long ts = 0;
-//		String text = "";
+//	public void test(int userId, long ts, String text) {
+//		userId = userId + 1;
+//		ts = ts +1l;
 //		long whatever = 0l;
 //		int b = 1;
-//		float c = data +10;
+//		float c = ts +10;
 //		long ts2 = ts + 1;
-//		String newText = new String(text + "_saying_something");
+//		text = new String(text + "_saying_something");
 //	}
 //
 //	@Collection

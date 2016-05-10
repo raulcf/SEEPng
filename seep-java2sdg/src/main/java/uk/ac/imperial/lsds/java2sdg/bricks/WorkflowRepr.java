@@ -67,6 +67,7 @@ public class WorkflowRepr {
 		sb.append("\nName: "+ this.name);
 		sb.append("\n->Source: \n" + this.source.getSchema());
 		sb.append("--------------");
+		if(sink != null)
 		sb.append("\n->Sink: \n"+ this.sink.getSchema());
 		sb.append("--------------");
 		sb.append("\n->Code: "+ this.code);

@@ -42,6 +42,7 @@ public class SeepOpClassBuilder {
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.data.Schema");
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.operator");
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.operator.sinks");
+//		cp.importPackage("uk.ac.imperial.lsds.seep.api.state.stateimpl");
 	}
 
 	/**

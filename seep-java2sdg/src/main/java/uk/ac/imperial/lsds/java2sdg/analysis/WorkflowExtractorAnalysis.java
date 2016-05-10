@@ -144,7 +144,8 @@ public class WorkflowExtractorAnalysis extends Traverser {
 			String if_ = ")";
 			code.add(new CodeRepr().new CodeAndLine(if_, line));
 			(is.thenStatement).accept(this);
-			(is.optionalElseStatement).accept(this);
+			if (is.optionalElseStatement != null) 
+				(is.optionalElseStatement).accept(this);
 		}
 
 		@Override
