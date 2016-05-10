@@ -66,11 +66,11 @@ public class OperatorClassBuilder {
 						new String(schemaVariable + node.getId()));
 				if (!currentSchema.toString().isEmpty())
 					code.append(currentSchema.toString());
-				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSource(new Src(), " + count
-						+ ");\n");
+				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSource(new C_"
+							+ node.getId() + "()," + count + ");\n");
 			} else if (node.getTaskElements().values().iterator().next().isSink()) {
-				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSink(new Snk(), " + count
-						+ ");\n");
+				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSink(new C_"
+							+ node.getId() + "()," + count + ");\n");
 			} else {
 				String currentSchema = SeepOperatorNewTemplate.getSchemaInstance(
 						node.getTaskElements().values().iterator().next().getOutputSchema(),
@@ -169,61 +169,6 @@ public class OperatorClassBuilder {
 		return cc;
 	}
 
-	public CtClass generateStatelessProcessor(String opName, String schema, String[] processorFields,
-			String classMethod, String processorCode) {
-		CtClass cc = cp.makeClass(opName);
-
-		CtClass[] implInterfaces = new CtClass[1];
-		try {
-			implInterfaces[0] = cp.get("uk.ac.imperial.lsds.seep.api.SeepTask");
-			cc.setInterfaces(implInterfaces);
-
-			CtConstructor cCon = CtNewConstructor.defaultConstructor(cc);
-			cc.addConstructor(cCon);
-
-			// Schema field - defined globally in the Processor class
-			if (schema != null && !schema.isEmpty()) {
-				CtField f = CtField.make(schema, cc);
-				cc.addField(f);
-			}
-			// Global variables
-			if (processorFields != null && processorCode.length() > 0) {
-				for (String f : processorFields) {
-					CtField cfield = CtField.make(f, cc);
-					cc.addField(cfield);
-				}
-			}
-			// Class methods
-			if (classMethod != null && !classMethod.isEmpty()) {
-				CtMethod cMethod = OperatorMethodBuilder.genClassMethod(cc, classMethod);
-				cc.addMethod(cMethod);
-			}
-
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW Processor Class\n {} \n\n", processorCode);
-			cc.addMethod(processDataSingle);
-
-			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
-			cc.addMethod(setUp);
-
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
-			cc.addMethod(close);
-
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
-			cc.addMethod(processDataGroup);
-
-		} catch (CannotCompileException e) {
-			LOG.error("Error generating Stateless Processor class {} ", e.toString());
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			LOG.error("Error generating Stateless Processor class {} ", e.toString());
-			e.printStackTrace();
-		}
-		// cp.insertClassPath(new ClassClassPath(cc.getClass()));
-		return cc;
-	}
-
 	/**
 	 * Generates a new SEEP Source class incrementing Periodically all the
 	 * NUMBER fields Bytecode generated using Javassist
@@ -232,7 +177,7 @@ public class OperatorClassBuilder {
 	 *            schema
 	 * @return CtClass
 	 */
-	public CtClass generatePeriodicSource(Schema schema) {
+	public CtClass generatePeriodicSource(String sourceName, Schema schema) {
 		String schemaVariable = "schema";
 
 		String sourceSchema = SeepOperatorNewTemplate.getSchemaInstance(schema, schemaVariable);
@@ -248,7 +193,7 @@ public class OperatorClassBuilder {
 		srcProcessCode.append("$2.send(d);\n");
 		srcProcessCode.append(SeepOperatorNewTemplate.increaseSchemaVars(schema) + " }");
 
-		CtClass cc = cp.makeClass("Src");
+		CtClass cc = cp.makeClass(sourceName);
 
 		CtClass[] implInterfaces = new CtClass[1];
 		try {
@@ -302,67 +247,6 @@ public class OperatorClassBuilder {
 		return cc;
 	}
 
-	/**
-	 * Generates a new Generic SEEP Source class Bytecode generated using
-	 * Javassist
-	 * 
-	 * @param code,
-	 *            schema
-	 * @return CtClass
-	 */
-	public CtClass generateSource(String schema, String[] sourceFields, String sourceExtraMethod,
-			String processorCode) {
-		CtClass cc = cp.makeClass("Src");
-
-		CtClass[] implInterfaces = new CtClass[1];
-		try {
-			implInterfaces[0] = cp.get("uk.ac.imperial.lsds.seep.api.operator.sources.Source");
-			cc.setInterfaces(implInterfaces);
-
-			CtConstructor cCon = CtNewConstructor.defaultConstructor(cc);
-			cc.addConstructor(cCon);
-
-			// Schema field - defined globally in the Source class
-			if (schema != null && !schema.isEmpty()) {
-				CtField f = CtField.make(schema, cc);
-				cc.addField(f);
-			}
-			// Global variables
-			if (sourceFields != null && sourceFields.length > 0) {
-				for (String f : sourceFields) {
-					CtField cfield = CtField.make(f, cc);
-					cc.addField(cfield);
-				}
-			}
-			// Class methods
-			if (sourceExtraMethod != null && !sourceExtraMethod.isEmpty()) {
-				CtMethod cMethod = OperatorMethodBuilder.genClassMethod(cc, sourceExtraMethod);
-				cc.addMethod(cMethod);
-			}
-
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW Source Class\n {} \n\n", processorCode);
-			cc.addMethod(processDataSingle);
-
-			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
-			cc.addMethod(setUp);
-
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
-			cc.addMethod(close);
-
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
-			cc.addMethod(processDataGroup);
-
-		} catch (CannotCompileException e) {
-			LOG.error("Error generating Source class {} ", e.toString());
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			LOG.error("Error generating Source class {} ", e.toString());
-			e.printStackTrace();
-		}
-		return cc;
-	}
 
 	/**
 	 * Generates a new SEEP Sink class periodically reporting throughput
@@ -371,9 +255,9 @@ public class OperatorClassBuilder {
 	 * @param code
 	 * @return CtClass
 	 */
-	public CtClass generatePeriodicSink(Schema schema) {
+	public CtClass generatePeriodicSink(String sinkName, Schema schema) {
 		String schemaVariable = "schema";
-		CtClass cc = cp.makeClass("Snk");
+		CtClass cc = cp.makeClass(sinkName);
 
 		String sinkSchema = SeepOperatorNewTemplate.getSchemaInstance(schema, schemaVariable);
 		String[] sinkFields = new String[] { "int PERIOD = 1000;", "int count = 0;", "public long time;" };
@@ -426,64 +310,5 @@ public class OperatorClassBuilder {
 		return cc;
 	}
 
-	/**
-	 * Generates a new SEEP Sink class Bytecode generated using Javassist
-	 * 
-	 * @param code
-	 * @return CtClass
-	 */
-	public CtClass generateSink(String schema, String[] sinkFields, String sinkExtraMethod, String processorCode) {
-		CtClass cc = cp.makeClass("Snk");
-
-		CtClass[] implInterfaces = new CtClass[1];
-		try {
-			implInterfaces[0] = cp.get("uk.ac.imperial.lsds.seep.api.operator.sinks.Sink");
-			cc.setInterfaces(implInterfaces);
-
-			CtConstructor cCon = CtNewConstructor.defaultConstructor(cc);
-			cc.addConstructor(cCon);
-
-			// Schema field - defined globally in the Processor class
-			if (schema != null && !schema.isEmpty()) {
-				CtField f = CtField.make(schema, cc);
-				cc.addField(f);
-			}
-			// Global variables
-			if (sinkFields != null && sinkFields.length > 0) {
-				for (String f : sinkFields) {
-					CtField cfield = CtField.make(f, cc);
-					cc.addField(cfield);
-				}
-			}
-			// Class methods
-			if (sinkExtraMethod != null && !sinkExtraMethod.isEmpty()) {
-				CtMethod cMethod = OperatorMethodBuilder.genClassMethod(cc, sinkExtraMethod);
-				cc.addMethod(cMethod);
-			}
-
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, processorCode);
-			LOG.info("NEW Sink Class\n {} \n\n", processorCode);
-			cc.addMethod(processDataSingle);
-
-			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
-			cc.addMethod(setUp);
-
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
-			cc.addMethod(close);
-
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
-			cc.addMethod(processDataGroup);
-
-		} catch (CannotCompileException e) {
-			LOG.error("Error generating Sink class {} ", e.toString());
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			LOG.error("Error generating Sink class {} ", e.toString());
-			e.printStackTrace();
-		}
-		// cp.insertClassPath(new ClassClassPath(cc.getClass()));
-		return cc;
-	}
 
 }

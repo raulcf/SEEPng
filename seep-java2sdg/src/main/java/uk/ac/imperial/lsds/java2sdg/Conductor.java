@@ -84,8 +84,13 @@ public class Conductor {
 		
 		/** Build SDG from partial SDGs **/
 		SDGRepr sdg = SDGRepr.createSDGFromPartialSDG(partialSDGs);
+		for (SDGNode n : sdg.getSdgNodes()) {
+			System.out.println("-----------");
+			System.out.println(n.toString());
+			System.out.println("-----------");
+		}
 		
-//		/** Output generated SDG **/
+		/** Output generated SDG **/
 		OutputTarget ot = OutputTarget.ofType(cc.getInt(CompilerConfig.TARGET_OUTPUT));
 		String outputName = cc.getString(CompilerConfig.OUTPUT_FILE);
 		switch (ot) {
@@ -101,11 +106,6 @@ public class Conductor {
 			break;
 		case X_JAR:
 			LOG.info("Exporting SDG to SEEP runnable query JAR...");
-			for (SDGNode n : sdg.getSdgNodes()) {
-				System.out.println("-----------");
-				System.out.println(n.toString());
-				System.out.println("-----------");
-			}
 			SDGRepr assembledSDG = CodeGenerator.assemble(sdg);
 			QueryBuilder qBuilder = new QueryBuilder();
 			qBuilder.buildAndPackageQuery(assembledSDG);
@@ -116,84 +116,5 @@ public class Conductor {
 
 		}
 		
-	}
-	
+	}	
 }
-		
-//		/** Build partialSDGs, one per workflow **/
-//
-//		SDGBuilder sdgBuilder = new SDGBuilder();
-//		int workflowId = 0;
-//		// Analyse and extract a partial SDG per workflow
-//		for (String methodName : workflows) {
-//			// Build CFG
-//			LOG.info("Building partialSDG for workflow: " + methodName);
-//			UnitGraph cfg = Util.getCFGForMethod(methodName, c); // get cfg
-//			// Perform live variable analysis
-//			LiveVariableAnalysis lva = LiveVariableAnalysis.getInstance(cfg); // compute livevariables
-//			// Perform TE boundary analysis
-//			TEBoundaryAnalysis oba = TEBoundaryAnalysis.getBoundaryAnalyzer(cfg, stateElements, sch, lva);
-//			List<TaskElementBuilder> sequentialTEList = oba.performTEAnalysis();
-//			// TODO: this partialSDG will contain also a source and optionally a sink, depending on the info of the WorkflowRepr object
-//			List<OperatorBlock> partialSDG = PartialSDGBuilder.buildPartialSDG(sequentialTEList, workflowId);
-//			// for(OperatorBlock ob : partialSDG){
-//			// System.out.println(ob);
-//			// }
-//			workflowId++;
-//			sdgBuilder.addPartialSDG(partialSDG);
-//		}
-//		
-//		// TODO: Validate partialSDGs here.
-//		// TODO: we should come up with a reasonable collection of unit tests to try all type of workflows at this point
-//		// TODO: and observe whether they are correctly constructed or not (including sources and sinks)
-//
-//		/** Build SDG from partialSDGs **/
-//
-//		LOG.info("Building SDG from " + sdgBuilder.getNumberOfPartialSDGs()
-//				+ " partialSDGs...");
-//		List<OperatorBlock> sdg = sdgBuilder.synthetizeSDG();
-//		// for(OperatorBlock ob : sdg){
-//		// System.out.println(ob);
-//		// }
-//		LOG.info("Building SDG from partialSDGs...OK");
-//
-//		/** Ouput SDG in a given format **/
-//
-//		// Output
-//		if (outputTarget.equals("dot")) { // dot output
-//			// Export SDG to dot
-//			LOG.info("Exporting SDG to DOT file...");
-//			DOTExporter exporter = DOTExporter.getInstance();
-//			exporter.export(sdg, outputFileName);
-//			LOG.info("Exporting SDG to DOT file...OK");
-//		} else if (outputTarget.equals("gexf")) {
-//			LOG.info("Exporting GEXF to DOT file...");
-//			GEXFExporter exporter = GEXFExporter.getInstance();
-//			exporter.export(sdg, outputFileName);
-//			LOG.info("Exporting GEXF to DOT file...OK");
-//		} else if (outputTarget.equals("seepjar")) {
-//			LOG.info("Exporting SEEP runnable query...");
-//			List<OperatorBlock> assembledCode = CodeGenerator.assemble(sdg);
-//			for (OperatorBlock ob : assembledCode) {
-//				System.out.println("---->");
-//				System.out.println("");
-//				System.out.println("");
-//				System.out.println("");
-//				System.out.println("");
-//				System.out.println(ob.getCode());
-//				System.out.println("");
-//				System.out.println("");
-//				System.out.println("");
-//				System.out.println("");
-//			}
-//			// Set<TaskElement> sdg = SDGAssembler.getSDG(oba, lva, sch);
-//			//
-//			// // SDGAssembler sdgAssembler = new SDGAssembler();
-//			// // Set<OperatorBlock> sdg =
-//			// sdgAssembler.getFakeLinearPipelineOfStatelessOperators(1);
-//			//
-//			// QueryBuilder qBuilder = new QueryBuilder();
-//			// String q = qBuilder.generateQueryPlanDriver(sdg);
-//			// System.out.println("QueryPlan: "+q);
-//			// qBuilder.buildAndPackageQuery();
-//		}

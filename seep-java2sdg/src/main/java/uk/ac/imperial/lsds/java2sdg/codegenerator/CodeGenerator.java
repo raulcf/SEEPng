@@ -35,28 +35,28 @@ public class CodeGenerator {
 				LOG.debug("Multi-TE");
 				LOG.error("NOT SUPPORTED YET!");
 				System.exit(-1);
-				// builtCode  = SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
+				// builtCode =
+				// SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
 			}
 			/* Single-TE case */
 			else if (node.getTaskElements().size() == 1) {
 				LOG.debug("Single-TE");
 				TaskElementRepr te = node.getTaskElements().values().iterator().next();
 				builtCode = SeepOperatorNewTemplate.getCodeForSingleOp(te);
-				LOG.debug("Opearator Code: {}", builtCode);
 
 			} else {
 				LOG.error("SDGRepr with empty TaskElement List!");
+				System.exit(-1);
 			}
-				try {
-					if (builtCode == null)
-						LOG.error("CodeGenerator failed to produce any Code for Node {}", node.getName());
-	
-					System.out.println("CODE PRODUCED: " + builtCode);
-					node.setBuiltCode(builtCode);
-				} catch (Exception e) {
-					e.printStackTrace();
-					LOG.error("Invalid code assigment: " + e.getMessage());
+			try {
+				if (builtCode == null) {
+					LOG.error("CodeGenerator failed to produce any Code for Node {}", node.getName());
 				}
+				node.setBuiltCode(builtCode);
+			} catch (Exception e) {
+				e.printStackTrace();
+				LOG.error("Invalid code assigment: " + e.getMessage());
+			}
 		}
 		return sdg;
 	}

@@ -5,10 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
-import org.codehaus.janino.Java.Type;
-import org.codehaus.janino.Java.BasicType;
 
 public class SDGRepr {
 
@@ -31,21 +28,24 @@ public class SDGRepr {
 				TaskElementRepr src = new TaskElementRepr(0);
 				src.setOutputSchema(partial.getSource().getSchema());
 				src.setSouce(true);
-				//create connection
+				//create connection with the first TaskElement
 				src.setDownstreams(Arrays.asList(partial.getTEs().get(0).getId()));
 				taskElements.put(0, src);
-				SDGNode srcNode = new SDGNode(String.valueOf(partialID), taskElements, null);
+				SDGNode srcNode = new SDGNode("source_"+partialID, taskElements, null);
 				sdgNodes.add(srcNode);
 				partialID++;
 			}
 			
+			//Create ONE SDGNode per partialSDG
 			taskElements = new HashMap<>();
 			TaskElementRepr lastTE = null;
 			for(TaskElementRepr el : partial.getTEs()) {
 				taskElements.put(el.getId(), el);
 				lastTE = el;
 			}
-			SDGNode s = new SDGNode(String.valueOf(partialID), taskElements, null);
+			//Use just Method name (no arguments)
+			String wfName = partial.getWorkflowName().substring(0, partial.getWorkflowName().indexOf("("))+"_"+partialID;
+			SDGNode s = new SDGNode(wfName, taskElements, null);
 			sdgNodes.add(s);
 			partialID++;
 			
@@ -59,7 +59,7 @@ public class SDGRepr {
 				snk.setSink(true);
 				taskElements = new HashMap<>();
 				taskElements.put(lastTE.getId()+1, snk);
-				SDGNode snkNode = new SDGNode(String.valueOf(partialID), taskElements, null);
+				SDGNode snkNode = new SDGNode("sink_"+partialID, taskElements, null);
 				sdgNodes.add(snkNode);
 				partialID++;
 			}

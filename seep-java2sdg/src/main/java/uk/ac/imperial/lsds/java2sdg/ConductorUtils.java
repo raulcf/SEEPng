@@ -42,7 +42,7 @@ public class ConductorUtils {
 	}
 
 	/**
-	 * Returns the classs name of a Java Class file
+	 * Returns the class name of a Java Class file
 	 * For example: the className of the file /home/pgaref/test.java is test
 	 * @param inputFile
 	 * @return String (class Name)

@@ -45,9 +45,8 @@ public class DOTExporter implements SDGExporter{
 		output.add("color=lightgrey;\n");
 		
 		for(SDGNode node : sdg.getSdgNodes()){
-			
 			for(Entry<Integer, TaskElementRepr> te : node.getTaskElements().entrySet()){
-						output.add(""+te.getValue().getId());
+						output.add(node.getName());
 						output.add(";\n");
 			}
 		}
@@ -103,8 +102,8 @@ public class DOTExporter implements SDGExporter{
 			}
 			if(node.isSource()){
 				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
-					String me = ""+node.getId();
-					String down = ""+downstream+"";
+					String me = node.getName();
+					String down = sdg.getSdgNodes().get(downstream).getName();
 					output.add(me +"  [shape=Mdiamond];\n");
 					output.add(me+" -> "+down+";\n");
 				}
@@ -112,14 +111,14 @@ public class DOTExporter implements SDGExporter{
 			// Check downstream to connect it appropiately
 			else if(node.getTaskElements().values().iterator().next().getDownstreams().size() > 0){
 				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
-					String me = ""+node.getId()+"";
-					String down = ""+downstream+"";
+					String me = node.getName();
+					String down = sdg.getSdgNodes().get(downstream).getName();
 					output.add(me + " [color=Turquoise,shape=circle];\n" );
 					output.add(me+" -> "+down+";\n");
 				}
 			}
 			else if(node.isSink()){
-				String me = ""+node.getId()+"";
+				String me = node.getName();
 				output.add(me +"  [shape=Mcircle];\n");
 			}
 			// Use a different shape for merge ops

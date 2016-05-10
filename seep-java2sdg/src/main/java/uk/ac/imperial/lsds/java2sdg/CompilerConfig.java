@@ -45,8 +45,8 @@ public class CompilerConfig extends Config {
 		return config.getAllConfigKey();
 	}
 	
-	public static void main(String[] args) {
-        System.out.println(config.toHtmlTable());
-    }
+//	public static void main(String[] args) {
+//        System.out.println(config.toHtmlTable());
+//    }
 	
 }

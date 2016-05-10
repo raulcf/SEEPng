@@ -10,9 +10,11 @@ public class PartialSDGRepr {
 
 	// First TE will have ID 1 - Source will be 0
 	private static int currentId;
-
+	
+	private String workflowName;
 	private DataStore source;
 	private DataStore sink;
+	
 	private List<TaskElementRepr> te = new ArrayList<TaskElementRepr>();
 
 	public static PartialSDGRepr makePartialSDGRepr(String workflowName, DataStore source,
@@ -24,6 +26,7 @@ public class PartialSDGRepr {
 	private PartialSDGRepr(int currentId, String workflowName, DataStore source,
 			List<PartialSDGComponent> pSDGComponents, DataStore sink) {
 		// store source and sink as attributes of this class and use them later with the code generation module
+		this.workflowName = workflowName;
 		this.source = source;
 		this.sink = sink;
 
@@ -40,9 +43,17 @@ public class PartialSDGRepr {
 		// TODO: create last connection between the last TE and the sink
 	}
 
-	public int getPartialSDGReprId() {
+	public static int getCurrentPartialSDGReprId() {
 		return currentId;
 	}
+	
+	public String getWorkflowName() {
+		return workflowName;
+	}
+
+	public void setWorkflowName(String workflowName) {
+		this.workflowName = workflowName;
+	}	
 
 	public List<TaskElementRepr> getTEs() {
 		return te;

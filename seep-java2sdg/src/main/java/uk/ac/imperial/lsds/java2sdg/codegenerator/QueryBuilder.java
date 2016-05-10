@@ -104,17 +104,17 @@ public class QueryBuilder {
 		
 		for(int index=0; index < sdg.getSdgNodes().size(); index++){
 			
-			String operatorName = sdg.getSdgNodes().get(index).getName();
+			String operatorName = sdg.getSdgNodes().get(index).getId()+"";
 			String classOperatorName = "C_"+operatorName;
 			
 			LOG.debug("Operator Name: {} class: {} ID: {}  ", operatorName, classOperatorName, sdg.getSdgNodes().get(index).getId());
 			
 			if(sdg.getSdgNodes().get(index).isSource()){
-				CtClass srcInstantiation = builder.generatePeriodicSource(sdg.getSdgNodes().get(index).getTaskElements().values().iterator().next().getOutputSchema());
+				CtClass srcInstantiation = builder.generatePeriodicSource(classOperatorName, sdg.getSdgNodes().get(index).getTaskElements().values().iterator().next().getOutputSchema());
 				opInstantiationCode.add(srcInstantiation);
 			}
 			else if(sdg.getSdgNodes().get(index).isSink()){
-				CtClass srcInstantiation = builder.generatePeriodicSink(sdg.getSdgNodes().get(index - 1)
+				CtClass srcInstantiation = builder.generatePeriodicSink(classOperatorName, sdg.getSdgNodes().get(index - 1)
 						.getTaskElements().values().iterator().next().getOutputSchema());
 				opInstantiationCode.add(srcInstantiation);
 			}
