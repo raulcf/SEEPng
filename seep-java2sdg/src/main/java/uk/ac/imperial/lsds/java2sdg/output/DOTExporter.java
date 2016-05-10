@@ -37,26 +37,20 @@ public class DOTExporter implements SDGExporter{
 		return instance;
 	}
 	
-	public void taskCreator(SDGRepr sdg, List<String> output){
+	public void taskElementCreator(SDGRepr sdg, List<String> output){
 		//task cluster
 		output.add("subgraph cluster0 { \n");
-		output.add("node [style=filled,color=white];\n");
+		output.add("node [style=filled,fillcolor=white];\n");
 		output.add("style=filled;\n");
 		output.add("color=lightgrey;\n");
 		
-		boolean first = true;
 		for(SDGNode node : sdg.getSdgNodes()){
+			
 			for(Entry<Integer, TaskElementRepr> te : node.getTaskElements().entrySet()){
-					if(first){
-						output.add(te.getValue().getId()+"");
-						first = false;
-					}else{
-						output.add("->"+te.getValue().getId());
-					}
-					
+						output.add(""+te.getValue().getId());
+						output.add(";\n");
 			}
 		}
-		output.add(";\n");
 		output.add("label = \"Task Elements\";\n");
 		output.add("}\n");
 		
@@ -94,7 +88,7 @@ public class DOTExporter implements SDGExporter{
 		output.add("digraph G {\n");
 		
 		//pgaref mod
-		this.taskCreator(sdg, output);
+		this.taskElementCreator(sdg, output);
 		//TODO: NEEDS FIX
 //		this.stateCreator(sdg, output);
 		
@@ -107,8 +101,16 @@ public class DOTExporter implements SDGExporter{
 				output.add(stateName+" -> "+node.getId()+"[style=dotted];\n");
 				output.add(""+node.getId()+" [color=Turquoise,style=filled];\n");
 			}
+			if(node.isSource()){
+				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
+					String me = ""+node.getId();
+					String down = ""+downstream+"";
+					output.add(me +"  [shape=Mdiamond];\n");
+					output.add(me+" -> "+down+";\n");
+				}
+			}
 			// Check downstream to connect it appropiately
-			if(node.getTaskElements().values().iterator().next().getDownstreams().size() > 0){
+			else if(node.getTaskElements().values().iterator().next().getDownstreams().size() > 0){
 				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
 					String me = ""+node.getId()+"";
 					String down = ""+downstream+"";
@@ -116,11 +118,9 @@ public class DOTExporter implements SDGExporter{
 					output.add(me+" -> "+down+";\n");
 				}
 			}
-			else{
+			else if(node.isSink()){
 				String me = ""+node.getId()+"";
-				String down = "sink";
-				output.add(me+" -> "+down+";\n");
-				output.add(down +"  [shape=Mdiamond];\n");
+				output.add(me +"  [shape=Mcircle];\n");
 			}
 			// Use a different shape for merge ops
 //			for(TaskElement te : ob.getTEs()){
