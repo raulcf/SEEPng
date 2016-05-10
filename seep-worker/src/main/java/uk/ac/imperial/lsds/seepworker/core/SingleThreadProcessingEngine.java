@@ -98,10 +98,12 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			API api = new Collector(id, coreOutput);
 			
 			// StreamId - Finished?
-			Map<Integer, Boolean> trackFinishedStreams = new HashMap<>();
-			for(InputAdapter ia : inputAdapters) {
-				trackFinishedStreams.put(ia.getStreamId(), false);
-			}
+//			Map<Integer, Boolean> trackFinishedStreams = new HashMap<>();
+//			for(InputAdapter ia : inputAdapters) {
+//				trackFinishedStreams.put(ia.getStreamId(), false);
+//			}
+			int ongoingStreams = inputAdapters.size();
+			
 			while(working) {
 				while(it.hasNext()) {
 					InputAdapter ia = it.next();
@@ -113,7 +115,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						}
 						else {
 							// Exhausted IA
-							trackFinishedStreams.put(ia.getStreamId(), true);
+//							trackFinishedStreams.put(ia.getStreamId(), true);
+							ongoingStreams--;
 						}
 					}
 					else if(ia.returnType() == many) {
@@ -124,7 +127,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						}
 						else {
 							// Exhausted IA
-							trackFinishedStreams.put(ia.getStreamId(), true);
+//							trackFinishedStreams.put(ia.getStreamId(), true);
+							ongoingStreams--;
 						}
 					}
 					// Always recharge it
@@ -132,7 +136,8 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						it = inputAdapters.iterator();
 					}
 					if(! callback.isContinuousTask()) {
-						if(allStreamsFinished(trackFinishedStreams)) {
+//						if(allStreamsFinished(trackFinishedStreams)) {
+						if(ongoingStreams == 0) {
 							task.close();
 							callback.notifyOk(api.getRuntimeEvents()); // notify and pass all generated runtime events
 							working = false;

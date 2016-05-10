@@ -30,6 +30,11 @@ public class ScheduleTask implements SeepTask {
 	private List<SeepTask> tasks;
 	private Iterator<SeepTask> taskIterator;
 	
+	// Optimizing for same schema
+	private boolean sameSchema = true;
+	private Schema schema = null;
+	private ITuple data = null;
+	
 	private ScheduleTask(int euId, int stageId, Deque<LogicalOperator> operators) {
 		this.stageId = stageId;
 		this.euId = euId;
@@ -40,6 +45,13 @@ public class ScheduleTask implements SeepTask {
 			tasks.add(opIt.next().getSeepTask());
 		}
 		this.taskIterator = tasks.iterator();
+		
+		// TODO: initialize sameSchema here by actually checking if the schema is the same
+		if(sameSchema && opIt.hasNext()) {
+			schema = opIt.next().downstreamConnections().get(0).getSchema();
+			data = new ITuple(schema);
+			opIt = operators.iterator(); // reset
+		}
 	}
 	
 	public static ScheduleTask buildTaskFor(int id, Stage s, ScheduleDescription sd) {
@@ -82,8 +94,10 @@ public class ScheduleTask implements SeepTask {
 			next.processData(data, scApi);
 			byte[] o = ((SimpleCollector)scApi).collect();
 			LogicalOperator nextOp = opIt.next();
-			Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
-			data = new ITuple(schema);
+			if(! sameSchema) {
+				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+				data = new ITuple(schema);
+			}
 			data.setData(o);
 			// Otherwise we simply forward the data
 			next = taskIterator.next();
