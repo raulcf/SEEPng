@@ -3,9 +3,10 @@ package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
-public class TaskElementRepr {
+public class TaskElement {
 
 	private final int id;
 	private List<Integer> downstreams; // id of downstreams
@@ -20,7 +21,7 @@ public class TaskElementRepr {
 	private boolean isSink = false;
 	
 	
-	public TaskElementRepr(int id){
+	public TaskElement(int id){
 		this.id = id;
 		this.downstreams = new ArrayList<Integer>();
 		this.upstreams = new ArrayList<Integer>();
@@ -29,7 +30,7 @@ public class TaskElementRepr {
 		this.outputVariables = new ArrayList<VariableRepr>();
 	}
 
-	public TaskElementRepr(int id, TaskElementRepr ter,
+	public TaskElement(int id, TaskElement ter,
 			List<VariableRepr> inputVariables,
 			List<VariableRepr> outputVariables) {
 		this.id = id;

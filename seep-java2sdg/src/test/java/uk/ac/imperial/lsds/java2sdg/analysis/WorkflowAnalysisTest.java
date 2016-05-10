@@ -6,10 +6,10 @@ import java.util.Map.Entry;
 import org.codehaus.janino.Java;
 import org.junit.Test;
 
-import uk.ac.imperial.lsds.java2sdg.ConductorUtils;
-import uk.ac.imperial.lsds.java2sdg.Util;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
+import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
 
 public class WorkflowAnalysisTest {
 

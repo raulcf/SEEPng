@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.analysis;
+package uk.ac.imperial.lsds.java2sdg.utils;
 
 import org.codehaus.janino.Java.Annotation;
 import org.codehaus.janino.Java.Type;

@@ -6,11 +6,11 @@ import java.util.Map.Entry;
 
 import org.codehaus.janino.JavaSourceClassLoader;
 
-import uk.ac.imperial.lsds.java2sdg.ConductorUtils;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
+import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
 
 public class WorkflowAnalysis {
 	

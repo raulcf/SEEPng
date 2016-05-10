@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg;
+package uk.ac.imperial.lsds.java2sdg.config;
 
 import java.util.List;
 import java.util.Map;

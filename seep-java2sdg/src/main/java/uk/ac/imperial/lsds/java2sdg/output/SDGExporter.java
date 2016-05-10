@@ -10,8 +10,8 @@
  ******************************************************************************/
 package uk.ac.imperial.lsds.java2sdg.output;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
 
 public interface SDGExporter {
-	public void export(SDGRepr sdg, String filename);
+	public void export(SDG sdg, String filename);
 }

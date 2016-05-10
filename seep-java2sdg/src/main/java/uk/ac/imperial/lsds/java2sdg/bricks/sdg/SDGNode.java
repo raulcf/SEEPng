@@ -8,11 +8,11 @@ public class SDGNode {
 	private static int sdgCount = 0;
 	private int id = 0;
 	private String name;
-	private Map<Integer, TaskElementRepr> taskElements;
+	private Map<Integer, TaskElement> taskElements;
 	private String builtCode;
-	private StateElementRepr stateElement;
+	private StateElement stateElement;
 	
-	public SDGNode(String name, Map<Integer, TaskElementRepr> taskElements, StateElementRepr stateElement) {
+	public SDGNode(String name, Map<Integer, TaskElement> taskElements, StateElement stateElement) {
 		this.id = SDGNode.sdgCount++;
 		this.name = name;
 		this.taskElements = taskElements;
@@ -36,14 +36,14 @@ public class SDGNode {
 	/**
 	 * @return the taskElements
 	 */
-	public Map<Integer, TaskElementRepr> getTaskElements() {
+	public Map<Integer, TaskElement> getTaskElements() {
 		return taskElements;
 	}
 
 	/**
 	 * @return the stateElement
 	 */
-	public StateElementRepr getStateElement() {
+	public StateElement getStateElement() {
 		return stateElement;
 	}
 	

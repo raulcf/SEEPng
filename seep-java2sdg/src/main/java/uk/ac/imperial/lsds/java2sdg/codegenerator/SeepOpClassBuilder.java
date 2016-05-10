@@ -24,17 +24,16 @@ import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.NotFoundException;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
-public class OperatorClassBuilder {
+public class SeepOpClassBuilder {
 
 	private ClassPool cp = null;
 
-	private static Logger LOG = LoggerFactory.getLogger(OperatorClassBuilder.class.getCanonicalName());
+	private static Logger LOG = LoggerFactory.getLogger(SeepOpClassBuilder.class.getCanonicalName());
 
-	public OperatorClassBuilder() {
+	public SeepOpClassBuilder() {
 		cp = ClassPool.getDefault();
 		cp.importPackage("java.util");
 		cp.importPackage("uk.ac.imperial.lsds.seep.api");
@@ -61,7 +60,7 @@ public class OperatorClassBuilder {
 		// Logical Operator Creation
 		for (SDGNode node : nodes) {
 			if (node.getTaskElements().values().iterator().next().isSouce()) {
-				String currentSchema = SeepOperatorNewTemplate.getSchemaInstance(
+				String currentSchema = SeepOpCodeBuilder.getSchemaInstance(
 						node.getTaskElements().values().iterator().next().getOutputSchema(),
 						new String(schemaVariable + node.getId()));
 				if (!currentSchema.toString().isEmpty())
@@ -72,7 +71,7 @@ public class OperatorClassBuilder {
 				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSink(new C_"
 							+ node.getId() + "()," + count + ");\n");
 			} else {
-				String currentSchema = SeepOperatorNewTemplate.getSchemaInstance(
+				String currentSchema = SeepOpCodeBuilder.getSchemaInstance(
 						node.getTaskElements().values().iterator().next().getOutputSchema(),
 						new String(schemaVariable + node.getId()));
 				if (!currentSchema.toString().isEmpty())
@@ -102,7 +101,7 @@ public class OperatorClassBuilder {
 			implInterfaces[0] = cp.get("uk.ac.imperial.lsds.seep.api.QueryComposer");
 			cc.setInterfaces(implInterfaces);
 
-			CtMethod compose = OperatorMethodBuilder.genBaseCompose(cc, code.toString());
+			CtMethod compose = SeepOpMethodBuilder.genBaseCompose(cc, code.toString());
 			cc.addMethod(compose);
 		} catch (NotFoundException e) {
 			LOG.error("Error generating Base class {} ", e.toString());
@@ -127,8 +126,8 @@ public class OperatorClassBuilder {
 		CtClass cc = cp.makeClass(opName);
 
 		// Assuming its a single TE - Why not include schema in SDGNode??
-		TaskElementRepr currentTE = node.getTaskElements().values().iterator().next();
-		String processorSchema = SeepOperatorNewTemplate.getSchemaInstance(currentTE.getOutputSchema(), "schema");
+		TaskElement currentTE = node.getTaskElements().values().iterator().next();
+		String processorSchema = SeepOpCodeBuilder.getSchemaInstance(currentTE.getOutputSchema(), "schema");
 
 		CtClass[] implInterfaces = new CtClass[1];
 		try {
@@ -145,17 +144,17 @@ public class OperatorClassBuilder {
 			}
 
 			LOG.info("NEW Processor Class \n {} \n\n", node.getBuiltCode());
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, node.getBuiltCode());
+			CtMethod processDataSingle = SeepOpMethodBuilder.genProcessorMethod(cc, node.getBuiltCode());
 			cc.addMethod(processDataSingle);
 
 			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
+			CtMethod setUp = SeepOpMethodBuilder.genSetupMethod(cc, "");
 			cc.addMethod(setUp);
 
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
+			CtMethod close = SeepOpMethodBuilder.genCloseMethod(cc, "");
 			cc.addMethod(close);
 
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
+			CtMethod processDataGroup = SeepOpMethodBuilder.genProcessorGroupMethod(cc, "");
 			cc.addMethod(processDataGroup);
 
 		} catch (CannotCompileException e) {
@@ -180,18 +179,18 @@ public class OperatorClassBuilder {
 	public CtClass generatePeriodicSource(String sourceName, Schema schema) {
 		String schemaVariable = "schema";
 
-		String sourceSchema = SeepOperatorNewTemplate.getSchemaInstance(schema, schemaVariable);
+		String sourceSchema = SeepOpCodeBuilder.getSchemaInstance(schema, schemaVariable);
 		String[] sourceGlobalFields = new String[] { "private boolean working = true;" };
 		String sourceExtraMethod = new String(
 				"private void waitHere(int time){ try { Thread.sleep((long)time);} catch (InterruptedException e) {e.printStackTrace();}}");
 
 		StringBuilder srcProcessCode = new StringBuilder();
-		srcProcessCode.append(SeepOperatorNewTemplate.getSchemaVarsInit(schema) + "waitHere(2000);\n"
+		srcProcessCode.append(SeepOpCodeBuilder.getSchemaVarsInit(schema) + "waitHere(2000);\n"
 				+ "while(working){ byte[] d = OTuple.create(" + schemaVariable + ", new String[]{ "
-				+ SeepOperatorNewTemplate.getSchemaNames(schema) + "}, " + " new Object[]{ "
-				+ SeepOperatorNewTemplate.getSchemaVarsBoxed(schema) + "});\n");
+				+ SeepOpCodeBuilder.getSchemaNames(schema) + "}, " + " new Object[]{ "
+				+ SeepOpCodeBuilder.getSchemaVarsBoxed(schema) + "});\n");
 		srcProcessCode.append("$2.send(d);\n");
-		srcProcessCode.append(SeepOperatorNewTemplate.increaseSchemaVars(schema) + " }");
+		srcProcessCode.append(SeepOpCodeBuilder.increaseSchemaVars(schema) + " }");
 
 		CtClass cc = cp.makeClass(sourceName);
 
@@ -220,21 +219,21 @@ public class OperatorClassBuilder {
 			}
 			// Class methods
 			if (sourceExtraMethod != null && !sourceExtraMethod.isEmpty()) {
-				CtMethod cMethod = OperatorMethodBuilder.genClassMethod(cc, sourceExtraMethod);
+				CtMethod cMethod = SeepOpMethodBuilder.genClassMethod(cc, sourceExtraMethod);
 				cc.addMethod(cMethod);
 			}
 			LOG.info("NEW Source Class\n {} \n\n", srcProcessCode);
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, srcProcessCode.toString());
+			CtMethod processDataSingle = SeepOpMethodBuilder.genProcessorMethod(cc, srcProcessCode.toString());
 			cc.addMethod(processDataSingle);
 
 			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
+			CtMethod setUp = SeepOpMethodBuilder.genSetupMethod(cc, "");
 			cc.addMethod(setUp);
 
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
+			CtMethod close = SeepOpMethodBuilder.genCloseMethod(cc, "");
 			cc.addMethod(close);
 
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
+			CtMethod processDataGroup = SeepOpMethodBuilder.genProcessorGroupMethod(cc, "");
 			cc.addMethod(processDataGroup);
 
 		} catch (CannotCompileException e) {
@@ -259,7 +258,7 @@ public class OperatorClassBuilder {
 		String schemaVariable = "schema";
 		CtClass cc = cp.makeClass(sinkName);
 
-		String sinkSchema = SeepOperatorNewTemplate.getSchemaInstance(schema, schemaVariable);
+		String sinkSchema = SeepOpCodeBuilder.getSchemaInstance(schema, schemaVariable);
 		String[] sinkFields = new String[] { "int PERIOD = 1000;", "int count = 0;", "public long time;" };
 		String sinkProcess = new String(
 				"count++; if(System.currentTimeMillis() - time > PERIOD){ System.out.println(\"[Sink] e/s: \"+count); count = 0;time = System.currentTimeMillis();}");
@@ -285,18 +284,18 @@ public class OperatorClassBuilder {
 				}
 			}
 
-			CtMethod processDataSingle = OperatorMethodBuilder.genProcessorMethod(cc, sinkProcess);
+			CtMethod processDataSingle = SeepOpMethodBuilder.genProcessorMethod(cc, sinkProcess);
 			LOG.info("NEW Sink Class\n {} \n\n", sinkProcess);
 			cc.addMethod(processDataSingle);
 
 			// Mandatory methods
-			CtMethod setUp = OperatorMethodBuilder.genSetupMethod(cc, "");
+			CtMethod setUp = SeepOpMethodBuilder.genSetupMethod(cc, "");
 			cc.addMethod(setUp);
 
-			CtMethod close = OperatorMethodBuilder.genCloseMethod(cc, "");
+			CtMethod close = SeepOpMethodBuilder.genCloseMethod(cc, "");
 			cc.addMethod(close);
 
-			CtMethod processDataGroup = OperatorMethodBuilder.genProcessorGroupMethod(cc, "");
+			CtMethod processDataGroup = SeepOpMethodBuilder.genProcessorGroupMethod(cc, "");
 			cc.addMethod(processDataGroup);
 
 		} catch (CannotCompileException e) {

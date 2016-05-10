@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.analysis;
+package uk.ac.imperial.lsds.java2sdg.analysis.strategies;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +11,14 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.minlog.Log;
 
-import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGComponent;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 
 /**
@@ -49,7 +50,7 @@ public class CoarseGrainedTEAnalysis {
 			DataStore source = workflow.getSource();
 			DataStore sink = workflow.getSink();
 			
-			TaskElementRepr ter = new TaskElementRepr(teId++);
+			TaskElement ter = new TaskElement(teId++);
 			ter.setCode(code.getCodeText());
 			
 			//Case Workflow does have outputDataStore

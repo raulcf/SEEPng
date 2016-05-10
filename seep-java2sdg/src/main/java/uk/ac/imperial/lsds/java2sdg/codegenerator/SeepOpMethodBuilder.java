@@ -9,7 +9,7 @@ import javassist.CtClass;
  * @author pg1712
  *
  */
-public class OperatorMethodBuilder {
+public class SeepOpMethodBuilder {
 	
 	
 	public static CtMethod genBaseCompose(CtClass cc, String code) throws CannotCompileException{

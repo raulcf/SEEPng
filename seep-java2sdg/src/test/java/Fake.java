@@ -37,36 +37,45 @@ public class Fake implements SeepProgram {
 		DataStore netSnk = new DataStore(sch2, DataStoreType.NETWORK); // TODO: CREATE STATIC SINK INSTEAD
 		DataStore fileSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
 		
-		spc.newWorkflow("train()", netSrc, netSnk);
-		spc.newWorkflow("test(float data)", netSrc, fileSnk); // input and output schema are the same
+		spc.newWorkflow("train(int userId, long ts, String text)", netSrc, netSnk);
+//		spc.newWorkflow("test(float data)", netSrc, fileSnk); // input and output schema are the same
 		return spc;
 	}
 	
-	public double train() {
-		iteration = 5;
-		List<Double> weights = new ArrayList<Double>();
-		for (int i = 0; i < iteration; i++) {
-			weights.add((double) (i * 8));
-
-			double gradient = 4 * 5;
-		}
-		test(10);
-		return weights.get(0);
+	public void train(int userId, long ts, String text) {
+//		iteration = 5;
+		userId = userId + 1;
+		ts = ts +1l;
+		text += "_processed";
+		int count =0;
+		System.out.println("ID: "+ ts + " TS: "+ ts + "Txt: "+ text);		
+		List weights = new ArrayList();
+		weights.add(new Double("100"));
+		System.out.println("GOT: " + weights.get(0));
+		
+		
+//		for (int i = 0; i < iteration; i++) {
+//			weights.add((double) (i * 8));
+//
+//			double gradient = 4 * 5;
+//		}
+//		test(10);
+//		return weights.get(0);
 	}
 
-	public void test(float data) {
-		int userId = 0;
-		long ts = 0;
-		String text = "";
-		long whatever = 0l;
-		int b = 1;
-		float c = data +10;
-		long ts2 = ts + 1;
-		String newText = new String(text + "_saying_something");
-	}
-
-	@Collection
-	public void merge(List<Integer> numbers) {
-
-	}
+//	public void test(float data) {
+//		int userId = 0;
+//		long ts = 0;
+//		String text = "";
+//		long whatever = 0l;
+//		int b = 1;
+//		float c = data +10;
+//		long ts2 = ts + 1;
+//		String newText = new String(text + "_saying_something");
+//	}
+//
+//	@Collection
+//	public void merge(List<Integer> numbers) {
+//
+//	}
 }

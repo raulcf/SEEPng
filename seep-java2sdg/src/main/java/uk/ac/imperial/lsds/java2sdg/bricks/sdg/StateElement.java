@@ -1,17 +1,17 @@
 package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 
-public class StateElementRepr {
+public class StateElement {
 	
 	private static int stateCount=0;
 	
 	private int stateId;
 	private String stateName;
 	
-	public static StateElementRepr createStateElementRepr(String name){
-		return new StateElementRepr(++StateElementRepr.stateCount, name);
+	public static StateElement createStateElementRepr(String name){
+		return new StateElement(++StateElement.stateCount, name);
 	}
 	
-	private StateElementRepr(int id, String name){
+	private StateElement(int id, String name){
 		this.stateId = id;
 		this.stateName = name;
 	}

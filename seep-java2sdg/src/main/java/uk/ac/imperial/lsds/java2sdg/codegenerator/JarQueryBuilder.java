@@ -16,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -28,79 +27,23 @@ import org.slf4j.LoggerFactory;
 
 import javassist.CannotCompileException;
 import javassist.CtClass;
-import uk.ac.imperial.lsds.java2sdg.Util;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
 
-public class QueryBuilder {
+public class JarQueryBuilder {
 
 	private String outputPath = Util.getProjectPath()+"/tmp/";
-	private OperatorClassBuilder builder;
+	private SeepOpClassBuilder builder;
 	private List<CtClass> opInstantiationCode;
 	
-	private static Logger LOG = LoggerFactory.getLogger(QueryBuilder.class.getCanonicalName()); 
+	private static Logger LOG = LoggerFactory.getLogger(JarQueryBuilder.class.getCanonicalName()); 
 	
-	public QueryBuilder(){
-		builder = new OperatorClassBuilder();
+	public JarQueryBuilder(){
+		builder = new SeepOpClassBuilder();
 		opInstantiationCode = new ArrayList<>();
 	}
 	
-	
-	@Deprecated
-	public String generateQueryPlanDriver(SDGRepr sdg){
-		
-//		StringBuffer compose = new StringBuffer();
-//		StringBuffer opInstantiationCode = new StringBuffer();
-//		StringBuffer opConnectionCode = new StringBuffer();
-//		
-//		int opId = 0;
-//		int nodeId = 0;
-//		for(TaskElement ob : sdg){
-//			String opName = ob.getOpName();
-//			String opFieldsName = opName+"Fields";
-//			String classOpName = "C_"+opName;
-//			
-//			opInstantiationCode.append("ArrayList "+opFieldsName+" = new ArrayList();\n");
-//			if(ob.getLocalVars() != null){
-//				for(String var : ob.getLocalVars()){
-//					opInstantiationCode.append(opFieldsName+".add("+"\""+var+"\""+");\n");
-//				}
-//			}
-//			
-//			TaskElementNature opType = ob.getOpType();
-//			if(opType == TaskElementNature.STATELESS_SOURCE){
-//				String instantiation = "Connectable "+opName+" = QueryBuilder.newStatelessSource(new "+classOpName+"(), -1, "+opFieldsName+");\n";
-//				opInstantiationCode.append(instantiation);
-//			}
-//			else if(opType == TaskElementNature.STATEFUL_SOURCE){
-//				System.out.println("Not implemented");
-//				System.exit(0);
-//			}
-//			else if(opType == TaskElementNature.STATELESS_OPERATOR){
-//				String instantiation = "Connectable "+opName+" = QueryBuilder.newStatelessOperator(new "+classOpName+"(), "+opId+", "+opFieldsName+");\n";
-//				opId++;
-//				opInstantiationCode.append(instantiation);
-//			}
-//			else if(opType == TaskElementNature.STATEFUL_OPERATOR){
-//				System.out.println("Not implemented");
-//				System.exit(0);
-//			}
-//			else if(opType == TaskElementNature.STATELESS_SINK){
-//				String instantiation = "Connectable "+opName+" = QueryBuilder.newStatelessSink(new "+classOpName+"(), -2, "+opFieldsName+");\n";
-//				opInstantiationCode.append(instantiation);
-//			}
-//			else if(opType == TaskElementNature.STATEFUL_SINK){
-//				System.out.println("Not implemented");
-//				System.exit(0);
-//			}
-//		}
-//		composeCode = compose.append(opInstantiationCode).append(opConnectionCode).append("return QueryBuilder.build();\n").toString();
-//		return composeCode;
-		return null;
-	}
-	
-	public void buildAndPackageQuery(SDGRepr sdg){
+	public void buildAndPackageQuery(SDG sdg){
 		
 		for(int index=0; index < sdg.getSdgNodes().size(); index++){
 			
@@ -141,58 +84,6 @@ public class QueryBuilder {
 			}
 		}
 		this.packageToJar(this.outputPath);
-		
-		
-		// Compiling operators
-//		for(Map.Entry<String, TaskElement> entry : class_opBlock.entrySet()){
-//			String name = entry.getKey();
-//			TaskElement ob = entry.getValue();
-//			TaskElementNature ot = ob.getOpType();
-//			
-//			System.out.println("Building: "+name);
-//			System.out.println("CODE: ");
-//			System.out.println(ob.getCode());
-//			
-//			if(ot == TaskElementNature.STATEFUL_OPERATOR || ot == TaskElementNature.STATEFUL_SINK || ot == TaskElementNature.STATEFUL_SOURCE){
-//				CtClass op = builder.getStatefulOperatorClassTemplate(name);
-//				System.out.println("not implemented");
-//				System.exit(0);
-//			}
-//			else if(ot == TaskElementNature.STATELESS_OPERATOR || ot == TaskElementNature.STATELESS_SINK || ot == TaskElementNature.STATELESS_SOURCE){
-//				CtClass op = builder.getStatelessOperatorClass_oneTupleAtATime(name, ob.getCode());
-//				try {
-//					System.out.println("NAME: "+name);
-//					System.out.println(op.toString());
-//					op.writeFile(outputPath);
-//				}
-//				catch (CannotCompileException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				} 
-//				catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//		
-//		// Compiling base class
-//		
-//		CtClass composeQuery = builder.getBaseIClass(composeCode);
-//		try {
-//			composeQuery.writeFile(outputPath);
-//		} 
-//		catch (CannotCompileException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} 
-//		catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		// Packaging into jar
-//		packageToJar(outputPath);
 	}
 	
 	private void packageToJar(String pathToDir){

@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 
 public class DOTExporter implements SDGExporter{
 
@@ -37,7 +37,7 @@ public class DOTExporter implements SDGExporter{
 		return instance;
 	}
 	
-	public void taskElementCreator(SDGRepr sdg, List<String> output){
+	public void taskElementCreator(SDG sdg, List<String> output){
 		//task cluster
 		output.add("subgraph cluster0 { \n");
 		output.add("node [style=filled,fillcolor=white];\n");
@@ -45,7 +45,7 @@ public class DOTExporter implements SDGExporter{
 		output.add("color=lightgrey;\n");
 		
 		for(SDGNode node : sdg.getSdgNodes()){
-			for(Entry<Integer, TaskElementRepr> te : node.getTaskElements().entrySet()){
+			for(Entry<Integer, TaskElement> te : node.getTaskElements().entrySet()){
 						output.add(node.getName());
 						output.add(";\n");
 			}
@@ -55,7 +55,7 @@ public class DOTExporter implements SDGExporter{
 		
 	}
 	
-	public void stateCreator(SDGRepr sdg, List<String> output){
+	public void stateCreator(SDG sdg, List<String> output){
 		//task cluster
 		output.add("subgraph cluster1 { \n");
 		output.add("node [style=filled];\n");
@@ -81,7 +81,7 @@ public class DOTExporter implements SDGExporter{
 	}
 	
 	@Override
-	public void export(SDGRepr sdg, String filename) {
+	public void export(SDG sdg, String filename) {
 		// first write in memory the file content
 		List<String> output = new ArrayList<String>();
 		output.add("digraph G {\n");

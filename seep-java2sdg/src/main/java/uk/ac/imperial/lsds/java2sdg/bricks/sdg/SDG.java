@@ -7,25 +7,25 @@ import java.util.List;
 import java.util.Map;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 
-public class SDGRepr {
+public class SDG {
 
 	// Nodes in the SDG
 	private List<SDGNode> sdgNodes;
 
-	public SDGRepr(List<SDGNode> nodes) {
+	public SDG(List<SDGNode> nodes) {
 		this.sdgNodes = nodes;
 	}
 	
-	public static SDGRepr createSDGFromPartialSDG(List<PartialSDGRepr> partialSDGs){
+	public static SDG createSDGFromPartialSDG(List<PartialSDGRepr> partialSDGs){
 		List<SDGNode> sdgNodes = new ArrayList<>();
 		int partialID = 0;
 		
 		for ( PartialSDGRepr partial : partialSDGs ){
 
 			//Checking if Partial SDG has Source and add as separate node
-			Map<Integer, TaskElementRepr> taskElements = new HashMap<>();
+			Map<Integer, TaskElement> taskElements = new HashMap<>();
 			if(partial.getSource() != null){
-				TaskElementRepr src = new TaskElementRepr(0);
+				TaskElement src = new TaskElement(0);
 				src.setOutputSchema(partial.getSource().getSchema());
 				src.setSouce(true);
 				//create connection with the first TaskElement
@@ -38,8 +38,8 @@ public class SDGRepr {
 			
 			//Create ONE SDGNode per partialSDG
 			taskElements = new HashMap<>();
-			TaskElementRepr lastTE = null;
-			for(TaskElementRepr el : partial.getTEs()) {
+			TaskElement lastTE = null;
+			for(TaskElement el : partial.getTEs()) {
 				taskElements.put(el.getId(), el);
 				lastTE = el;
 			}
@@ -55,7 +55,7 @@ public class SDGRepr {
 				lastTE.setDownstreams(Arrays.asList(lastTE.getId()+1));
 				lastTE.setOutputSchema(partial.getSink().getSchema());
 				//Create TE Node
-				TaskElementRepr snk = new TaskElementRepr(lastTE.getId()+1);
+				TaskElement snk = new TaskElement(lastTE.getId()+1);
 				snk.setSink(true);
 				taskElements = new HashMap<>();
 				taskElements.put(lastTE.getId()+1, snk);
@@ -65,7 +65,7 @@ public class SDGRepr {
 			}
 		}
 		
-		SDGRepr sdg = new SDGRepr(sdgNodes);
+		SDG sdg = new SDG(sdgNodes);
 		
 		return sdg;
 	}

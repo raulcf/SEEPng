@@ -13,19 +13,19 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 
 public class CodeGenerator {
 
 	private final static Logger LOG = LoggerFactory.getLogger(CodeGenerator.class.getCanonicalName());
 
-	public static SDGRepr assemble(SDGRepr sdg) {
-		SDGRepr assembledSDG = CodeGenerator.assembleTE(sdg);
+	public static SDG assemble(SDG sdg) {
+		SDG assembledSDG = CodeGenerator.assembleTE(sdg);
 		return assembledSDG;
 	}
 
-	private static SDGRepr assembleTE(SDGRepr sdg) {
+	private static SDG assembleTE(SDG sdg) {
 
 		for (SDGNode node : sdg.getSdgNodes()) {
 			LOG.debug("Generating code for SDG Node: {}", node.getName());
@@ -35,14 +35,13 @@ public class CodeGenerator {
 				LOG.debug("Multi-TE");
 				LOG.error("NOT SUPPORTED YET!");
 				System.exit(-1);
-				// builtCode =
-				// SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
+				// builtCode = SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
 			}
 			/* Single-TE case */
 			else if (node.getTaskElements().size() == 1) {
 				LOG.debug("Single-TE");
-				TaskElementRepr te = node.getTaskElements().values().iterator().next();
-				builtCode = SeepOperatorNewTemplate.getCodeForSingleOp(te);
+				TaskElement te = node.getTaskElements().values().iterator().next();
+				builtCode = SeepOpCodeBuilder.getCodeForSingleOp(te);
 
 			} else {
 				LOG.error("SDGRepr with empty TaskElement List!");

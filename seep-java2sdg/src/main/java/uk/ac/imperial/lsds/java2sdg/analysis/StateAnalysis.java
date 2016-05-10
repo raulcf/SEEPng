@@ -12,6 +12,7 @@ import org.codehaus.janino.util.Traverser;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.errors.LimitationException;
+import uk.ac.imperial.lsds.java2sdg.utils.AnalysisUtils;
 
 public class StateAnalysis extends Traverser {
 

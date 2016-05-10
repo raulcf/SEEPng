@@ -3,7 +3,7 @@ package uk.ac.imperial.lsds.java2sdg.bricks;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 
 public class PartialSDGRepr {
@@ -14,8 +14,8 @@ public class PartialSDGRepr {
 	private String workflowName;
 	private DataStore source;
 	private DataStore sink;
+	private List<TaskElement> te = new ArrayList<TaskElement>();
 	
-	private List<TaskElementRepr> te = new ArrayList<TaskElementRepr>();
 
 	public static PartialSDGRepr makePartialSDGRepr(String workflowName, DataStore source,
 			List<PartialSDGComponent> pSDGComponents, DataStore sink) {
@@ -32,7 +32,7 @@ public class PartialSDGRepr {
 
 		// TODO: Create connection from source to the first TE in the pSDGComponents list
 		for (PartialSDGComponent p : pSDGComponents) {
-			TaskElementRepr te = new TaskElementRepr(currentId, p.te, p.inputVariables, p.outputVariables);
+			TaskElement te = new TaskElement(currentId, p.te, p.inputVariables, p.outputVariables);
 			this.te.add(te);
 		}
 		// Create connections between these TE in the order of the list (the
@@ -55,7 +55,7 @@ public class PartialSDGRepr {
 		this.workflowName = workflowName;
 	}	
 
-	public List<TaskElementRepr> getTEs() {
+	public List<TaskElement> getTEs() {
 		return te;
 	}
 

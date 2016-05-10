@@ -6,15 +6,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElementRepr;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.util.Utils;
 
 
-public class SeepOperatorNewTemplate {
+public class SeepOpCodeBuilder {
 
-	private static Logger LOG = LoggerFactory.getLogger(SeepOperatorNewTemplate.class.getCanonicalName());
+	private static Logger LOG = LoggerFactory.getLogger(SeepOpCodeBuilder.class.getCanonicalName());
 	
 //	public static String getCodeForMultiOp(Map<Integer,TaskElementRepr> tes){
 //		StringBuilder sb = new StringBuilder();
@@ -52,7 +52,7 @@ public class SeepOperatorNewTemplate {
 //		return sb.toString();
 //	}
 	
-	public static String getCodeForSingleOp(TaskElementRepr te){
+	public static String getCodeForSingleOp(TaskElement te){
 		StringBuilder sb = new StringBuilder();
 		sb.append("{"); // open block
 		sb.append(_getCodeForSingleOp(te));
@@ -60,7 +60,7 @@ public class SeepOperatorNewTemplate {
 		return sb.toString();
 	}
 	
-	private static String _getCodeForSingleOp(TaskElementRepr te){
+	private static String _getCodeForSingleOp(TaskElement te){
 		// Extract and synthesize code for getting the right variables. This is constant
 		List<VariableRepr> localVars = te.getInputVariables();
 		String header = getCodeToLocalVars(localVars);

@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg;
+package uk.ac.imperial.lsds.java2sdg.utils;
 
 import java.io.File;
 import java.io.FileReader;

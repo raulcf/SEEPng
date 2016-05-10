@@ -8,11 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.java2sdg.analysis.AnnotationAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.CoarseGrainedTEAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.LivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.analysis.strategies.CoarseGrainedTEAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.strategies.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowExtractorAnalysis;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
@@ -21,11 +21,14 @@ import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
 import uk.ac.imperial.lsds.java2sdg.codegenerator.CodeGenerator;
-import uk.ac.imperial.lsds.java2sdg.codegenerator.QueryBuilder;
+import uk.ac.imperial.lsds.java2sdg.codegenerator.JarQueryBuilder;
+import uk.ac.imperial.lsds.java2sdg.config.CompilerConfig;
 import uk.ac.imperial.lsds.java2sdg.output.DOTExporter;
-import uk.ac.imperial.lsds.java2sdg.output.OutputTarget;
+import uk.ac.imperial.lsds.java2sdg.output.OutputTargetTypes;
+import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
 
 public class Conductor {
 
@@ -61,7 +64,7 @@ public class Conductor {
 		
 		/** Build partial SDGs from workflows **/
 		// Perform live variable analysis and retrieve information
-		LivenessInformation lvInfo = LVAnalysis.getLVInfo(compilationUnit);
+		LivenessInformation lvInfo = LiveVariableAnalysis.getLVInfo(compilationUnit);
 		
 		// Perform TE boundary analysis -> list of TEs
 		TEAnalyzerStrategyType strategy = TEAnalyzerStrategyType.getType(cc.getInt(CompilerConfig.TE_ANALYZER_TYPE));
@@ -83,7 +86,7 @@ public class Conductor {
 			System.out.println(p.toString());
 		
 		/** Build SDG from partial SDGs **/
-		SDGRepr sdg = SDGRepr.createSDGFromPartialSDG(partialSDGs);
+		SDG sdg = SDG.createSDGFromPartialSDG(partialSDGs);
 		for (SDGNode n : sdg.getSdgNodes()) {
 			System.out.println("-----------");
 			System.out.println(n.toString());
@@ -91,7 +94,7 @@ public class Conductor {
 		}
 		
 		/** Output generated SDG **/
-		OutputTarget ot = OutputTarget.ofType(cc.getInt(CompilerConfig.TARGET_OUTPUT));
+		OutputTargetTypes ot = OutputTargetTypes.ofType(cc.getInt(CompilerConfig.TARGET_OUTPUT));
 		String outputName = cc.getString(CompilerConfig.OUTPUT_FILE);
 		switch (ot) {
 		case DOT:
@@ -106,8 +109,8 @@ public class Conductor {
 			break;
 		case X_JAR:
 			LOG.info("Exporting SDG to SEEP runnable query JAR...");
-			SDGRepr assembledSDG = CodeGenerator.assemble(sdg);
-			QueryBuilder qBuilder = new QueryBuilder();
+			SDG assembledSDG = CodeGenerator.assemble(sdg);
+			JarQueryBuilder qBuilder = new JarQueryBuilder();
 			qBuilder.buildAndPackageQuery(assembledSDG);
 			LOG.info("Exporting SDG to SEEP runnable query JAR...OK");
 			break;
