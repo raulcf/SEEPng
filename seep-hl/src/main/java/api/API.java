@@ -7,9 +7,17 @@ import api.placing.DataLayout;
 import api.topology.Cluster;
 import api.topology.ClusterImplementation;
 
+/**
+ * Contains the API that developers use to write their applications.
+ * It also contains a cluster implementation that gives access to characteristics
+ * of the cluster where the program is meant to run.
+ * @author ra-mit
+ *
+ */
 public interface API extends IO, DataLayout {
 
-	final public Cluster c = new ClusterImplementation();
+	final Cluster c = new ClusterImplementation();
 	
 	public <T extends Locatable> LogicalView<T> createLogicalView();
+	
 }

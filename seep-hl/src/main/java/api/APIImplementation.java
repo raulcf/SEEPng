@@ -1,22 +1,47 @@
 package api;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import api.lviews.LogicalView;
+import api.lviews.Mock;
 import api.objects.Locatable;
 import api.placing.Partitioner;
 import api.topology.Cluster;
+import ir.Dummy;
 
 public class APIImplementation implements API {
-
+	
+	private int id = 0;
+	
+	private Map<Integer, Dummy> dummies = new HashMap<>();
+	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
+	/**
+	 * Implementation of IO interface 
+	 */
+	
 	@Override
 	public <T extends Locatable> LogicalView<T> readFromPath(String filename) {
-		// TODO Auto-generated method stub
-		return null;
+		// Creates a new task with an id
+		Dummy d = new Dummy(id++);
+		d.setName("readFromPath: " + filename);
+		// The task has 1 output
+		Mock m = Mock.makeMockLogicalView(id++);
+		int oId = m.getId();
+		// The output is added to the task
+		d.addOutput(oId);
+		// Store the created object
+		dummies.put(id, d);
+		
+		// return so that execution of the program can continue
+		return m;
 	}
 
 	@Override
@@ -24,6 +49,10 @@ public class APIImplementation implements API {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	/**
+	 * Implementation of DataLayout interface
+	 */
 
 	@Override
 	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv, Cluster c) {

@@ -3,8 +3,11 @@ package api.lviews;
 import java.util.Set;
 
 import api.objects.Locatable;
+import ir.Traceable;
 
-public interface LogicalView<T extends Locatable> {
+public interface LogicalView<T extends Locatable> extends Traceable {
+	
+	public int getId();
 	
 	public int getMetadata(String key);
 	

@@ -6,6 +6,7 @@ import api.API;
 import api.SeepProgram;
 import api.lviews.LogicalView;
 import api.objects.DenseMatrix;
+import api.topology.Cluster;
 
 public class SUMMA implements SeepProgram {
 
@@ -28,8 +29,8 @@ public class SUMMA implements SeepProgram {
 		
 		// Implementation of parallel SUMMA algorithm
 		for(int k = 0; k < n; k++) {
-			for(int i = 0; i < API.c.numRows; i++) {
-				for(int j = 0; j < API.c.numCols; j++) {
+			for(int i = 0; i < Cluster.numRows; i++) {
+				for(int j = 0; j < Cluster.numCols; j++) {
 					DenseMatrix multiplied = matrixA.position(i, k).multiply(matrixB.position(k, j));
 					DenseMatrix added = matrixC.position(i, j).addMatrix(multiplied);
 					matrixC.assign(added, i, j);
