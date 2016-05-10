@@ -16,41 +16,49 @@ public class SeepOpCodeBuilder {
 
 	private static Logger LOG = LoggerFactory.getLogger(SeepOpCodeBuilder.class.getCanonicalName());
 	
-//	public static String getCodeForMultiOp(Map<Integer,TaskElementRepr> tes){
-//		StringBuilder sb = new StringBuilder();
-//		sb.append("{"); // open block
-//		sb.append(_getCodeForMultiOp(tes));
-//		sb.append("}"); // close block
-//		return sb.toString();
-//	}
-//	
-//	private static String _getCodeForMultiOp(Map<Integer,TaskElementRepr> tes){
-//		StringBuilder sb = new StringBuilder();
-//		
-//		// Build IF block and insert code for first TE
-//		TaskElementRepr firstTE = tes.remove(0);
-//		String initIFBlock = getInitIFBlock();
-//		sb.append(initIFBlock);
-//		sb.append(_getCodeForSingleOp(firstTE));
-//		sb.append("}");
-//		// Once the IF block has started, we just complete it with else clauses
-//		int branchId = 1; // 0 is used for firstTE
-//		for(Map.Entry<Integer, TaskElementRepr> te : tes.entrySet()){
-//			sb.append("else if(branchId == "+branchId+"){");
-//			branchId++;
-//			sb.append(_getCodeForSingleOp(te.getValue()));
-//			sb.append("}");
-//		}
-//		return sb.toString();
-//	}
-//	
-//	private static String getInitIFBlock(){
-//		StringBuilder sb = new StringBuilder();
-//		String unbox = getUnboxCode("java.lang.Integer", "branchId");
-//		sb.append(unbox);
-//		sb.append("if(branchId == 0){");
-//		return sb.toString();
-//	}
+	
+	/**
+	 * ---- Code below - NOT TESTED ----
+	 */
+	public static String getCodeForMultiOp(Map<Integer,TaskElement> tes){
+		StringBuilder sb = new StringBuilder();
+		sb.append("{"); // open block
+		sb.append(_getCodeForMultiOp(tes));
+		sb.append("}"); // close block
+		return sb.toString();
+	}
+	
+	private static String _getCodeForMultiOp(Map<Integer,TaskElement> tes){
+		StringBuilder sb = new StringBuilder();
+		
+		// Build IF block and insert code for first TE
+		TaskElement firstTE = tes.remove(0);
+		String initIFBlock = getInitIFBlock();
+		sb.append(initIFBlock);
+		sb.append(_getCodeForSingleOp(firstTE));
+		sb.append("}");
+		// Once the IF block has started, we just complete it with else clauses
+		int branchId = 1; // 0 is used for firstTE
+		for(Map.Entry<Integer, TaskElement> te : tes.entrySet()){
+			sb.append("else if(branchId == "+branchId+"){");
+			branchId++;
+			sb.append(_getCodeForSingleOp(te.getValue()));
+			sb.append("}");
+		}
+		return sb.toString();
+	}
+	
+	
+	private static String getInitIFBlock(){
+		StringBuilder sb = new StringBuilder();
+		String unbox = getUnboxCode("java.lang.Integer", "branchId");
+		sb.append(unbox);
+		sb.append("if(branchId == 0){");
+		return sb.toString();
+	}
+	/**
+	 * ---- UP TO HERE ----
+	 */
 	
 	public static String getCodeForSingleOp(TaskElement te){
 		StringBuilder sb = new StringBuilder();
@@ -121,7 +129,7 @@ public class SeepOpCodeBuilder {
 			unboxVarMethodName_stmt1 = " = $1.getInt(";
 //			unboxVarMethodName_stmt2 = ".intValue();";
 		}
-		else if(type.equals("java.lang.String") || type.equals("String") || type.equals("byte")){
+		else if(type.equals("java.lang.String") || type.equals("String")){
 			varType_stmt1 = "String";
 			unboxVarMethodName_stmt1 = " = $1.getString(";
 		}
@@ -267,7 +275,7 @@ public class SeepOpCodeBuilder {
 		else if(type.equals("java.lang.Long") ||  type.equals("LONG") || type.equals("long")){
 			c = "new Long("+name+")";
 		}
-		else if(type.equals("java.lang.String") ||  type.equals("STRING") || type.equals("String") || type.equals("byte")){
+		else if(type.equals("java.lang.String") ||  type.equals("STRING") || type.equals("String")){
 			c = "new String("+name+")";
 		}
 		else{

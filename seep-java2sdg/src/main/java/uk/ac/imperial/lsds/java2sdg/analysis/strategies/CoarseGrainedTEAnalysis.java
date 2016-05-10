@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.codehaus.janino.Java;
 import org.codehaus.janino.Java.BasicType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.DataStore;
-
+import org.codehaus.janino.Java.ReferenceType;
 /**
  * Dumb analysis that simply create a TE per workflow. There will then be as many TEs as workflows defined in the 
  * input program.
@@ -64,22 +65,11 @@ public class CoarseGrainedTEAnalysis {
 			// check what are the live variables in the last line
 			List<VariableRepr> outputVariables = lvInfo.getLiveOutputVarsAt(workflowName, code.getEndLine());
 			
-			//What about Schema vars?? add them here!
-			//TODO: pgaref FIX STRING - JAnino type - hardcoded to bytes!
-			for( String var : source.getSchema().names() ) {
-				if(source.getSchema().getField(var).toString() == "INT"){
-					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
-					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
-				}
-				else if(source.getSchema().getField(var).toString() == "STRING"){
-					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.BYTE), var));
-					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.BYTE), var));
-				}
-				else if(source.getSchema().getField(var).toString() == "LONG"){
-					inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
-					outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
-				}
-			}
+			//What about Source-Schema vars?? We also need to stream those - add them here!
+			createSchemaStream(source, inputVariables, outputVariables);
+			
+			
+			
 			
 			
 			
@@ -99,6 +89,31 @@ public class CoarseGrainedTEAnalysis {
 		}
 		
 		return partialSDGs;
+	}
+	
+	/**
+	 * Method to add Source Schema variables as input and output
+	 * TODO: Might need to change output Variables to comply with output schema
+	 * @param source
+	 * @param inputVariables
+	 * @param outputVariables
+	 */
+	public static void createSchemaStream(DataStore source, List<VariableRepr> inputVariables,
+			List<VariableRepr> outputVariables) {
+		for( String var : source.getSchema().names() ) {
+			if(source.getSchema().getField(var).toString() == "INT"){
+				inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
+				outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.INT), var));
+			}
+			else if( source.getSchema().getField(var).toString() == "STRING" ){
+				inputVariables.add(VariableRepr.var( new ReferenceType(null, new String[] {"String"}, null), var));
+				outputVariables.add(VariableRepr.var( new ReferenceType(null, new String[] {"String"}, null), var));
+			}
+			else if( source.getSchema().getField(var).toString() == "LONG" ){
+				inputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
+				outputVariables.add(VariableRepr.var(new BasicType(null, BasicType.LONG), var));
+			}
+		}
 	}
 	
 }
