@@ -136,16 +136,22 @@ public class WorkflowExtractorAnalysis extends Traverser {
 
 		@Override
 		public void visitIfStatement(IfStatement is) {
+			// Main if is mandatory!
 			int line = is.getLocation().getLineNumber();
 			String _if = "if(";
 			code.add(new CodeRepr().new CodeAndLine(_if, line));
 			String condition = is.condition.toString();
 			code.add(new CodeRepr().new CodeAndLine(condition, line));
-			String if_ = ")";
+			String if_ = ") {";
 			code.add(new CodeRepr().new CodeAndLine(if_, line));
 			(is.thenStatement).accept(this);
-			if (is.optionalElseStatement != null) 
+			code.add(new CodeRepr().new CodeAndLine("}", line));
+			if (is.optionalElseStatement != null){
+				String _else = "else {";
+				code.add(new CodeRepr().new CodeAndLine(_else, is.optionalElseStatement.getLocation().getLineNumber()));
 				(is.optionalElseStatement).accept(this);
+				code.add(new CodeRepr().new CodeAndLine("}", is.optionalElseStatement.getLocation().getLineNumber()));
+			}
 		}
 
 		@Override

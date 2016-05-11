@@ -23,8 +23,8 @@ import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import org.codehaus.janino.Java.ReferenceType;
 /**
- * Dumb analysis that simply create a TE per workflow. There will then be as many TEs as workflows defined in the 
- * input program.
+ * Simple analysis that creates one TE per workflow.
+ * There will then be as many TEs as workflows defined in the  input program.
  * @author ra
  *
  */
