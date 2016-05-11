@@ -1,5 +1,6 @@
 package api.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import api.topology.GridPosition;
@@ -12,6 +13,12 @@ public class DenseMatrix implements Locatable {
 	final static public String M = "matrix.dim.m";
 	
 	private GridPosition gridPosition;
+	
+	// Traceable attributes
+	private int id;
+	private String name;
+	private List<Traceable> inputs = new ArrayList<>();
+	private List<Traceable> outputs = new ArrayList<>();
 	
 	public DenseMatrix addMatrix(DenseMatrix m) {
 		// Trace action
@@ -81,44 +88,62 @@ public class DenseMatrix implements Locatable {
 
 	@Override
 	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return id;
 	}
 
 	@Override
 	public void setName(String name) {
-		// TODO Auto-generated method stub
-		
+		this.name = name;
 	}
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
 	}
 
 	@Override
 	public void addInput(Traceable t) {
-		// TODO Auto-generated method stub
-		
+		inputs.add(t);
 	}
 
 	@Override
 	public void addOutput(Traceable t) {
-		// TODO Auto-generated method stub
-		
+		outputs.add(t);
 	}
 
 	@Override
 	public void isInputOf(Traceable t) {
-		// TODO Auto-generated method stub
-		
+		t.addInput(this);
 	}
 
 	@Override
 	public void isOutputOf(Traceable t) {
-		// TODO Auto-generated method stub
+		t.addOutput(t);
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("ID: " + id);
+		sb.append(System.lineSeparator());
+		sb.append("Name: " + name);
+		sb.append(System.lineSeparator());
 		
+		sb.append("Inputs: " + inputs.size());
+		sb.append(System.lineSeparator());
+		for(int i = 0; i < inputs.size(); i++) {
+			sb.append(inputs.get(i));
+			sb.append(System.lineSeparator());
+		}
+		
+		sb.append("Outputs: " + outputs.size());
+		sb.append(System.lineSeparator());
+		for(int i = 0; i < outputs.size(); i++) {
+			sb.append(outputs.get(i));
+			sb.append(System.lineSeparator());
+		}
+		
+		return sb.toString();
 	}
 
 }

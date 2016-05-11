@@ -27,5 +27,8 @@ public class TraceTest {
 		
 		// Get traces
 		Map<Integer, Traceable> traces = s.api.getTraces();
+		for(Traceable t : traces.values()) {
+			System.out.println(t);
+		}
 	}
 }

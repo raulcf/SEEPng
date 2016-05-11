@@ -1,25 +1,30 @@
 package api.lviews;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
+import api.objects.DenseMatrix;
 import api.objects.Locatable;
-import ir.Traceable;
+import api.topology.Cluster;
 
-public class Mock<T extends Locatable> implements LogicalView<T>{
+public class Mock<T extends Locatable> implements LogicalView<T> {
 
 	// Traceable attributes
 	private int id;
-	private String name;
-	private List<Traceable> inputs;
-	private List<Traceable> outputs;
 	
-	public Mock (int id) {
+	// Objects
+	private Set<T> objects;
+	
+	public Mock (int id, Cluster c) {
 		this.id = id;
+		this.objects = new HashSet<>();
+		for (int i = 0; i < c.getNumberNodes(); i++) {
+			objects.add((T) new DenseMatrix());
+		}
 	}
 	
-	public static Mock makeMockLogicalView(int id) {
-		return new Mock(id);
+	public static Mock makeMockLogicalView(int id, Cluster c) {
+		return new Mock(id, c);
 	}
 	
 	@Override
@@ -39,8 +44,7 @@ public class Mock<T extends Locatable> implements LogicalView<T>{
 
 	@Override
 	public Set<T> getObjects() {
-		// TODO Auto-generated method stub
-		return null;
+		return objects;
 	}
 
 	@Override

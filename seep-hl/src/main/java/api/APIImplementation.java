@@ -37,8 +37,20 @@ public class APIImplementation implements API {
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		int seedId = id++;
+		TraceSeed d = new TraceSeed(seedId);
+		d.setName("createLogicalView");
+		
+		Mock m = Mock.makeMockLogicalView(id++, c);
+		Set<T> objs = m.getObjects();
+		for(T obj : objs) {
+			d.addOutput(obj);
+		}
+		// Store the created object
+		traces.put(seedId, d);
+		
+		return m;
 	}
 	
 	@Override
@@ -57,9 +69,8 @@ public class APIImplementation implements API {
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("readFromPath: " + filename);
 		// The task has 1 output
-		Mock m = Mock.makeMockLogicalView(id++);
+		Mock m = Mock.makeMockLogicalView(id++, c);
 		Set<T> objs = m.getObjects();
-		int oId = m.getId();
 		// The output is added to the task
 		for(T obj : objs) {
 			d.addOutput(obj);

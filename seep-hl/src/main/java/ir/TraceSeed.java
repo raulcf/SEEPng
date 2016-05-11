@@ -1,5 +1,6 @@
 package ir;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TraceSeed implements Traceable {
@@ -11,6 +12,8 @@ public class TraceSeed implements Traceable {
 	
 	public TraceSeed(int id) {
 		this.id = id;
+		this.inputs = new ArrayList<>();
+		this.outputs = new ArrayList<>();
 	}
 	
 	@Override
@@ -46,6 +49,31 @@ public class TraceSeed implements Traceable {
 	@Override
 	public void isOutputOf(Traceable t) {
 		t.addOutput(this);
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("ID: " + id);
+		sb.append(System.lineSeparator());
+		sb.append("Name: " + name);
+		sb.append(System.lineSeparator());
+		
+		sb.append("Inputs: " + inputs.size());
+		sb.append(System.lineSeparator());
+		for(int i = 0; i < inputs.size(); i++) {
+			sb.append(inputs.get(i));
+			sb.append(System.lineSeparator());
+		}
+		
+		sb.append("Outputs: " + outputs.size());
+		sb.append(System.lineSeparator());
+		for(int i = 0; i < outputs.size(); i++) {
+			sb.append(outputs.get(i));
+			sb.append(System.lineSeparator());
+		}
+		
+		return sb.toString();
 	}
 
 }

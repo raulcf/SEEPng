@@ -8,6 +8,11 @@ public class ClusterImplementation implements Cluster {
 	public void setNumberNodes(int numNodes) {
 		this.numberOfNodesInCluster = numNodes;
 	}
+	
+	@Override
+	public int getNumberNodes() {
+		return numberOfNodesInCluster;
+	}
 
 	@Override
 	public int gridRows() {

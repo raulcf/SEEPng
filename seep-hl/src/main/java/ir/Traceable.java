@@ -9,5 +9,6 @@ public interface Traceable {
 	public void addOutput(Traceable t);
 	public void isInputOf(Traceable t);
 	public void isOutputOf(Traceable t);
+	public String toString();
 	
 }
