@@ -61,10 +61,10 @@ public class TraceSeed implements Traceable {
 		
 		sb.append("Inputs: " + inputs.size());
 		sb.append(System.lineSeparator());
-		for(int i = 0; i < inputs.size(); i++) {
-			sb.append(inputs.get(i));
-			sb.append(System.lineSeparator());
-		}
+//		for(int i = 0; i < inputs.size(); i++) {
+//			sb.append(inputs.get(i));
+//			sb.append(System.lineSeparator());
+//		}
 		
 		sb.append("Outputs: " + outputs.size());
 		sb.append(System.lineSeparator());

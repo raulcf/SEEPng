@@ -1,8 +1,5 @@
 package algostest;
 
-import java.util.Set;
-
-import api.API;
 import api.SeepProgram;
 import api.lviews.LogicalView;
 import api.objects.DenseMatrix;
@@ -31,7 +28,7 @@ public class SUMMA implements SeepProgram {
 		api.blockCyclicDistribution(matrixB);
 		
 		// Recover data-specific information (metadata stored in the storage manager)
-		int n = matrixA.getMetadata(DenseMatrix.N);
+		int n = api.gridCols();
 		
 		// Implementation of parallel SUMMA algorithm
 		for(int k = 0; k < n; k++) {

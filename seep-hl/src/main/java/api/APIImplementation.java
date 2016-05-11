@@ -37,7 +37,6 @@ public class APIImplementation implements API {
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
-		
 		int seedId = id++;
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("createLogicalView");
@@ -46,6 +45,7 @@ public class APIImplementation implements API {
 		Set<T> objs = m.getObjects();
 		for(T obj : objs) {
 			d.addOutput(obj);
+			obj.addInput(d);
 		}
 		// Store the created object
 		traces.put(seedId, d);
@@ -74,6 +74,7 @@ public class APIImplementation implements API {
 		// The output is added to the task
 		for(T obj : objs) {
 			d.addOutput(obj);
+			obj.addInput(d);
 		}
 		// Store the created object
 		traces.put(seedId, d);
@@ -88,7 +89,6 @@ public class APIImplementation implements API {
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("writeToPath: " + filename);
 		
-		//int iId = lv.getId();
 		for(T obj : lv.getObjects()) {
 			d.addInput(obj);
 		}
@@ -107,11 +107,13 @@ public class APIImplementation implements API {
 		// input objects
 		for(T obj : lv.getObjects()) {
 			st.addInput(obj);
+			obj.addOutput(st);
 		}
 		
 		//output objects (may be the same, identity, but may be in a different position)
 		for(T obj : lv.getObjects()) {
 			st.addOutput(obj);
+			obj.addInput(st);
 		}
 		
 		return false;

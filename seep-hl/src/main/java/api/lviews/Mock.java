@@ -1,6 +1,7 @@
 package api.lviews;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import api.objects.DenseMatrix;
@@ -15,11 +16,22 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 	// Objects
 	private Set<T> objects;
 	
+	private T[][] grid;
+	
 	public Mock (int id, Cluster c) {
 		this.id = id;
 		this.objects = new HashSet<>();
 		for (int i = 0; i < c.getNumberNodes(); i++) {
-			objects.add((T) new DenseMatrix());
+			objects.add((T) new DenseMatrix(200+i, "denseM_init"));
+		}
+		int rows = c.gridRows();
+		int cols = c.gridCols();
+		Iterator<T> it = objects.iterator();
+		grid = (T[][]) new DenseMatrix[rows][cols];
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < cols; j++) {
+				grid[i][j] = it.next();
+			}
 		}
 	}
 	
@@ -49,8 +61,7 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 
 	@Override
 	public T position(int i, int j) {
-		// TODO Auto-generated method stub
-		return null;
+		return grid[i][j];
 	}
 
 	@Override

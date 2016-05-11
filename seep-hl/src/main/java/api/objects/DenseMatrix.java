@@ -20,36 +20,45 @@ public class DenseMatrix implements Locatable {
 	private List<Traceable> inputs = new ArrayList<>();
 	private List<Traceable> outputs = new ArrayList<>();
 	
+	public DenseMatrix(int id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+	
 	public DenseMatrix addMatrix(DenseMatrix m) {
-		// Trace action
 		
+		// Trace action
 		TraceSeed ts = new TraceSeed(100); // this op
 		ts.setName("addMatrix");
-		this.addOutput(ts); // to chain with the existing object
+		ts.addInput(m);
 		ts.addInput(this);
+		m.addOutput(ts);
+		this.addOutput(ts);
 		
-		// actual operation would occur here
-		// FIXME: instead of this, we'd pass the new matrix
-		ts.addOutput(this);
+		// new added matrix
+		DenseMatrix dm2 = new DenseMatrix(200, "denseM");
+		ts.addOutput(dm2);
 		
 		// perform operation
-		return this;
+		return dm2;
 	}
 	
 	public DenseMatrix multiply(DenseMatrix m) {
-		// Trace action
 		
+		// Trace action
 		TraceSeed ts = new TraceSeed(100); // this op
 		ts.setName("multiply");
-		this.addOutput(ts); // to chain with the existing object
+		ts.addInput(m);
 		ts.addInput(this);
+		m.addOutput(ts);
+		this.addOutput(ts);
 		
 		// actual operation would occur here
-		// FIXME: instead of this, we'd pass the new matrix
-		ts.addOutput(this);
+		DenseMatrix dm2 = new DenseMatrix(300, "denseM");
+		ts.addOutput(dm2);
 		
 		// perform operation
-		return this;
+		return dm2;
 	}
 	
 	public List<Integer> svd() {
@@ -131,11 +140,11 @@ public class DenseMatrix implements Locatable {
 		
 		sb.append("Inputs: " + inputs.size());
 		sb.append(System.lineSeparator());
-		for(int i = 0; i < inputs.size(); i++) {
-			sb.append(inputs.get(i));
-			sb.append(System.lineSeparator());
-		}
-		
+//		for(int i = 0; i < inputs.size(); i++) {
+//			sb.append(inputs.get(i));
+//			sb.append(System.lineSeparator());
+//		}
+//		
 		sb.append("Outputs: " + outputs.size());
 		sb.append(System.lineSeparator());
 		for(int i = 0; i < outputs.size(); i++) {

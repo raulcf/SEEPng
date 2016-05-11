@@ -1,6 +1,7 @@
 package algostest;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Test;
 
@@ -27,8 +28,13 @@ public class TraceTest {
 		
 		// Get traces
 		Map<Integer, Traceable> traces = s.api.getTraces();
-		for(Traceable t : traces.values()) {
-			System.out.println(t);
+		for(Entry<Integer, Traceable> t : traces.entrySet()) {
+			System.out.println("###########");
+			System.out.println("###########");
+			System.out.println("KEY -> " + t.getKey());
+			System.out.println();
+			System.out.println(t.getValue());
+			System.out.println();
 		}
 	}
 }
