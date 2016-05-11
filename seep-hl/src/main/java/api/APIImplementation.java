@@ -9,15 +9,15 @@ import api.lviews.Mock;
 import api.objects.Locatable;
 import api.placing.Partitioner;
 import api.topology.Cluster;
+import ir.IdGen;
 import ir.TraceSeed;
 import ir.Traceable;
 
 public class APIImplementation implements API {
 	
 	private Cluster c;
-	
-	private int id = 0;
-	
+	private IdGen idGen = IdGen.getInstance();
+		
 	private Map<Integer, Traceable> traces = new HashMap<>();
 	
 	@Override
@@ -37,13 +37,14 @@ public class APIImplementation implements API {
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
-		int seedId = id++;
+		int seedId = idGen.id();
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("createLogicalView");
 		
-		Mock m = Mock.makeMockLogicalView(id++, c);
+		Mock m = Mock.makeMockLogicalView(idGen.id(), c, idGen);
 		Set<T> objs = m.getObjects();
 		for(T obj : objs) {
+			obj.composeIdGenerator(idGen);
 			d.addOutput(obj);
 			obj.addInput(d);
 		}
@@ -65,14 +66,15 @@ public class APIImplementation implements API {
 	@Override
 	public <T extends Locatable> LogicalView<T> readFromPath(String filename) {
 		// Creates a new task with an id
-		int seedId = id++;
+		int seedId = idGen.id();
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("readFromPath: " + filename);
 		// The task has 1 output
-		Mock m = Mock.makeMockLogicalView(id++, c);
+		Mock m = Mock.makeMockLogicalView(idGen.id(), c, idGen);
 		Set<T> objs = m.getObjects();
 		// The output is added to the task
 		for(T obj : objs) {
+			obj.composeIdGenerator(idGen);
 			d.addOutput(obj);
 			obj.addInput(d);
 		}
@@ -85,7 +87,7 @@ public class APIImplementation implements API {
 
 	@Override
 	public <T extends Locatable> void writeToPath(LogicalView<T> lv, String filename) {
-		int seedId = id++;
+		int seedId = idGen.id();
 		TraceSeed d = new TraceSeed(seedId);
 		d.setName("writeToPath: " + filename);
 		
@@ -102,7 +104,7 @@ public class APIImplementation implements API {
 	@Override
 	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv) {
 		
-		TraceSeed st = new TraceSeed(id++); // this will be translated into more specific actions, such as move there, or come here
+		TraceSeed st = new TraceSeed(idGen.id()); // this will be translated into more specific actions, such as move there, or come here
 		st.setName("blockDistribution ");
 		// input objects
 		for(T obj : lv.getObjects()) {

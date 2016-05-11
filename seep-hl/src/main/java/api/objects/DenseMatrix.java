@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import api.topology.GridPosition;
+import ir.IdGen;
 import ir.TraceSeed;
 import ir.Traceable;
 
@@ -19,6 +20,7 @@ public class DenseMatrix implements Locatable {
 	private String name;
 	private List<Traceable> inputs = new ArrayList<>();
 	private List<Traceable> outputs = new ArrayList<>();
+	private IdGen idGen;
 	
 	public DenseMatrix(int id, String name) {
 		this.id = id;
@@ -28,7 +30,7 @@ public class DenseMatrix implements Locatable {
 	public DenseMatrix addMatrix(DenseMatrix m) {
 		
 		// Trace action
-		TraceSeed ts = new TraceSeed(100); // this op
+		TraceSeed ts = new TraceSeed(idGen.id()); // this op
 		ts.setName("addMatrix");
 		ts.addInput(m);
 		ts.addInput(this);
@@ -36,7 +38,8 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// new added matrix
-		DenseMatrix dm2 = new DenseMatrix(200, "denseM");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseM");
+		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		
 		// perform operation
@@ -46,7 +49,7 @@ public class DenseMatrix implements Locatable {
 	public DenseMatrix multiply(DenseMatrix m) {
 		
 		// Trace action
-		TraceSeed ts = new TraceSeed(100); // this op
+		TraceSeed ts = new TraceSeed(idGen.id()); // this op
 		ts.setName("multiply");
 		ts.addInput(m);
 		ts.addInput(this);
@@ -54,7 +57,8 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// actual operation would occur here
-		DenseMatrix dm2 = new DenseMatrix(300, "denseM");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseM");
+		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		
 		// perform operation
@@ -94,6 +98,11 @@ public class DenseMatrix implements Locatable {
 	/**
 	 * Implementation of Traceable interface (extended by Locatable)
 	 */
+	
+	@Override
+	public void composeIdGenerator(IdGen idGen) {
+		this.idGen = idGen;
+	}
 
 	@Override
 	public int getId() {

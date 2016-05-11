@@ -2,6 +2,7 @@ package ir;
 
 public interface Traceable {
 	
+	public void composeIdGenerator(IdGen idGen);
 	public int getId();
 	public void setName(String name);
 	public String getName();

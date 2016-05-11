@@ -7,6 +7,7 @@ import java.util.Set;
 import api.objects.DenseMatrix;
 import api.objects.Locatable;
 import api.topology.Cluster;
+import ir.IdGen;
 
 public class Mock<T extends Locatable> implements LogicalView<T> {
 
@@ -18,11 +19,11 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 	
 	private T[][] grid;
 	
-	public Mock (int id, Cluster c) {
+	public Mock (int id, Cluster c, IdGen idGen) {
 		this.id = id;
 		this.objects = new HashSet<>();
 		for (int i = 0; i < c.getNumberNodes(); i++) {
-			objects.add((T) new DenseMatrix(200+i, "denseM_init"));
+			objects.add((T) new DenseMatrix(idGen.id(), "denseM_init"));
 		}
 		int rows = c.gridRows();
 		int cols = c.gridCols();
@@ -35,8 +36,8 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 		}
 	}
 	
-	public static Mock makeMockLogicalView(int id, Cluster c) {
-		return new Mock(id, c);
+	public static Mock makeMockLogicalView(int id, Cluster c, IdGen idGen) {
+		return new Mock(id, c, idGen);
 	}
 	
 	@Override

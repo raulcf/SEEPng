@@ -9,11 +9,17 @@ public class TraceSeed implements Traceable {
 	private List<Traceable> inputs;
 	private List<Traceable> outputs;
 	private String name;
+	private IdGen idGen;
 	
 	public TraceSeed(int id) {
 		this.id = id;
 		this.inputs = new ArrayList<>();
 		this.outputs = new ArrayList<>();
+	}
+	
+	@Override
+	public void composeIdGenerator(IdGen idGen) {
+		this.idGen = idGen;
 	}
 	
 	@Override
