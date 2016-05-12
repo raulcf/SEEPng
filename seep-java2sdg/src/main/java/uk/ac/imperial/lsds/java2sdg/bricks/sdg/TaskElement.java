@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
+import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
 public class TaskElement {
@@ -15,7 +16,8 @@ public class TaskElement {
 	private List<VariableRepr> inputVariables;
 	private List<String> code;
 	private List<VariableRepr> outputVariables;
-	private Schema outputSchema;
+	
+	private DataStore outputStore;
 	
 	private boolean isSouce = false;
 	private boolean isSink = false;
@@ -39,7 +41,7 @@ public class TaskElement {
 		this.code = ter.code;
 		this.downstreams = ter.downstreams;
 		this.upstreams = ter.upstreams;
-		this.outputSchema = ter.outputSchema;
+		this.outputStore = ter.outputStore;
 		
 	}
 	
@@ -88,11 +90,31 @@ public class TaskElement {
 	}
 
 	public Schema getOutputSchema() {
-		return outputSchema;
+		return outputStore.getSchema();
+	}
+	
+	public void setOutputStore(DataStore ds){
+		this.outputStore=ds;
 	}
 
-	public void setOutputSchema(Schema outputSchema) {
-		this.outputSchema = outputSchema;
+	public DataStore getOutputStore(){
+		return outputStore;
+	}
+
+	public boolean isSouce() {
+		return isSouce;
+	}
+
+	public boolean isSink() {
+		return isSink;
+	}
+
+	public void setSouce(boolean isSouce) {
+		this.isSouce = isSouce;
+	}
+
+	public void setSink(boolean isSink) {
+		this.isSink = isSink;
 	}
 	
 	@Override
@@ -110,24 +132,9 @@ public class TaskElement {
 		for(VariableRepr v : this.outputVariables)
 			sb.append(v.getName()+", ");
 		sb.append("\n" );
-		sb.append("\t\t  OutputSchema: "+ outputSchema+ "\n");
+		sb.append("\t\t  OutputSchema: "+ outputStore.getSchema()+ "\n");
+		sb.append("\t\t  OutputType: "+ outputStore.type()+ "\n");
 		return sb.toString();
-	}
-
-	public boolean isSouce() {
-		return isSouce;
-	}
-
-	public boolean isSink() {
-		return isSink;
-	}
-
-	public void setSouce(boolean isSouce) {
-		this.isSouce = isSouce;
-	}
-
-	public void setSink(boolean isSink) {
-		this.isSink = isSink;
 	}
 
 }

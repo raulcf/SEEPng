@@ -56,9 +56,9 @@ public class CoarseGrainedTEAnalysis {
 			
 			//Case Workflow does have outputDataStore
 			if( sink != null )
-				ter.setOutputSchema(sink.getSchema());
+				ter.setOutputStore(sink);
 			if( source == null )
-				LOG.error("Workflow {} has NO inputDataStore", workflowName);
+				LOG.error("Workflow {} has NO OutputDataStore!", workflowName);
 			
 			// check what are the live variables in the first line
 			List<VariableRepr> inputVariables = lvInfo.getLiveInputVarsAt(workflowName, code.getInitLine());
@@ -92,7 +92,7 @@ public class CoarseGrainedTEAnalysis {
 	}
 	
 	/**
-	 * Method to add Source Schema variables as input and output
+	 * Method to add Source Schema variables as input and output Variables
 	 * TODO: Might need to change output Variables to comply with output schema
 	 * @param source
 	 * @param inputVariables

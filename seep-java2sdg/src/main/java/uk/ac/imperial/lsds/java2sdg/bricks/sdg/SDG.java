@@ -26,7 +26,7 @@ public class SDG {
 			Map<Integer, TaskElement> taskElements = new HashMap<>();
 			if(partial.getSource() != null){
 				TaskElement src = new TaskElement(0);
-				src.setOutputSchema(partial.getSource().getSchema());
+				src.setOutputStore(partial.getSource());
 				src.setSouce(true);
 				//create connection with the first TaskElement
 				src.setDownstreams(Arrays.asList(partial.getTEs().get(0).getId()));
@@ -53,7 +53,7 @@ public class SDG {
 			if(partial.getSink() != null){
 				//connect Last TE with Sink
 				lastTE.setDownstreams(Arrays.asList(lastTE.getId()+1));
-				lastTE.setOutputSchema(partial.getSink().getSchema());
+				lastTE.setOutputStore(partial.getSink());
 				//Create TE Node
 				TaskElement snk = new TaskElement(lastTE.getId()+1);
 				snk.setSink(true);
