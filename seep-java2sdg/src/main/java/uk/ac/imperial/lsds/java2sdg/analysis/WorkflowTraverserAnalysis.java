@@ -78,12 +78,12 @@ import org.codehaus.janino.util.Traverser;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr.CodeAndLine;
 
-public class WorkflowExtractorAnalysis extends Traverser {
+public class WorkflowTraverserAnalysis extends Traverser {
 
 	private static Map<String, CodeRepr> bodies = new HashMap<>();
 	
 	public static Map<String, CodeRepr> getWorkflowBody(Java.CompilationUnit cu){
-		WorkflowExtractorAnalysis wea = new WorkflowExtractorAnalysis();
+		WorkflowTraverserAnalysis wea = new WorkflowTraverserAnalysis();
 		wea.traverseCompilationUnit(cu);
 		return bodies;
 	}

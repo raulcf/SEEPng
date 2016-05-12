@@ -13,8 +13,8 @@ import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.LivenessInform
 import uk.ac.imperial.lsds.java2sdg.analysis.strategies.CoarseGrainedTEAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.strategies.TEAnalyzerStrategyType;
 import uk.ac.imperial.lsds.java2sdg.analysis.StateAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowAnalysis;
-import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowExtractorAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowConfigurationAnalysis;
+import uk.ac.imperial.lsds.java2sdg.analysis.WorkflowTraverserAnalysis;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
@@ -51,13 +51,12 @@ public class Conductor {
 		
 		/** Extract annotations **/
 		Map<Integer, SDGAnnotation> annotations = AnnotationAnalysis.getAnnotations(compilationUnit);
-		
 		/** Extract fields **/
 		Map<String, InternalStateRepr> stateFields = StateAnalysis.getStates(compilationUnit);
 		
 		/** Extract workflows **/
-		Map<String, CodeRepr> workflowBodies = WorkflowExtractorAnalysis.getWorkflowBody(compilationUnit);
-		Map<String, WorkflowRepr> workflows = WorkflowAnalysis.getWorkflows(inputFilePath, workflowBodies);
+		Map<String, CodeRepr> workflowBodies = WorkflowTraverserAnalysis.getWorkflowBody(compilationUnit);
+		Map<String, WorkflowRepr> workflows = WorkflowConfigurationAnalysis.getWorkflows(inputFilePath, workflowBodies);
 		
 		for(Map.Entry<String, WorkflowRepr> w : workflows.entrySet())
 			System.out.println("Workflow: "+ w.getKey() + " V: "+ w.getValue().toString());

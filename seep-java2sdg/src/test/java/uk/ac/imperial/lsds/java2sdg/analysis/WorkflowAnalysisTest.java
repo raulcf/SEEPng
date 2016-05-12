@@ -19,8 +19,8 @@ public class WorkflowAnalysisTest {
 		String inputFilePath = Util.getProjectPath()+"/src/test/java/Fake.java";
 		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFilePath);
 		
-		Map<String, CodeRepr> workflowBodies = WorkflowExtractorAnalysis.getWorkflowBody(compilationUnit);
-		Map<String, WorkflowRepr> map = WorkflowAnalysis.getWorkflows(inputFilePath, workflowBodies);
+		Map<String, CodeRepr> workflowBodies = WorkflowTraverserAnalysis.getWorkflowBody(compilationUnit);
+		Map<String, WorkflowRepr> map = WorkflowConfigurationAnalysis.getWorkflows(inputFilePath, workflowBodies);
 		for(Entry<String, WorkflowRepr> entry : map.entrySet()){
 			System.out.println("name: "+entry.getKey());
 			System.out.println("workflowrepr: "+entry.getValue());

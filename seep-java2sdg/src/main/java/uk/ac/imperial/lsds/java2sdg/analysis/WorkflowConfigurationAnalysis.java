@@ -12,7 +12,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.WorkflowRepr;
 import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
 
-public class WorkflowAnalysis {
+public class WorkflowConfigurationAnalysis {
 	
 	private static ConductorUtils cu = new ConductorUtils();
 	
@@ -20,7 +20,7 @@ public class WorkflowAnalysis {
 		File inputFile = cu.getFile(inputFilePath);
 		String className = cu.getClassName(inputFile);
 		
-		WorkflowAnalysis wa = new WorkflowAnalysis();
+		WorkflowConfigurationAnalysis wa = new WorkflowConfigurationAnalysis();
 		SeepProgramConfiguration spc = compileAndExecuteMain(wa, inputFile, className);
 		// Get workflows from configuration code
 		Map<String, WorkflowRepr> workflows = spc.getWorkflows();
@@ -35,7 +35,7 @@ public class WorkflowAnalysis {
 		return workflows;
 	}
 	
-	private static SeepProgramConfiguration compileAndExecuteMain(WorkflowAnalysis wa, File inputFile, String className){
+	private static SeepProgramConfiguration compileAndExecuteMain(WorkflowConfigurationAnalysis wa, File inputFile, String className){
 		SeepProgramConfiguration spc = null;
 		ClassLoader cl = new JavaSourceClassLoader(wa.getClass().getClassLoader());
 		((JavaSourceClassLoader)cl).setSourcePath(new File[] {inputFile});
