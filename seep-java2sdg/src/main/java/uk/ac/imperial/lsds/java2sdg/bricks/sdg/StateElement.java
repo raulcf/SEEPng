@@ -1,19 +1,22 @@
 package uk.ac.imperial.lsds.java2sdg.bricks.sdg;
 
+import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
+
 public class StateElement {
 	
 	private static int stateCount=0;
 	
 	private int stateId;
-	private String stateName;
+	private InternalStateRepr stateRepr;
 	
-	public static StateElement createStateElementRepr(String name){
-		return new StateElement(++StateElement.stateCount, name);
+
+	public static StateElement createStateElementRepr(InternalStateRepr stateRepr){
+		return new StateElement(++StateElement.stateCount, stateRepr);
 	}
 	
-	private StateElement(int id, String name){
+	private StateElement(int id, InternalStateRepr stateRepr){
 		this.stateId = id;
-		this.stateName = name;
+		this.stateRepr = stateRepr;
 	}
 
 	/**
@@ -34,14 +37,14 @@ public class StateElement {
 	 * @return the stateName
 	 */
 	public String getStateName() {
-		return stateName;
+		return this.getStateRepr().getName();
 	}
 
 	/**
-	 * @param stateName the stateName to set
+	 * @return the stateRepr
 	 */
-	public void setStateName(String stateName) {
-		this.stateName = stateName;
+	public InternalStateRepr getStateRepr() {
+		return stateRepr;
 	}
-
+	
 }

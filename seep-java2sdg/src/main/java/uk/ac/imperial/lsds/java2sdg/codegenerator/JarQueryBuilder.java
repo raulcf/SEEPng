@@ -57,15 +57,19 @@ public class JarQueryBuilder {
 				opInstantiationCode.add(srcInstantiation);
 			}
 			else if(sdg.getSdgNodes().get(index).isSink()){
-				CtClass srcInstantiation = builder.generatePeriodicSink(classOperatorName, sdg.getSdgNodes().get(index - 1)
+				CtClass snkInstantiation = builder.generatePeriodicSink(classOperatorName, sdg.getSdgNodes().get(index - 1)
 						.getTaskElements().values().iterator().next().getOutputSchema());
-				opInstantiationCode.add(srcInstantiation);
+				opInstantiationCode.add(snkInstantiation);
 			}
 			//Processor stateless OR statefull
 			else{
-				if(sdg.getSdgNodes().get(index).getStateElement() == null){
-					CtClass srcInstantiation = builder.generateSingleStatelessProcessor(classOperatorName, sdg.getSdgNodes().get(index));
-					opInstantiationCode.add(srcInstantiation);
+				if( !sdg.getSdgNodes().get(index).isStateful()){
+					CtClass statelessOPInstantiation = builder.generateSingleStatelessProcessor(classOperatorName, sdg.getSdgNodes().get(index));
+					opInstantiationCode.add(statelessOPInstantiation);
+				}
+				else{
+					CtClass statefulOPInstantiation = builder.generateSingleStatefulProcessor(classOperatorName, sdg.getSdgNodes().get(index));
+					opInstantiationCode.add(statefulOPInstantiation);
 				}
 			}
 			

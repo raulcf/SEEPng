@@ -2,6 +2,7 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 
 import javassist.CtMethod;
 import javassist.CtNewMethod;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.StateElement;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 
@@ -11,16 +12,21 @@ import javassist.CtClass;
  */
 public class SeepOpMethodBuilder {
 	
+	public static CtMethod genProcessorMethod(CtClass cc, String code) throws CannotCompileException{
+		CtMethod processDataSingle = CtNewMethod
+				.make("public void processData(ITuple data, API api) {" + code + "}", cc);
+		return processDataSingle;
+	}
 	
 	public static CtMethod genBaseCompose(CtClass cc, String code) throws CannotCompileException{
 		CtMethod compose = CtNewMethod.make("public SeepLogicalQuery compose() {" + code + "}", cc);
 		return compose;
 	}
 	
-	public static CtMethod genProcessorMethod(CtClass cc, String code) throws CannotCompileException{
-		CtMethod processDataSingle = CtNewMethod
-				.make("public void processData(ITuple data, API api) {" + code + "}", cc);
-		return processDataSingle;
+	public static CtMethod genSetState(CtClass cc, StateElement state) throws CannotCompileException{
+		CtMethod compose = CtNewMethod.make("public void setState( SeepState "+ state.getStateName() +" ) {  "
+				+state.getStateRepr().getName()+" = $1; }", cc);
+		return compose;
 	}
 	
 	public static CtMethod genProcessorGroupMethod(CtClass cc, String code) throws CannotCompileException {

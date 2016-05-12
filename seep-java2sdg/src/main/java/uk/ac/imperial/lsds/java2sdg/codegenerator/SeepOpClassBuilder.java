@@ -24,6 +24,7 @@ import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.NotFoundException;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.StateElement;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 
@@ -42,7 +43,8 @@ public class SeepOpClassBuilder {
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.data.Schema");
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.operator");
 		cp.importPackage("uk.ac.imperial.lsds.seep.api.operator.sinks");
-//		cp.importPackage("uk.ac.imperial.lsds.seep.api.state.stateimpl");
+		cp.importPackage("uk.ac.imperial.lsds.seep.api.state.stateimpl");
+		cp.importPackage("uk.ac.imperial.lsds.seep.api.state");
 	}
 
 	/**
@@ -60,6 +62,7 @@ public class SeepOpClassBuilder {
 		int count = 0;
 		// Logical Operator Creation
 		for (SDGNode node : nodes) {
+			/*Create Sources*/
 			if (node.getTaskElements().values().iterator().next().isSouce()) {
 				String currentSchema = SeepOpCodeBuilder.getSchemaInstance(
 						node.getTaskElements().values().iterator().next().getOutputSchema(),
@@ -68,26 +71,33 @@ public class SeepOpClassBuilder {
 					code.append(currentSchema.toString());
 				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSource(new C_"
 							+ node.getId() + "()," + count + ");\n");
-			} else if (node.getTaskElements().values().iterator().next().isSink()) {
+			}
+			/*Create Sinks*/
+			else if (node.getTaskElements().values().iterator().next().isSink()) {
 				code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessSink(new C_"
 							+ node.getId() + "()," + count + ");\n");
-			} else {
+			}
+			/*Create Operators*/
+			else {
 				String currentSchema = SeepOpCodeBuilder.getSchemaInstance(
 						node.getTaskElements().values().iterator().next().getOutputSchema(),
 						new String(schemaVariable + node.getId()));
 				if (!currentSchema.toString().isEmpty())
 					code.append(currentSchema.toString());
-
+				/* Stateless */
 				if (node.getStateElement() == null) {
 					code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatelessOperator(new C_"
 							+ node.getId() + "()," + count + ");\n");
-				} else {
-					LOG.error("Statefull Operator - Not implemented yet");
+				}
+				/* Stateful - The only currently supported state is SeepMap */
+				else {
+					code.append("LogicalOperator lo" + node.getId() + " = queryAPI.newStatefulOperator(new C_"
+							+ node.getId() + "(), new SeepMap()," + count + ");\n");
 				}
 			}
 			count++;
 		}
-		// Logical Operator Creation
+		/* Connect All */
 		for (SDGNode node : nodes) {
 			if (!node.getTaskElements().values().iterator().next().getDownstreams().isEmpty()) {
 				for (int downstream : node.getTaskElements().values().iterator().next().getDownstreams())
@@ -157,6 +167,67 @@ public class SeepOpClassBuilder {
 
 			CtMethod processDataGroup = SeepOpMethodBuilder.genProcessorGroupMethod(cc, "");
 			cc.addMethod(processDataGroup);
+
+		} catch (CannotCompileException e) {
+			LOG.error("Error generating Stateless Processor class {} ", e.toString());
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			LOG.error("Error generating Stateless Processor class {} ", e.toString());
+			e.printStackTrace();
+		}
+		// cp.insertClassPath(new ClassClassPath(cc.getClass()));
+		return cc;
+	}
+	
+	
+	/**
+	 * Generates a new SEEP Stateful Processor class Bytecode generated using
+	 * Javassist
+	 * 
+	 * @param opName, SDGNode, stateAnnotation
+	 * @return CtClass
+	 */
+
+	public CtClass generateSingleStatefulProcessor(String opName, SDGNode node) {
+		CtClass cc = cp.makeClass(opName);
+		StateElement state = node.getStateElement();
+		
+		// Assuming its a single TE - Why not include schema in SDGNode??
+		TaskElement currentTE = node.getTaskElements().values().iterator().next();
+		String processorSchema = SeepOpCodeBuilder.getSchemaInstance(currentTE.getOutputSchema(), "schema");
+
+		CtClass[] implInterfaces = new CtClass[1];
+		try {
+			implInterfaces[0] = cp.get("uk.ac.imperial.lsds.seep.api.StatefulSeepTask");
+			cc.setInterfaces(implInterfaces);
+
+			CtConstructor cCon = CtNewConstructor.defaultConstructor(cc);
+			cc.addConstructor(cCon);
+
+			// Schema field - defined globally in the Processor class
+			if (processorSchema != null && !processorSchema.isEmpty()) {
+				CtField f = CtField.make(processorSchema, cc);
+				cc.addField(f);
+			}
+			//Define Global Operator State
+			cc.addField(CtField.make("SeepMap "+ state.getStateName()+";" , cc));
+
+			LOG.info("NEW Stateful Processor Class \n {} \n\n", node.getBuiltCode());
+			CtMethod processDataSingle = SeepOpMethodBuilder.genProcessorMethod(cc, node.getBuiltCode());
+			cc.addMethod(processDataSingle);
+
+			// Mandatory methods
+			CtMethod setUp = SeepOpMethodBuilder.genSetupMethod(cc, "this."+state.getStateRepr().getName()+" = new SeepMap();");
+			cc.addMethod(setUp);
+
+			CtMethod close = SeepOpMethodBuilder.genCloseMethod(cc, "");
+			cc.addMethod(close);
+
+			CtMethod processDataGroup = SeepOpMethodBuilder.genProcessorGroupMethod(cc, "");
+			cc.addMethod(processDataGroup);
+			
+			CtMethod setStateMethod = SeepOpMethodBuilder.genSetState(cc, state);
+			cc.addMethod(setStateMethod);
 
 		} catch (CannotCompileException e) {
 			LOG.error("Error generating Stateless Processor class {} ", e.toString());

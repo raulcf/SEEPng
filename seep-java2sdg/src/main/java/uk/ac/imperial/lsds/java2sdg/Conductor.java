@@ -46,7 +46,7 @@ public class Conductor {
 		
 		/** Get Compilation Unit **/
 //		String inputFilePath = cc.getString(CompilerConfig.INPUT_FILE);
-		String inputFilePath = Util.getProjectPath() +"/src/test/java/Fake.java";
+		String inputFilePath = Util.getProjectPath() +"/src/test/java/KVStore.java";
 		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFilePath);
 		
 		/** Extract annotations **/
@@ -85,7 +85,7 @@ public class Conductor {
 			System.out.println(p.toString());
 		
 		/** Build SDG from partial SDGs **/
-		SDG sdg = SDG.createSDGFromPartialSDG(partialSDGs);
+		SDG sdg = SDG.createSDGFromPartialSDG(partialSDGs, stateFields);
 		for (SDGNode n : sdg.getSdgNodes()) {
 			System.out.println("-----------");
 			System.out.println(n.toString());

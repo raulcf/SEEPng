@@ -9,15 +9,10 @@
  *     Panagiotis Garefalakis
  ******************************************************************************/
 
-
-import java.util.ArrayList;
-import java.util.List;
-
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
@@ -50,9 +45,12 @@ public class KVStore implements SeepProgram{
 	public void count(String key, int value){
 		int newCounter = value +1;
 //		if(kvstore.containsKey(key)){
-//			newCounter = ((Integer)kvstore.get(key)) + 1;
+//			newCounter = (Integer)kvstore.get(key) + 1;
 //		}
-		kvstore.put(key, newCounter);
+		kvstore.put(key, Integer.valueOf(1));
+		
+		if(value %100000 == 0)
+			System.out.println("[Printout] Key: "+ key + " Value:" + kvstore.get(key)  );
 	}
 
 //	public int read(String key){

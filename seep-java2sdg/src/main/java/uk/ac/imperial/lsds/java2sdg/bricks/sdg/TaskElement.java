@@ -132,8 +132,8 @@ public class TaskElement {
 		for(VariableRepr v : this.outputVariables)
 			sb.append(v.getName()+", ");
 		sb.append("\n" );
-		sb.append("\t\t  OutputSchema: "+ outputStore.getSchema()+ "\n");
-		sb.append("\t\t  OutputType: "+ outputStore.type()+ "\n");
+		sb.append("\t\t  OutputSchema: "+ (outputStore != null ? outputStore.getSchema(): null)+ "\n");
+		sb.append("\t\t  OutputType: "+ (outputStore !=null ? outputStore.type(): null));
 		return sb.toString();
 	}
 

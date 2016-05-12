@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 
 public class SDG {
@@ -16,7 +18,7 @@ public class SDG {
 		this.sdgNodes = nodes;
 	}
 	
-	public static SDG createSDGFromPartialSDG(List<PartialSDGRepr> partialSDGs){
+	public static SDG createSDGFromPartialSDG(List<PartialSDGRepr> partialSDGs, Map<String, InternalStateRepr> stateFields){
 		List<SDGNode> sdgNodes = new ArrayList<>();
 		int partialID = 0;
 		
@@ -45,7 +47,7 @@ public class SDG {
 			}
 			//Use just Method name (no arguments)
 			String wfName = partial.getWorkflowName().substring(0, partial.getWorkflowName().indexOf("("))+"_"+partialID;
-			SDGNode s = new SDGNode(wfName, taskElements, null);
+			SDGNode s = new SDGNode(wfName, taskElements, discoverSDGNodeState(taskElements, stateFields));
 			sdgNodes.add(s);
 			partialID++;
 			
@@ -69,6 +71,20 @@ public class SDG {
 		
 		return sdg;
 	}
+	
+	public static StateElement discoverSDGNodeState(Map<Integer, TaskElement> taskElements, Map<String, InternalStateRepr> stateFields){
+		for(String stateName: stateFields.keySet()){
+			for(TaskElement task : taskElements.values()){
+				for(String c : task.getCode()){
+					if(c.contains(stateName))
+						return StateElement.createStateElementRepr(stateFields.get(stateName));
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	
 	/**
 	 * @return the sdgNodes

@@ -47,7 +47,16 @@ public class Fake implements SeepProgram {
 		int count =0;
 		if( (userId % 100000) == 0){
 			System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);
+			System.out.println("If fine?  "+  Boolean.toString(((userId % 100000) == 0)) );
 		}
+		else if( (userId % 110000) == 0){
+			System.out.println("Else_IF is fine? "+ Boolean.toString(((userId % 110000) == 0)) );
+		}
+		else{
+			
+			System.out.println("ELSE fine?"+ Boolean.toString(!( (userId % 110000 == 0) && (userId % 100000 == 0) )));
+		}
+		
 //		System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);		
 		List weights = new ArrayList();
 		weights.add(new Double("100"));

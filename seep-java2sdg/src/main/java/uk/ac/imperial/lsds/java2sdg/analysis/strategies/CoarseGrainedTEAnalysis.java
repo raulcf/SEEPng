@@ -15,6 +15,7 @@ import com.esotericsoftware.minlog.Log;
 import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis;
 import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.LivenessInformation;
 import uk.ac.imperial.lsds.java2sdg.bricks.CodeRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.InternalStateRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGComponent;
 import uk.ac.imperial.lsds.java2sdg.bricks.PartialSDGRepr;
 import uk.ac.imperial.lsds.java2sdg.bricks.VariableRepr;
@@ -33,7 +34,8 @@ public class CoarseGrainedTEAnalysis {
 	private static int teId = 0;
 	private final static Logger LOG = LoggerFactory.getLogger(CoarseGrainedTEAnalysis.class.getSimpleName());
 	
-	public static List<PartialSDGRepr> getPartialSDGs(Map<String, WorkflowRepr> workflows, LivenessInformation lvInfo){
+	public static List<PartialSDGRepr> getPartialSDGs(Map<String, WorkflowRepr> workflows, LivenessInformation lvInfo) {
+		
 		List<PartialSDGRepr> partialSDGs = new ArrayList<>();
 		// Get partialSDG per workflow
 		
@@ -68,11 +70,7 @@ public class CoarseGrainedTEAnalysis {
 			//What about Source-Schema vars?? We also need to stream those - add them here!
 			createSchemaStream(source, inputVariables, outputVariables);
 			
-			
-			
-			
-			
-			
+
 //			System.out.println("--------IN------------");
 //			inputVariables.forEach( var -> System.out.println(var.getName()));
 //			System.out.println("--------OUT-----------");

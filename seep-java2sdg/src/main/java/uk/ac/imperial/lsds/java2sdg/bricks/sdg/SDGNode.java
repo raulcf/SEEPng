@@ -72,6 +72,10 @@ public class SDGNode {
 		return (this.taskElements.size()==1) && this.taskElements.values().iterator().next().isSink();
 	}
 	
+	public boolean isStateful(){
+		return (this.getStateElement() != null);
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
@@ -79,7 +83,7 @@ public class SDGNode {
 		sb.append("Name: "+ name+"\n");
 		for(Integer task : taskElements.keySet())
 			sb.append("\t TaskElem: "+ task + " Repr: "+taskElements.get(task) +"\n" );
-		sb.append("StateElement: "+ stateElement +"\n");
+		sb.append("\t StateElement: "+ ( stateElement!= null ? stateElement.getStateName() +" Class: "+ stateElement.getStateRepr().getStateType() + " Annotation: "+ stateElement.getStateRepr().getStateAnnotation(): null));
 		return sb.toString();
 	}
 	
