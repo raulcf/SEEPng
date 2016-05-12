@@ -11,14 +11,14 @@ import uk.ac.imperial.lsds.seep.util.Utils;
 
 public class ITuple {
 	
-	private final Schema schema;
+	protected final Schema schema;
 	private int streamId;
 	// attribute name - offset
-	private Map<String, Integer> mapFieldToOffset;
+	protected Map<String, Integer> mapFieldToOffset;
 	// attribute index - offset
-	private int[] mapIdxToOffset;
+	protected int[] mapIdxToOffset;
 	// attribute name - index in mapIdxToOffset
-	private Map<String, Integer> mapFieldToIdx;
+	protected Map<String, Integer> mapFieldToIdx;
 	private ByteBuffer wrapper;
 	private byte[] data;
 	

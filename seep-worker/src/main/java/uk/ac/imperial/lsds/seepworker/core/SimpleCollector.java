@@ -14,6 +14,7 @@ public class SimpleCollector implements API {
 	// Attributes for RuntimeEvent
 	private List<RuntimeEvent> rEvents;
 	private RuntimeEvent evaluationResults;
+	private Object lastEvaluationResults;
 	
 	public SimpleCollector() { 
 		this.rEvents = new ArrayList<>();
@@ -116,7 +117,8 @@ public class SimpleCollector implements API {
 
 	@Override
 	public List<RuntimeEvent> getRuntimeEvents() {
-		if(evaluationResults != null) {
+		if(lastEvaluationResults != null) {
+			evaluationResults = RuntimeEventFactory.makeEvaluateResults(lastEvaluationResults);
 			rEvents.add(evaluationResults);
 		}
 		return rEvents;
@@ -130,7 +132,8 @@ public class SimpleCollector implements API {
 	
 	@Override
 	public void storeEvaluateResults(Object obj) {
-		evaluationResults = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.lastEvaluationResults = obj;
+//		evaluationResults = RuntimeEventFactory.makeEvaluateResults(obj);
 		//this.rEvents.add(re);
 	}
 

@@ -16,8 +16,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
+import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
+import uk.ac.imperial.lsds.seep.api.data.ZCITuple;
 import uk.ac.imperial.lsds.seep.core.IBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
@@ -282,12 +284,6 @@ public class Dataset implements IBuffer, OBuffer {
 	public void prepareDatasetForFutureRead() {
 		// For memory read only this is enough
 		wPtrToBuffer = rPtrToBuffer; // Set wPtrToBuffer to that one
-//		if(wPtrToBuffer.position() == wPtrToBuffer.limit()) {
-//			wPtrToBuffer.flip();
-//		}
-//		if(wPtrToBuffer.position() == 8192) {
-//			System.out.println("HERE");
-//		}
 		rPtrToBuffer = null;
 		readerIterator = this.buffers.iterator();
 		// Flip all memory buffers
@@ -300,16 +296,137 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	public void prepareSyntheticDatasetForRead() {
-//		wPtrToBuffer.flip();
-//		wPtrToBuffer = rPtrToBuffer;
 		rPtrToBuffer = null;
-//		readerIterator = this.buffers.iterator();
-//		while(readerIterator.hasNext()) {
-//			readerIterator.next().flip();
-//		}
 		readerIterator = null; // Reset and let consumer create this again as needed
 		// For file operations, reset
 		cacheFilePosition = 0;
+	}
+	
+	public ITuple consumeData_zerocopy(ZCITuple t) {
+		// Try to read from rPtrToBuffer
+		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
+			// MEMORY
+			if (cacheFileName.equals("")) {
+				memAccess++;
+				if(readerIterator == null) {
+					readerIterator = this.buffers.iterator();
+				}
+				if(readerIterator.hasNext()) {
+					rPtrToBuffer = readerIterator.next();
+					if(rPtrToBuffer.position() == rPtrToBuffer.limit()) {
+						rPtrToBuffer.flip();
+					}
+				}
+				else {
+					// No more buffers available, read the write buffer
+					if(wPtrToBuffer != null) {
+						if(wPtrToBuffer.position() != 0) {
+							wPtrToBuffer.flip();
+						}
+						rPtrToBuffer = wPtrToBuffer;
+						if(rPtrToBuffer.limit() == 0) {
+							System.out.println("B");
+						}
+						wPtrToBuffer = null;
+					}
+					else {
+						prepareDatasetForFutureRead();
+						return null;
+					}
+				}
+			}
+			// DISK
+			else {
+				diskAccess++;
+				int minBufSize = bufferPool.getMinimumBufferSize();
+				FileInputStream is = null;
+				try {
+					is = new FileInputStream(cacheFileName);
+					is.getChannel().position(cacheFilePosition);
+					byte[] d = new byte[minBufSize];
+					int limit = is.read();
+					if(limit == -1) {
+						// if the write buffer still contains data
+						if(wPtrToBuffer != null) {
+							if(wPtrToBuffer.position() != 0) {
+								wPtrToBuffer.flip();
+							}
+							rPtrToBuffer = wPtrToBuffer;
+							if(rPtrToBuffer.limit() == 0) {
+								System.out.println("D");
+							}
+							is.close();
+							wPtrToBuffer = null;
+						}
+						else {
+							is.close();
+							prepareDatasetForFutureRead();
+							return null;
+						}
+					}
+					else {
+						int read = is.read(d);
+						if(read == -1) {
+							// if the write buffer still contains data
+							if(wPtrToBuffer != null) {
+								if(wPtrToBuffer.position() != 0) {
+									wPtrToBuffer.flip();
+								}
+								rPtrToBuffer = wPtrToBuffer;
+								if(rPtrToBuffer.limit() == 0) {
+									System.out.println("F");
+								}
+								is.close();
+								wPtrToBuffer = null;
+							}
+							else {
+								is.close();
+								prepareDatasetForFutureRead();
+								return null;
+							}
+						}
+						else if (read != minBufSize) {
+							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
+							System.exit(-1);
+						}
+						else {
+							rPtrToBuffer = ByteBuffer.wrap(d);
+							if(rPtrToBuffer.limit() == 0) {
+								System.out.println("H");
+							}
+							cacheFilePosition += minBufSize + 1; // 4 limit size
+							is.close();
+						}
+					} // else
+				}
+				catch (FileNotFoundException fnfe) {
+					if(wPtrToBuffer != null) {
+						if(wPtrToBuffer.position() != 0) {
+							wPtrToBuffer.flip();
+						}
+						rPtrToBuffer = wPtrToBuffer;
+						if(rPtrToBuffer.limit() == 0) {
+							System.out.println("I");
+						}
+						// no need to close stream as it does not exist
+						wPtrToBuffer = null;
+					}
+					else {
+						// no need to close stream as it does not exist
+						prepareDatasetForFutureRead();
+						return null;
+					}
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			t.assignBuffer(rPtrToBuffer);
+		}
+		int size = rPtrToBuffer.getInt();
+		int currentPosition = rPtrToBuffer.position();
+		t.setBufferPtr(currentPosition);
+		return t;
 	}
 			
 	public byte[] consumeData() {
