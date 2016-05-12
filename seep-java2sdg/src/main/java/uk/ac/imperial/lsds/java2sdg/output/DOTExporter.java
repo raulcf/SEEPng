@@ -22,7 +22,7 @@ import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 
-public class DOTExporter implements SDGExporter{
+public class DOTExporter implements SDGExporterI{
 
 	private static DOTExporter instance = null;
 	

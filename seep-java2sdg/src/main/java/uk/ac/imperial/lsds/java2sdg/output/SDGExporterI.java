@@ -12,6 +12,6 @@ package uk.ac.imperial.lsds.java2sdg.output;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
 
-public interface SDGExporter {
+public interface SDGExporterI {
 	public void export(SDG sdg, String filename);
 }
