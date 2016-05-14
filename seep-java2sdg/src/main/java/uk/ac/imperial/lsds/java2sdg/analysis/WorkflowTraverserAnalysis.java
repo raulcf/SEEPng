@@ -185,8 +185,8 @@ public class WorkflowTraverserAnalysis extends Traverser {
 		@Override
 		public void visitReturnStatement(ReturnStatement rs) {
 			String returnStatement = rs.toString();
-			int line = rs.getLocation().getLineNumber();
-			code.add(new CodeRepr().new CodeAndLine(returnStatement, line));
+//			int line = rs.getLocation().getLineNumber();
+//			code.add(new CodeRepr().new CodeAndLine(returnStatement, line));
 		}
 		
 		@Override

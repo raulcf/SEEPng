@@ -48,7 +48,7 @@ public class KVStore implements SeepProgram{
 			System.out.println("[Count] 'Key': "+ key + " 'Value':" + kvstore.get(key)  );
 	}
 
-	public void read(String key){
+	public int read(String key){
 		int readValue = 0;
 		if(kvstore.containsKey(key)){
 			readValue = ((Integer)kvstore.get(key)).intValue();
@@ -56,5 +56,6 @@ public class KVStore implements SeepProgram{
 		/* Just a printout */
 		if( (readValue %100000) == 0)
 			System.out.println("[Read] 'Key': "+ key + " 'Value':" + readValue );
+		return readValue;
 	}
 }
