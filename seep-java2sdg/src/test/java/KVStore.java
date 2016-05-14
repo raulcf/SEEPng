@@ -26,38 +26,35 @@ public class KVStore implements SeepProgram{
 	
 	@Override
 	public SeepProgramConfiguration configure() {
+		SeepProgramConfiguration spc = new SeepProgramConfiguration();
+		
 		Schema schema = SchemaBuilder.getInstance().newField(Type.STRING, "key").newField(Type.INT, "value").build();
 		DataStore netSource = new DataStore(schema, DataStoreType.NETWORK);
-		
-		SeepProgramConfiguration spc = new SeepProgramConfiguration();
 		spc.newWorkflow("count(String key, int value)", netSource, netSource);
+		spc.newWorkflow("read(String key)", netSource, netSource);
 		
 		return spc;
 	}
 
-//	public void main(){
-//		String keyupdate = "testupdate"; // get data somehow
-//		count(keyupdate); // call function -> implies this is an entry point
-//		String keyread = "testread";
-//		read(keyread);
-//	}
-
 	public void count(String key, int value){
 		int newCounter = value +1;
-//		if(kvstore.containsKey(key)){
-//			newCounter = (Integer)kvstore.get(key) + 1;
-//		}
-		kvstore.put(key, Integer.valueOf(1));
+		if(kvstore.containsKey(key)){
+			newCounter = ((Integer)kvstore.get(key)).intValue() + 1;
+		}
+		kvstore.put(key, new Integer(newCounter));
 		
-		if(value %100000 == 0)
-			System.out.println("[Printout] Key: "+ key + " Value:" + kvstore.get(key)  );
+		/* Just a printout */
+		if( (value %100000) == 0)
+			System.out.println("[Count] 'Key': "+ key + " 'Value':" + kvstore.get(key)  );
 	}
 
-//	public int read(String key){
-//		int counter = 0;
-//		if(kvstore.containsKey(key)){
-//			counter = (Integer)kvstore.get(key);
-//		}
-//		return counter;
-//	}
+	public void read(String key){
+		int readValue = 0;
+		if(kvstore.containsKey(key)){
+			readValue = ((Integer)kvstore.get(key)).intValue();
+		}
+		/* Just a printout */
+		if( (readValue %100000) == 0)
+			System.out.println("[Read] 'Key': "+ key + " 'Value':" + readValue );
+	}
 }

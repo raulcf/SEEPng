@@ -1,5 +1,6 @@
 package uk.ac.imperial.lsds.java2sdg.codegenerator;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -22,27 +23,26 @@ public class SeepOpCodeBuilder {
 	 */
 	public static String getCodeForMultiOp(Map<Integer,TaskElement> tes){
 		StringBuilder sb = new StringBuilder();
-		sb.append("{"); // open block
 		sb.append(_getCodeForMultiOp(tes));
-		sb.append("}"); // close block
 		return sb.toString();
 	}
 	
 	private static String _getCodeForMultiOp(Map<Integer,TaskElement> tes){
 		StringBuilder sb = new StringBuilder();
+		Iterator<TaskElement> teIt = tes.values().iterator();
 		
 		// Build IF block and insert code for first TE
-		TaskElement firstTE = tes.remove(0);
+		TaskElement firstTE = teIt.next();
 		String initIFBlock = getInitIFBlock();
 		sb.append(initIFBlock);
 		sb.append(_getCodeForSingleOp(firstTE));
 		sb.append("}");
 		// Once the IF block has started, we just complete it with else clauses
-		int branchId = 1; // 0 is used for firstTE
-		for(Map.Entry<Integer, TaskElement> te : tes.entrySet()){
-			sb.append("else if(branchId == "+branchId+"){");
+		int branchId = 2; // 1 is used for firstTE
+		while(teIt.hasNext()){
+			sb.append("else if( (branchId % "+branchId+") == 0){");
 			branchId++;
-			sb.append(_getCodeForSingleOp(te.getValue()));
+			sb.append(_getCodeForSingleOp(teIt.next()));
 			sb.append("}");
 		}
 		return sb.toString();
@@ -53,7 +53,7 @@ public class SeepOpCodeBuilder {
 		StringBuilder sb = new StringBuilder();
 		String unbox = getUnboxCode("java.lang.Integer", "branchId");
 		sb.append(unbox);
-		sb.append("if(branchId == 0){");
+		sb.append("if( (branchId % 2) == 1){");
 		return sb.toString();
 	}
 	/**
@@ -82,10 +82,11 @@ public class SeepOpCodeBuilder {
 		String footer = "";
 		if(varsToStream != null && !varsToStream.isEmpty()){
 			//Simple Schema - inputVars check
-			if(te.getOutputSchema().fields().length != varsToStream.size()){
+			if(varsToStream.size() != te.getOutputSchema().fields().length){
 				LOG.error("OutputSchema and StreamVariables size missmatch!!");
 				LOG.error("Schema {}", te.getOutputSchema());
-				LOG.error("Variables {}", varsToStream);
+				LOG.error("Variables: ");
+				varsToStream.forEach(item->System.out.println(item.getName()));
 				System.exit(0);
 			}
 			

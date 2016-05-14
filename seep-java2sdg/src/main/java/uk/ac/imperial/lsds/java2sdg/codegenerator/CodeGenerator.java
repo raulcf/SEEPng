@@ -33,9 +33,7 @@ public class CodeGenerator {
 			/* Multi-TE case */
 			if (node.getTaskElements().size() > 1) {
 				LOG.debug("Multi-TE");
-				LOG.error("NOT SUPPORTED YET!");
-				System.exit(-1);
-				// builtCode = SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
+				 builtCode = SeepOpCodeBuilder.getCodeForMultiOp(node.getTaskElements());
 			}
 			/* Single-TE case */
 			else if (node.getTaskElements().size() == 1) {

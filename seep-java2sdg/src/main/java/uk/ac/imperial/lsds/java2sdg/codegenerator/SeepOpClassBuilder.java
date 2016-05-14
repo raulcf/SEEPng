@@ -99,11 +99,12 @@ public class SeepOpClassBuilder {
 		}
 		/* Connect All */
 		for (SDGNode node : nodes) {
-			if (!node.getTaskElements().values().iterator().next().getDownstreams().isEmpty()) {
-				for (int downstream : node.getTaskElements().values().iterator().next().getDownstreams())
-					code.append("lo" + node.getId() + ".connectTo( lo" + downstream + ", 0, new DataStore(schema"
+				for(TaskElement te : node.getTaskElements().values()){
+					for (int downstream : te.getDownstreams()){
+						code.append("lo" + node.getId() + ".connectTo( lo" + downstream + ", 0, new DataStore(schema"
 							+ node.getId() + ", DataStoreType.NETWORK));\n");
-			}
+					}
+				}
 		}
 		code.append("return QueryBuilder.build();\n");
 
