@@ -145,7 +145,7 @@ public class WorkflowTraverserAnalysis extends Traverser {
 			String if_ = ") {";
 			code.add(new CodeRepr().new CodeAndLine(if_, line));
 			(is.thenStatement).accept(this);
-			code.add(new CodeRepr().new CodeAndLine("}", line));
+			code.add(new CodeRepr().new CodeAndLine("}", code.get(code.size()-1).line));
 			if (is.optionalElseStatement != null){
 				String _else = "else {";
 				code.add(new CodeRepr().new CodeAndLine(_else, is.optionalElseStatement.getLocation().getLineNumber()));
