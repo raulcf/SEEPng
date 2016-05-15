@@ -26,7 +26,7 @@ public class ScheduleTask implements SeepTask {
 	
 	private int stageId;
 	private int euId;
-	private Deque<LogicalOperator> operators;
+	private List<LogicalOperator> operators;
 	private Iterator<LogicalOperator> opIt;
 	private List<SeepTask> tasks;
 	private Iterator<SeepTask> taskIterator;
@@ -38,7 +38,7 @@ public class ScheduleTask implements SeepTask {
 	private ITuple data = null;
 	private TransporterITuple d = null;
 	
-	private ScheduleTask(int euId, int stageId, Deque<LogicalOperator> operators) {
+	private ScheduleTask(int euId, int stageId, List<LogicalOperator> operators) {
 		this.stageId = stageId;
 		this.euId = euId;
 		this.operators = operators;
@@ -60,11 +60,12 @@ public class ScheduleTask implements SeepTask {
 	public static ScheduleTask buildTaskFor(int id, Stage s, ScheduleDescription sd) {
 		Deque<Integer> wrappedOps = s.getWrappedOperators();
 		LOG.info("Building stage {}. Wraps {} operators", s.getStageId(), wrappedOps.size());
-		Deque<LogicalOperator> operators = new ArrayDeque<>();
+//		Deque<LogicalOperator> operators = new ArrayDeque<>();
+		List<LogicalOperator> operators = new ArrayList<>();
 		while(! wrappedOps.isEmpty()) {
 			LogicalOperator lo = sd.getOperatorWithId(wrappedOps.poll());
 			LOG.debug("op {} is part of stage {}", lo.getOperatorId(), s.getStageId());
-			operators.addLast(lo);
+			operators.add(lo);
 		}
 		return new ScheduleTask(id, s.getStageId(), operators);
 	}
@@ -88,6 +89,7 @@ public class ScheduleTask implements SeepTask {
 	}
 
 //	@Override
+	@Deprecated
 	public void _processData(ITuple data, API api) {
 		API scApi = new SimpleCollector();
 		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
@@ -114,6 +116,59 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void processData(ITuple data, API api) {
+		for(int i = 0; i < tasks.size() - 1; i++) {
+			SeepTask next = tasks.get(i);
+			next.processData(data, scApi);
+			OTuple o = ((SimpleCollector)scApi).collect();
+			LogicalOperator nextOp = operators.get(i);
+			if(! sameSchema) {
+				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+				data = new ITuple(schema);
+				d = new TransporterITuple(schema); // FIXME: can we get schema from OTuple
+			}
+			if(d == null) {
+				Schema schema = nextOp.downstreamConnections().get(0).getSchema();
+				d = new TransporterITuple(schema);
+			}
+			Object[] values = o.getValues();
+			d.setValues(values);
+		}
+		
+		SeepTask next = tasks.get(tasks.size() -1);
+		next.processData(data, api);
+		
+//		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
+//		// Check whether there are tasks ahead
+//		while(taskIterator.hasNext()) {
+//			// There is a next OP, we simply need to collect output
+//			next.processData(data, scApi);
+////			byte[] o = ((SimpleCollector)scApi).collect();
+//			OTuple o = ((SimpleCollector)scApi).collect();
+//			LogicalOperator nextOp = opIt.next();
+//			if(! sameSchema) {
+//				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+//				data = new ITuple(schema);
+//				d = new TransporterITuple(schema); // FIXME: can we get schema from OTuple
+//			}
+//			if(d == null) {
+//				Schema schema = nextOp.downstreamConnections().get(0).getSchema();
+//				d = new TransporterITuple(schema);
+//			}
+//			Object[] values = o.getValues();
+//			d.setValues(values);
+//			// Otherwise we simply forward the data
+//			next = taskIterator.next();
+//		}
+//		
+//		// Finally use real API for real forwarding
+//		next.processData(data, api);
+//		// Then reset iterators for more processing
+//		taskIterator = tasks.iterator();
+//		opIt = operators.iterator();
+	}
+	
+	
+	public void __processData(ITuple data, API api) {
 		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
 		// Check whether there are tasks ahead
 		while(taskIterator.hasNext()) {
