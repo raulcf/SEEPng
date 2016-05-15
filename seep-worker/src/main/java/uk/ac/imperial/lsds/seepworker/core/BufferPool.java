@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
 
+import sun.misc.Unsafe;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -88,7 +89,7 @@ public class BufferPool {
 	}
 	
 	public ByteBuffer getCacheBuffer() {
-		ByteBuffer bb = ByteBuffer.allocate(minBufferSize);
+		ByteBuffer bb = allocateByteBuffer();
 		return bb;
 	}
 	
