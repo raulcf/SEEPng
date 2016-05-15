@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.api.data.ZCITuple;
@@ -610,6 +611,32 @@ public class Dataset implements IBuffer, OBuffer {
 		// Write size and data to cache buffer. Here it is guaranteed to exist
 		wPtrToBuffer.putInt(dataSize);
 		wPtrToBuffer.put(data);
+		
+		return true;
+	}
+	
+	@Override
+	public boolean write(OTuple o, RuntimeEventRegister reg) {
+		int dataSize = o.getTupleSize();
+		totalDataWrittenToThisDataset = totalDataWrittenToThisDataset + dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD;
+		this.lastAccessForWriteTime = System.nanoTime();
+		
+		// Try to write to cache buffer first
+		if(wPtrToBuffer.remaining() < dataSize + TupleInfo.TUPLE_SIZE_OVERHEAD) {
+			// When buffer is full, then we check whether this dataset is in memory or not
+			if (!cacheFileName.equals("")) { // disk
+				transferBBToDisk();
+				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+			}
+			else { // memory
+				wPtrToBuffer.flip();
+				this.addBufferToBuffers(wPtrToBuffer); // add full buffer
+				this.wPtrToBuffer = this.obtainNewWPtrBuffer(); // try to get a new one
+			}
+		}
+		
+		// Write size and data to cache buffer. Here it is guaranteed to exist
+		o.writeValues(wPtrToBuffer);
 		
 		return true;
 	}

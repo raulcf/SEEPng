@@ -1,10 +1,13 @@
 package uk.ac.imperial.lsds.seep.api;
 
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
+
 
 
 public interface CommAPI {
 	
 	public void send(byte[] o);
+	public void send(OTuple o);
 	public void sendAll(byte[] o);
 	public void sendKey(byte[] o, int key);
 	public void sendKey(byte[] o, String key);

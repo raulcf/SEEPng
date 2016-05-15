@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.TupleInfo;
 import uk.ac.imperial.lsds.seep.core.EventAPI;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
@@ -110,6 +111,12 @@ public class OutputBuffer implements EventBasedOBuffer {
 			}
 		}
 		return completed.get();
+	}
+	
+	@Override
+	public boolean write(OTuple o, RuntimeEventRegister reg) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
 	@Override

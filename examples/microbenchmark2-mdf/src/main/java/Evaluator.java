@@ -4,12 +4,15 @@ import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.SeepTask;
 import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
+import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-
+import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 
 
 public class Evaluator implements SeepTask {
 
+	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
+	
 	private int totalCalls = 0;
 	
 	@Override
@@ -21,6 +24,8 @@ public class Evaluator implements SeepTask {
 	int idx_userid = 0;
 	int idx_value = 0;
 	Type[] types = new Type[]{Type.INT, Type.LONG};
+	
+	OTuple o = new OTuple(schema);
 
 	@Override
 	public void processData(ITuple data, API arg1) {
@@ -38,8 +43,10 @@ public class Evaluator implements SeepTask {
 		arg1.storeEvaluateResults(System.currentTimeMillis()); // a long, as an abstract notion of quality
 		// propagate the results downstream
 		
-		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
-		arg1.send(processedData);
+//		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
+//		arg1.send(processedData);
+		o.setValues(new Object[]{userId, value});
+		arg1.send(o);
 	}
 
 	@Override

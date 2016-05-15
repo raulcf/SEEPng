@@ -17,12 +17,12 @@ import java.nio.file.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventRegister;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.operator.sources.FileConfig;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 
@@ -103,6 +103,12 @@ public class FileOutputBuffer implements OBuffer {
 	@Override
 	public boolean drainTo(WritableByteChannel channel) {
 		LOG.error("Not implemented for FileOutputBuffer");
+		return false;
+	}
+	
+	@Override
+	public boolean write(OTuple o, RuntimeEventRegister reg) {
+		// TODO Auto-generated method stub
 		return false;
 	}
 
