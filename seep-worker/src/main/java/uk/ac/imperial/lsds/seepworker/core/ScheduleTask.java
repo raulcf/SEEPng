@@ -30,6 +30,7 @@ public class ScheduleTask implements SeepTask {
 	private Iterator<LogicalOperator> opIt;
 	private List<SeepTask> tasks;
 	private Iterator<SeepTask> taskIterator;
+	private API scApi = new SimpleCollector();
 	
 	// Optimizing for same schema
 	private boolean sameSchema = true;
@@ -113,7 +114,6 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void processData(ITuple data, API api) {
-		API scApi = new SimpleCollector();
 		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
 		// Check whether there are tasks ahead
 		while(taskIterator.hasNext()) {
