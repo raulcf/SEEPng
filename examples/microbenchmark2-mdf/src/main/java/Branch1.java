@@ -29,6 +29,8 @@ public class Branch1 implements SeepTask {
 	
 	Type[] types = new Type[]{Type.INT, Type.LONG};
 	
+	OTuple o = new OTuple(schema);
+	
 	@Override
 	public void processData(ITuple data, API api) {
 		// setup method not included in scheduled mode
@@ -50,8 +52,11 @@ public class Branch1 implements SeepTask {
 		value = value / value;
 		
 //		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
-		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
-		api.send(processedData);
+//		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
+//		api.send(processedData);
+		
+		o.setValues(new Object[]{userId, value});
+		api.send(o);
 	}
 
 	@Override

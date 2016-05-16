@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventFactory;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.core.EventBasedOBuffer;
 import uk.ac.imperial.lsds.seep.core.OBuffer;
 import uk.ac.imperial.lsds.seep.errors.DoYouKnowWhatYouAreDoingException;
@@ -38,6 +39,7 @@ public class Collector implements API {
 	private List<RuntimeEvent> rEvents;
 	// Current evaluation results
 	private RuntimeEvent re;
+	private Object lastEvaluationResults;
 	
 	public Collector(int id, CoreOutput coreOutput) {
 		this.rEvents = new ArrayList<>();
@@ -101,6 +103,25 @@ public class Collector implements API {
 	@Override
 	public int id() {
 		return id;
+	}
+	
+	@Override
+	public void send(OTuple o) {
+		OBuffer ob = theOBuffer;
+		if(NOT_SEND_API) throw new UnsupportedOperationException("Send API not defined, maybe this is a sink?");
+		if(MULTIPLE_STREAMID) {
+			throw new NotEnoughRoutingInformation("There are more than one streamId downstream; you must specify where "
+					+ "you are sending to");
+		}
+		if(SINGLE_SEND_NOT_DEFINED) {
+			int id = theRouter.route();
+			ob = buffers.get(id);
+		}
+		boolean completed = ob.write(o, this);
+		//boolean completed = ob.write(o, this);
+		if(completed && ob instanceof EventBasedOBuffer) {
+			((EventBasedOBuffer)ob).getEventAPI().readyForWrite(id);
+		}
 	}
 
 	@Override
@@ -212,7 +233,8 @@ public class Collector implements API {
 	@Override
 	public List<RuntimeEvent> getRuntimeEvents() {
 		// Lazily add evaluation results if any
-		if(re != null) {
+		if(lastEvaluationResults != null) {
+			re = RuntimeEventFactory.makeEvaluateResults(lastEvaluationResults);
 			rEvents.add(re);
 		}
 		return rEvents;
@@ -256,7 +278,8 @@ public class Collector implements API {
 	public void storeEvaluateResults(Object obj) {
 		// Only update state (there will be one evaluation results per Evaluator then)
 		// Then re will be added to the other runtimeEvents when get(rEvents).
-		re = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.lastEvaluationResults = obj;
+//		re = RuntimeEventFactory.makeEvaluateResults(obj);
 		//this.rEvents.add(re);
 	}
 

@@ -8,9 +8,11 @@ public class OTuple {
 
 	private Schema schema;
 	private Object[] values;
-	private final int fixedSchemaSize;
+	private int fixedSchemaSize;
 	
 	private byte[] data;
+	
+	public OTuple() { }
 	
 	public OTuple(Schema schema){
 		this.schema = schema;
@@ -22,6 +24,18 @@ public class OTuple {
 		else {
 			this.fixedSchemaSize = -1; // variable size, so it needs to be computed per tuple
 		}
+	}
+	
+	public void setValues(Object[] values) {
+		this.values = values;
+	}
+	
+	public Object[] getValues() {
+		return values;
+	}
+	
+	public int getTupleSize() {
+		return fixedSchemaSize;
 	}
 	
 	public byte[] getData(){
@@ -59,6 +73,15 @@ public class OTuple {
 			t.write(wrapper, values[i]);
 		}
 		return data;
+	}
+	
+	public void writeValues(ByteBuffer bb) {
+		Type[] types = schema.fields();
+		bb.putInt(this.fixedSchemaSize);
+		for(int i = 0; i < values.length; i++) {
+			Type t = types[i];
+			t.write(bb, values[i]);
+		}
 	}
 	
 	public static byte[] createUnsafe(Type[] types, Object[] values){

@@ -17,6 +17,7 @@ public abstract class Type {
 	public abstract boolean isVariableSize();
 	public abstract Object defaultValue();
 	public abstract Object randomValue();
+	private static Random rnd = new Random();
 	
 	public boolean equals(Type t) {
 		return this.toString().equals(t.toString());
@@ -60,7 +61,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return (byte)(new Random().nextInt());
+			return (byte)(rnd.nextInt());
 		}
 		
 	};
@@ -99,7 +100,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return (short)(new Random().nextInt());
+			return (short)(rnd.nextInt());
 		}
 	};
 	
@@ -137,7 +138,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return (int)(new Random().nextInt());
+			return (int)(rnd.nextInt());
 		}
 	};
 	
@@ -175,7 +176,7 @@ public abstract class Type {
 		}
 		@Override
 		public Object randomValue() {
-			return (long)(new Random().nextLong());
+			return (long)(rnd.nextLong());
 		}
 	};
 	
@@ -234,7 +235,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return new Integer((new Random().nextInt())).toString();
+			return new Integer((rnd.nextInt())).toString();
 		}
 	};
 	
@@ -276,7 +277,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return new Integer((new Random().nextInt())).toString();
+			return new Integer((rnd.nextInt())).toString();
 		}
 		
 	};
@@ -361,7 +362,7 @@ public abstract class Type {
 		
 		@Override
 		public Object randomValue() {
-			return (float)(new Random().nextFloat());
+			return (float)(rnd.nextFloat());
 		}
 	};
 
@@ -399,7 +400,7 @@ public abstract class Type {
 
 		@Override
 		public Object randomValue() {
-			return (double)(new Random().nextDouble());
+			return (double)(rnd.nextDouble());
 		}
 	};
 }

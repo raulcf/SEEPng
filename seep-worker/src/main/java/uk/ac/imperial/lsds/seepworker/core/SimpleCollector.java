@@ -6,14 +6,17 @@ import java.util.List;
 import uk.ac.imperial.lsds.seep.api.API;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.RuntimeEventFactory;
+import uk.ac.imperial.lsds.seep.api.data.OTuple;
 
 public class SimpleCollector implements API {
 
 	private byte[] mem;
+	private OTuple o;
 	
 	// Attributes for RuntimeEvent
 	private List<RuntimeEvent> rEvents;
 	private RuntimeEvent evaluationResults;
+	private Object lastEvaluationResults;
 	
 	public SimpleCollector() { 
 		this.rEvents = new ArrayList<>();
@@ -28,6 +31,11 @@ public class SimpleCollector implements API {
 	@Override
 	public void send(byte[] o) {
 		this.mem = o;
+	}
+	
+	@Override
+	public void send(OTuple o) {
+		this.o = o;
 	}
 
 	@Override
@@ -84,8 +92,12 @@ public class SimpleCollector implements API {
 		
 	}
 	
-	public byte[] collect() {
+	public byte[] collectMem() {
 		return mem;
+	}
+	
+	public OTuple collect() {
+		return o;
 	}
 
 	@Override
@@ -116,7 +128,8 @@ public class SimpleCollector implements API {
 
 	@Override
 	public List<RuntimeEvent> getRuntimeEvents() {
-		if(evaluationResults != null) {
+		if(lastEvaluationResults != null) {
+			evaluationResults = RuntimeEventFactory.makeEvaluateResults(lastEvaluationResults);
 			rEvents.add(evaluationResults);
 		}
 		return rEvents;
@@ -130,7 +143,8 @@ public class SimpleCollector implements API {
 	
 	@Override
 	public void storeEvaluateResults(Object obj) {
-		evaluationResults = RuntimeEventFactory.makeEvaluateResults(obj);
+		this.lastEvaluationResults = obj;
+//		evaluationResults = RuntimeEventFactory.makeEvaluateResults(obj);
 		//this.rEvents.add(re);
 	}
 

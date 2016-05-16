@@ -13,6 +13,7 @@ import uk.ac.imperial.lsds.seep.api.data.ITuple;
 import uk.ac.imperial.lsds.seep.api.data.OTuple;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
+import uk.ac.imperial.lsds.seep.api.data.TransporterITuple;
 import uk.ac.imperial.lsds.seep.api.data.Type;
 import uk.ac.imperial.lsds.seep.api.operator.SeepLogicalQuery;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -83,20 +84,25 @@ public class ScheduleTaskTest {
 		
 		// run tasks
 		Schema schema = SchemaBuilder.getInstance().newField(Type.SHORT, "id").build();
-		byte[] d = OTuple.create(schema, schema.names(), schema.defaultValues());
-		ITuple data = new ITuple(schema);
-		data.setData(d);
+		//byte[] d = OTuple.create(schema, schema.names(), schema.defaultValues());
+		OTuple o = new OTuple(schema);
+		o.setValues(schema.defaultValues());
+		//ITuple data = new ITuple(schema);
+		TransporterITuple data = new TransporterITuple(schema);
+//		data.setData(d);
+		data.setValues(o.getValues());
 		API api = new SimpleCollector();
 		st1.processData(data, api);
-		byte[] output = ((SimpleCollector)api).collect();
-		ITuple out = new ITuple(schema);
-		out.setData(output);
+		//byte[] output = ((SimpleCollector)api).collect();
+		OTuple ot = ((SimpleCollector)api).collect();
+		TransporterITuple out = new TransporterITuple(schema);
+		out.setValues(ot.getValues());
 		System.out.println(out.toString());
 		
 		st3.processData(data, api);
-		output = ((SimpleCollector)api).collect();
-		out = new ITuple(schema);
-		out.setData(output);
+		OTuple output = ((SimpleCollector)api).collect();
+		out = new TransporterITuple(schema);
+		out.setValues(output.getValues());
 		System.out.println(out.toString());
 				
 	}

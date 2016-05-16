@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
 
+import sun.misc.Unsafe;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -39,14 +40,16 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.warn("TEMPORAL-> dangling buffer pools");
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
+		preAllocatePoolOfBuffers();
 	}
 	
 	private BufferPool(WorkerConfig wc) {
 		this.minBufferSize = wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE);
 		this.totalMemAvailableToBufferPool = wc.getLong(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
-		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
+		preAllocatePoolOfBuffers();
+		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 	}
 	
 	public static BufferPool createBufferPool(WorkerConfig wc) {
@@ -73,7 +76,7 @@ public class BufferPool {
 		else {
 			if(enoughMemoryAvailable()){
 				usedMemory.inc(minBufferSize);
-				return ByteBuffer.allocate(minBufferSize);
+				return allocateByteBuffer();
 			}
 			else {
 				return null;
@@ -81,8 +84,12 @@ public class BufferPool {
 		}
 	}
 	
+	private ByteBuffer allocateByteBuffer() {
+		return ByteBuffer.allocate(minBufferSize);
+	}
+	
 	public ByteBuffer getCacheBuffer() {
-		ByteBuffer bb = ByteBuffer.allocate(minBufferSize);
+		ByteBuffer bb = allocateByteBuffer();
 		return bb;
 	}
 	
@@ -112,6 +119,15 @@ public class BufferPool {
 	public double getPercAvailableMemory() {
 		double availableMemory = totalMemAvailableToBufferPool - usedMemory.getCount();
 		return availableMemory/(double)totalMemAvailableToBufferPool;
+	}
+	
+	private void preAllocatePoolOfBuffers() {
+		LOG.info("Creating buffer pool... Pooling buffers");
+		while((allocatedBuffers.size() * this.minBufferSize) + this.minBufferSize < this.totalMemAvailableToBufferPool) {
+			ByteBuffer n = this.allocateByteBuffer();
+			this.returnBuffer(n);
+		}
+		LOG.info("Pooling buffers... {} buffers created", this.allocatedBuffers.size());
 	}
 
 }

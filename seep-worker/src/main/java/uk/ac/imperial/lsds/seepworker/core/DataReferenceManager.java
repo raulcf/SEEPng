@@ -299,11 +299,14 @@ public class DataReferenceManager {
 		// Filling dataset with data (may or may not spill to disk)
 		long numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
 		int totalWritten = 0;
+		OTuple o = new OTuple(s);
 		for (int i = 0; i < numTuples; i++) {
 //			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
-			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
-			totalWritten += srcData.length + TupleInfo.TUPLE_SIZE_OVERHEAD;
-			d.write(srcData, null);
+//			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
+			o.setValues(s.randomValues());
+			totalWritten += o.getTupleSize() + TupleInfo.TUPLE_SIZE_OVERHEAD;
+			d.write(o, null);
+//			d.write(srcData, null);
 		}
 		
 		LOG.info("Synthetic dataset with {} tuples, size: {}", numTuples, totalWritten);

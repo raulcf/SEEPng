@@ -97,14 +97,11 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 			
 			API api = new Collector(id, coreOutput);
 			
-			// StreamId - Finished?
-			Map<Integer, Boolean> trackFinishedStreams = new HashMap<>();
-			for(InputAdapter ia : inputAdapters) {
-				trackFinishedStreams.put(ia.getStreamId(), false);
-			}
+			int ongoingStreams = inputAdapters.size();
+			
 			while(working) {
-				while(it.hasNext()) {
-					InputAdapter ia = it.next();
+				for(int i = 0; i < inputAdapters.size(); i++) {
+					InputAdapter ia = inputAdapters.get(i);
 					if(ia.returnType() == one) {
 						ITuple d = ia.pullDataItem(MAX_BLOCKING_TIME_PER_INPUTADAPTER_MS);
 						if(d != null) {							
@@ -113,7 +110,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						}
 						else {
 							// Exhausted IA
-							trackFinishedStreams.put(ia.getStreamId(), true);
+							ongoingStreams--;
 						}
 					}
 					else if(ia.returnType() == many) {
@@ -124,20 +121,19 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 						}
 						else {
 							// Exhausted IA
-							trackFinishedStreams.put(ia.getStreamId(), true);
+							ongoingStreams--;
 						}
 					}
-					// Always recharge it
-					if(!it.hasNext() && working) {
-						it = inputAdapters.iterator();
+					// Reset iteration before the last element
+					if(i == inputAdapters.size()-1 && working) {
+						i = -1;
 					}
 					if(! callback.isContinuousTask()) {
-						if(allStreamsFinished(trackFinishedStreams)) {
+						if(ongoingStreams == 0) {
 							task.close();
 							callback.notifyOk(api.getRuntimeEvents()); // notify and pass all generated runtime events
 							working = false;
-							// FIXME: hack -> just exhaust the iterator to force out of the loop
-							while(it.hasNext()) it.next();
+							i = inputAdapters.size();
 						}
 					}
 				}
