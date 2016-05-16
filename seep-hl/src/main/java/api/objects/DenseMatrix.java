@@ -32,14 +32,14 @@ public class DenseMatrix implements Locatable {
 		
 		// Trace action
 		TraceSeed ts = new TraceSeed(idGen.id(), gridPosition.getRowIdx(), gridPosition.getColIdx()); // this op
-		ts.setName("addMatrix");
+		ts.setName("addMatrix_"+ts.getPositionInTopology());
 		ts.addInput(m);
 		ts.addInput(this);
 		m.addOutput(ts);
 		this.addOutput(ts);
 		
 		// new added matrix
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseAdded", gridPosition.getRowIdx(), gridPosition.getColIdx());
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseAdded_"+ts.getPositionInTopology(), gridPosition.getRowIdx(), gridPosition.getColIdx());
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		dm2.addInput(ts);
@@ -52,14 +52,14 @@ public class DenseMatrix implements Locatable {
 		
 		// Trace action
 		TraceSeed ts = new TraceSeed(idGen.id(), gridPosition.getRowIdx(), gridPosition.getColIdx()); // this op
-		ts.setName("multiply");
+		ts.setName("multiply_"+ts.getPositionInTopology());
 		ts.addInput(m);
 		ts.addInput(this);
 		m.addOutput(ts);
 		this.addOutput(ts);
 		
 		// actual operation would occur here
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseMultiplied", gridPosition.getRowIdx(), gridPosition.getColIdx());
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseMultiplied_"+ts.getPositionInTopology(), gridPosition.getRowIdx(), gridPosition.getColIdx());
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		dm2.addInput(ts);
@@ -145,6 +145,11 @@ public class DenseMatrix implements Locatable {
 	@Override
 	public void isOutputOf(Traceable t) {
 		t.addOutput(t);
+	}
+	
+	@Override
+	public List<Traceable> getOutput() {
+		return outputs;
 	}
 
 	@Override

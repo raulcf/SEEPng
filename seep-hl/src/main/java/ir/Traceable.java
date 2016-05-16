@@ -1,5 +1,7 @@
 package ir;
 
+import java.util.List;
+
 public interface Traceable {
 	
 	public enum TraceableType {
@@ -15,6 +17,7 @@ public interface Traceable {
 	public void addOutput(Traceable t);
 	public void isInputOf(Traceable t);
 	public void isOutputOf(Traceable t);
+	public List<Traceable> getOutput();
 	public String toString();
 	
 }

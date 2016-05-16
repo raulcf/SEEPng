@@ -69,6 +69,11 @@ public class TraceSeed implements Locatable {
 	public TraceableType getTraceableType() {
 		return TraceableType.TASK;
 	}
+	
+	@Override
+	public List<Traceable> getOutput() {
+		return outputs;
+	}
 
 	@Override
 	public String toString() {

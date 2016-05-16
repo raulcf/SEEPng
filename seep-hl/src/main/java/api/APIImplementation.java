@@ -75,7 +75,7 @@ public class APIImplementation implements API {
 			// Creates a new task with an id
 			int seedId = idGen.id();
 			TraceSeed d = new TraceSeed(seedId, obj.rowIndex(), obj.colIndex());
-			d.setName("readFromPath: " + filename);
+			d.setName("readFromPath: " + filename+"_"+obj.getPositionInTopology());
 			obj.composeIdGenerator(idGen);
 			d.addOutput(obj);
 			obj.addInput(d);
@@ -92,7 +92,7 @@ public class APIImplementation implements API {
 		for(T obj : lv.getObjects()) {
 			int seedId = idGen.id();
 			TraceSeed d = new TraceSeed(seedId, obj.rowIndex(), obj.colIndex());
-			d.setName("writeToPath: " + filename);
+			d.setName("writeToPath: " + filename+"_"+obj.getPositionInTopology());
 			d.addInput(obj);
 			obj.addOutput(d);
 			traces.put(seedId, d);
