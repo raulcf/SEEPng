@@ -22,9 +22,10 @@ public class DenseMatrix implements Locatable {
 	private List<Traceable> outputs = new ArrayList<>();
 	private IdGen idGen;
 	
-	public DenseMatrix(int id, String name) {
+	public DenseMatrix(int id, String name, int i, int j) {
 		this.id = id;
 		this.name = name;
+		this.gridPosition = new GridPosition(i, j);
 	}
 	
 	public DenseMatrix addMatrix(DenseMatrix m) {
@@ -38,7 +39,7 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// new added matrix
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseAdded");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseAdded", gridPosition.getRowIdx(), gridPosition.getColIdx());
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		dm2.addInput(ts);
@@ -58,7 +59,7 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// actual operation would occur here
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseMultiplied");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseMultiplied", gridPosition.getRowIdx(), gridPosition.getColIdx());
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
 		dm2.addInput(ts);
@@ -135,6 +136,11 @@ public class DenseMatrix implements Locatable {
 	public void isInputOf(Traceable t) {
 		t.addInput(this);
 	}
+	
+	@Override
+	public TraceableType getTraceableType() {
+		return TraceableType.DATA;
+	}
 
 	@Override
 	public void isOutputOf(Traceable t) {
@@ -147,6 +153,8 @@ public class DenseMatrix implements Locatable {
 		sb.append("ID: " + id);
 		sb.append(System.lineSeparator());
 		sb.append("Name: " + name);
+		sb.append(System.lineSeparator());
+		sb.append("Type: " + this.getTraceableType());
 		sb.append(System.lineSeparator());
 		
 		sb.append("Inputs: " + inputs.size());

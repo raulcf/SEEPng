@@ -24,8 +24,8 @@ public class SUMMA implements SeepProgram {
 		LogicalView<DenseMatrix> matrixC = api.createLogicalView();
 		
 		// Distribute matrices in the cluster according to some layout
-//		api.blockCyclicDistribution(matrixA);
-//		api.blockCyclicDistribution(matrixB);
+		api.blockCyclicDistribution(matrixA);
+		api.blockCyclicDistribution(matrixB);
 		
 		// Recover data-specific information (metadata stored in the storage manager)
 		int n = api.gridCols();

@@ -56,6 +56,11 @@ public class TraceSeed implements Traceable {
 	public void isOutputOf(Traceable t) {
 		t.addOutput(this);
 	}
+	
+	@Override
+	public TraceableType getTraceableType() {
+		return TraceableType.TASK;
+	}
 
 	@Override
 	public String toString() {
@@ -63,6 +68,8 @@ public class TraceSeed implements Traceable {
 		sb.append("ID: " + id);
 		sb.append(System.lineSeparator());
 		sb.append("Name: " + name);
+		sb.append(System.lineSeparator());
+		sb.append("Type: " + this.getTraceableType());
 		sb.append(System.lineSeparator());
 		
 		sb.append("Inputs: " + inputs.size());

@@ -23,7 +23,7 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 		grid = (T[][]) new DenseMatrix[rows][cols];
 		for(int i = 0; i < rows; i++) {
 			for(int j = 0; j < cols; j++) {
-				grid[i][j] = (T) new DenseMatrix(idGen.id(), "denseM_init");
+				grid[i][j] = (T) new DenseMatrix(idGen.id(), "denseM_init", i, j);
 			}
 		}
 	}
