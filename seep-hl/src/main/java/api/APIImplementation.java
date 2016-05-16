@@ -37,19 +37,21 @@ public class APIImplementation implements API {
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> createLogicalView() {
-		int seedId = idGen.id();
-		TraceSeed d = new TraceSeed(seedId);
-		d.setName("createLogicalView");
 		
 		Mock m = Mock.makeMockLogicalView(idGen.id(), c, idGen);
 		Set<T> objs = m.getObjects();
+		
+		// Create a task per object in the grid
 		for(T obj : objs) {
+			int seedId = idGen.id();
+			TraceSeed d = new TraceSeed(seedId, obj.rowIndex(), obj.colIndex());
+			d.setName("createLogicalView_"+obj.getPositionInTopology());
 			obj.composeIdGenerator(idGen);
 			d.addOutput(obj);
 			obj.addInput(d);
+			// Store the created object
+			traces.put(seedId, d);
 		}
-		// Store the created object
-		traces.put(seedId, d);
 		
 		return m;
 	}
@@ -65,21 +67,21 @@ public class APIImplementation implements API {
 	
 	@Override
 	public <T extends Locatable> LogicalView<T> readFromPath(String filename) {
-		// Creates a new task with an id
-		int seedId = idGen.id();
-		TraceSeed d = new TraceSeed(seedId);
-		d.setName("readFromPath: " + filename);
 		// The task has 1 output
 		Mock m = Mock.makeMockLogicalView(idGen.id(), c, idGen);
 		Set<T> objs = m.getObjects();
 		// The output is added to the task
 		for(T obj : objs) {
+			// Creates a new task with an id
+			int seedId = idGen.id();
+			TraceSeed d = new TraceSeed(seedId, obj.rowIndex(), obj.colIndex());
+			d.setName("readFromPath: " + filename);
 			obj.composeIdGenerator(idGen);
 			d.addOutput(obj);
 			obj.addInput(d);
+			// Store the created object
+			traces.put(seedId, d);
 		}
-		// Store the created object
-		traces.put(seedId, d);
 		
 		// return so that execution of the program can continue
 		return m;
@@ -87,15 +89,14 @@ public class APIImplementation implements API {
 
 	@Override
 	public <T extends Locatable> void writeToPath(LogicalView<T> lv, String filename) {
-		int seedId = idGen.id();
-		TraceSeed d = new TraceSeed(seedId);
-		d.setName("writeToPath: " + filename);
-		
 		for(T obj : lv.getObjects()) {
+			int seedId = idGen.id();
+			TraceSeed d = new TraceSeed(seedId, obj.rowIndex(), obj.colIndex());
+			d.setName("writeToPath: " + filename);
 			d.addInput(obj);
 			obj.addOutput(d);
+			traces.put(seedId, d);
 		}
-		traces.put(seedId, d);
 	}
 	
 	/**
@@ -105,20 +106,20 @@ public class APIImplementation implements API {
 	@Override
 	public <T extends Locatable> boolean blockDistribution(LogicalView<T> lv) {
 		
-		TraceSeed st = new TraceSeed(idGen.id()); // this will be translated into more specific actions, such as move there, or come here
-		st.setName("blockDistribution ");
-		// input objects
-		for(T obj : lv.getObjects()) {
-			st.addInput(obj);
-			obj.addOutput(st);
-		}
-		
-		//output objects (may be the same, identity, but may be in a different position)
-		for(T obj : lv.getObjects()) {
-			st.addOutput(obj);
-			obj.addInput(st);
-		}
-		
+//		TraceSeed st = new TraceSeed(idGen.id()); // this will be translated into more specific actions, such as move there, or come here
+//		st.setName("blockDistribution ");
+//		// input objects
+//		for(T obj : lv.getObjects()) {
+//			st.addInput(obj);
+//			obj.addOutput(st);
+//		}
+//		
+//		//output objects (may be the same, identity, but may be in a different position)
+//		for(T obj : lv.getObjects()) {
+//			st.addOutput(obj);
+//			obj.addInput(st);
+//		}
+//		
 		return false;
 	}
 

@@ -31,7 +31,7 @@ public class DenseMatrix implements Locatable {
 	public DenseMatrix addMatrix(DenseMatrix m) {
 		
 		// Trace action
-		TraceSeed ts = new TraceSeed(idGen.id()); // this op
+		TraceSeed ts = new TraceSeed(idGen.id(), gridPosition.getRowIdx(), gridPosition.getColIdx()); // this op
 		ts.setName("addMatrix");
 		ts.addInput(m);
 		ts.addInput(this);
@@ -51,7 +51,7 @@ public class DenseMatrix implements Locatable {
 	public DenseMatrix multiply(DenseMatrix m) {
 		
 		// Trace action
-		TraceSeed ts = new TraceSeed(idGen.id()); // this op
+		TraceSeed ts = new TraceSeed(idGen.id(), gridPosition.getRowIdx(), gridPosition.getColIdx()); // this op
 		ts.setName("multiply");
 		ts.addInput(m);
 		ts.addInput(this);
@@ -155,6 +155,8 @@ public class DenseMatrix implements Locatable {
 		sb.append("Name: " + name);
 		sb.append(System.lineSeparator());
 		sb.append("Type: " + this.getTraceableType());
+		sb.append(System.lineSeparator());
+		sb.append("Position: " + this.getPositionInTopology());
 		sb.append(System.lineSeparator());
 		
 		sb.append("Inputs: " + inputs.size());

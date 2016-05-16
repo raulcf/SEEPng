@@ -3,18 +3,26 @@ package ir;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TraceSeed implements Traceable {
+import api.objects.Locatable;
+import api.topology.GridPosition;
 
+public class TraceSeed implements Locatable {
+
+	// Attributes for Traceable
 	private int id;
 	private List<Traceable> inputs;
 	private List<Traceable> outputs;
 	private String name;
 	private IdGen idGen;
 	
-	public TraceSeed(int id) {
+	// Attributes for Locatable
+	private GridPosition gridPosition;
+	
+	public TraceSeed(int id, int i, int j) {
 		this.id = id;
 		this.inputs = new ArrayList<>();
 		this.outputs = new ArrayList<>();
+		this.gridPosition = new GridPosition(i, j);
 	}
 	
 	@Override
@@ -71,6 +79,8 @@ public class TraceSeed implements Traceable {
 		sb.append(System.lineSeparator());
 		sb.append("Type: " + this.getTraceableType());
 		sb.append(System.lineSeparator());
+		sb.append("Position: " + this.getPositionInTopology());
+		sb.append(System.lineSeparator());
 		
 		sb.append("Inputs: " + inputs.size());
 		sb.append(System.lineSeparator());
@@ -89,6 +99,31 @@ public class TraceSeed implements Traceable {
 		}
 		
 		return sb.toString();
+	}
+	
+	/**
+	 * Implement Locatable interface
+	 */
+
+	@Override
+	public GridPosition getPositionInTopology() {
+		return gridPosition;
+	}
+
+	@Override
+	public int rowIndex() {
+		return gridPosition.getRowIdx();
+	}
+
+	@Override
+	public int colIndex() {
+		return gridPosition.getColIdx();
+	}
+
+	@Override
+	public void moveTo(int i, int j) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
