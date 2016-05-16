@@ -93,6 +93,7 @@ public class APIImplementation implements API {
 		
 		for(T obj : lv.getObjects()) {
 			d.addInput(obj);
+			obj.addOutput(d);
 		}
 		traces.put(seedId, d);
 	}

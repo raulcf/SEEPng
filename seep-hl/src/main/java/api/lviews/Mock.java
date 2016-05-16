@@ -14,24 +14,16 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 	// Traceable attributes
 	private int id;
 	
-	// Objects
-	private Set<T> objects;
-	
 	private T[][] grid;
 	
 	public Mock (int id, Cluster c, IdGen idGen) {
 		this.id = id;
-		this.objects = new HashSet<>();
-		for (int i = 0; i < c.getNumberNodes(); i++) {
-			objects.add((T) new DenseMatrix(idGen.id(), "denseM_init"));
-		}
 		int rows = c.gridRows();
 		int cols = c.gridCols();
-		Iterator<T> it = objects.iterator();
 		grid = (T[][]) new DenseMatrix[rows][cols];
 		for(int i = 0; i < rows; i++) {
 			for(int j = 0; j < cols; j++) {
-				grid[i][j] = it.next();
+				grid[i][j] = (T) new DenseMatrix(idGen.id(), "denseM_init");
 			}
 		}
 	}
@@ -57,6 +49,12 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 
 	@Override
 	public Set<T> getObjects() {
+		Set<T> objects = new HashSet<>();
+		for(int i = 0; i < grid.length; i++) {
+			for(int j = 0; j < grid[i].length; j++) {
+				objects.add(grid[i][j]);
+			}
+		}
 		return objects;
 	}
 
@@ -67,8 +65,7 @@ public class Mock<T extends Locatable> implements LogicalView<T> {
 
 	@Override
 	public void assign(Locatable data, int i, int j) {
-		// TODO Auto-generated method stub
-		
+		grid[i][j] = (T) data;
 	}
 
 }

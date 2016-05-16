@@ -38,9 +38,10 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// new added matrix
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseM");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseAdded");
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
+		dm2.addInput(ts);
 		
 		// perform operation
 		return dm2;
@@ -57,9 +58,10 @@ public class DenseMatrix implements Locatable {
 		this.addOutput(ts);
 		
 		// actual operation would occur here
-		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseM");
+		DenseMatrix dm2 = new DenseMatrix(idGen.id(), "denseMultiplied");
 		dm2.composeIdGenerator(idGen);
 		ts.addOutput(dm2);
+		dm2.addInput(ts);
 		
 		// perform operation
 		return dm2;
@@ -149,11 +151,13 @@ public class DenseMatrix implements Locatable {
 		
 		sb.append("Inputs: " + inputs.size());
 		sb.append(System.lineSeparator());
-//		for(int i = 0; i < inputs.size(); i++) {
-//			sb.append(inputs.get(i));
-//			sb.append(System.lineSeparator());
-//		}
-//		
+		for(int i = 0; i < inputs.size(); i++) {
+			sb.append("  Input ID: " + inputs.get(i).getId());
+			sb.append(System.lineSeparator());
+			sb.append("  Input name: " + inputs.get(i).getName());
+			sb.append(System.lineSeparator());
+		}
+		
 		sb.append("Outputs: " + outputs.size());
 		sb.append(System.lineSeparator());
 		for(int i = 0; i < outputs.size(); i++) {
