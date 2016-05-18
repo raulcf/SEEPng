@@ -20,7 +20,7 @@ public class TraceTest {
 		SUMMA s = new SUMMA();
 		
 		Cluster c = new ClusterImplementation();
-		c.setNumberNodes(4); // cluster of 1 node
+		c.setNumberNodes(1); // cluster of 1 node
 		
 		// Configure program
 		s.configure(c);
