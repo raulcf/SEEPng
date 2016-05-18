@@ -124,6 +124,7 @@ public class BufferPool {
 	private void preAllocatePoolOfBuffers() {
 		LOG.info("Creating buffer pool... Pooling buffers");
 		while((allocatedBuffers.size() * this.minBufferSize) + this.minBufferSize < this.totalMemAvailableToBufferPool) {
+			usedMemory.inc(minBufferSize);
 			ByteBuffer n = this.allocateByteBuffer();
 			this.returnBuffer(n);
 		}
