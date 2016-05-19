@@ -43,7 +43,7 @@ public class BufferPool {
 		LOG.warn("TEMPORAL-> dangling buffer pools");
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
 		allocatedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "allocated", "mem"));
-		preAllocatePoolOfBuffers();
+		//preAllocatePoolOfBuffers();
 	}
 	
 	private BufferPool(WorkerConfig wc) {
@@ -52,7 +52,7 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
 		allocatedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "allocated", "mem"));
-		preAllocatePoolOfBuffers();
+		//preAllocatePoolOfBuffers();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 	}
 	
