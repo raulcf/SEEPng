@@ -6,6 +6,9 @@ import org.codehaus.janino.Java;
 import org.codehaus.janino.Java.CompilationUnit.ImportDeclaration;
 import org.junit.Test;
 
+import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
+
 public class ConductorUtilsTest {
 
 	@Test

@@ -10,36 +10,38 @@ import org.codehaus.janino.Parser;
 import org.codehaus.janino.Scanner;
 import org.codehaus.janino.util.Traverser;
 
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
+
 
 public class ProofOfConceptTraverser extends Traverser {
 
-    public static void main(String[] args) throws CompileException, IOException {
-    	ProofOfConceptTraverser poct = new ProofOfConceptTraverser();
-        for (String fileName : args) {
+	public static void main(String[] args) throws CompileException, IOException {
+		ProofOfConceptTraverser poct = new ProofOfConceptTraverser();
 
-            // Parse each compilation unit.
-            FileReader r = new FileReader(fileName);
-            Java.CompilationUnit cu;
-            try {
-                cu = new Parser(new Scanner(fileName, r)).parseCompilationUnit();
-            } finally {
-                r.close();
-            }
+		String inputFilePath = Util.getProjectPath() + "/src/test/java/Fake.java";
 
-            // Traverse it and count declarations.
-            poct.traverseCompilationUnit(cu);
-        }
+		// Parse each compilation unit.
+		FileReader r = new FileReader(inputFilePath);
+		Java.CompilationUnit cu;
+		try {
+			cu = new Parser(new Scanner(inputFilePath, r)).parseCompilationUnit();
+		} finally {
+			r.close();
+		}
 
-        System.out.println("Class declarations:     " + poct.classDeclarationCount);
-        System.out.println("Interface declarations: " + poct.interfaceDeclarationCount);
-        System.out.println("Fields:                 " + poct.fieldCount);
-        System.out.println("Local variables:        " + poct.localVariableCount);
-        System.out.println("L Values:        " + poct.lvalues);
-        System.out.println("Annotations: "+poct.annotationCount);
-        System.out.println("Annotations2: "+poct.annotationCount2);
-        System.out.println("Annotations3: "+poct.annotationCount3);
-        System.out.println("Annotations4: "+poct.annotationCount4);
-    }
+		// Traverse it and count declarations.
+		poct.traverseCompilationUnit(cu);
+
+		System.out.println("Class declarations:     " + poct.classDeclarationCount);
+		System.out.println("Interface declarations: " + poct.interfaceDeclarationCount);
+		System.out.println("Fields:                 " + poct.fieldCount);
+		System.out.println("Local variables:        " + poct.localVariableCount);
+		System.out.println("L Values:        " + poct.lvalues);
+		System.out.println("Annotations: " + poct.annotationCount);
+		System.out.println("Annotations2: " + poct.annotationCount2);
+		System.out.println("Annotations3: " + poct.annotationCount3);
+		System.out.println("Annotations4: " + poct.annotationCount4);
+	}
     
     private int methodDeclarator;
     

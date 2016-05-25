@@ -16,13 +16,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
-import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
-import uk.ac.imperial.lsds.java2sdg.bricks2.TaskElement;
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.OperatorBlock;
-import uk.ac.imperial.lsds.java2sdg.bricks2.SDG.Stream;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 
-public class DOTExporter implements SDGExporter{
+public class DOTExporter implements SDGExporterI{
 
 	private static DOTExporter instance = null;
 	
@@ -37,32 +37,25 @@ public class DOTExporter implements SDGExporter{
 		return instance;
 	}
 	
-	public void taskCreator(List<OperatorBlock> sdg, List<String> output){
+	public void taskElementCreator(SDG sdg, List<String> output){
 		//task cluster
 		output.add("subgraph cluster0 { \n");
-		output.add("node [style=filled,color=white];\n");
+		output.add("node [style=filled,fillcolor=white];\n");
 		output.add("style=filled;\n");
 		output.add("color=lightgrey;\n");
 		
-		boolean first = true;
-		for(OperatorBlock ob : sdg){
-			for(TaskElement te : ob.getTEs()){
-					if(first){
-						output.add(te.getId()+"");
-						first = false;
-					}else{
-						output.add("->"+te.getId());
-					}
-					
+		for(SDGNode node : sdg.getSdgNodes()){
+			for(Entry<Integer, TaskElement> te : node.getTaskElements().entrySet()){
+						output.add(node.getName());
+						output.add(";\n");
 			}
 		}
-		output.add(";\n");
 		output.add("label = \"Task Elements\";\n");
 		output.add("}\n");
 		
 	}
 	
-	public void stateCreator(List<OperatorBlock> sdg, List<String> output){
+	public void stateCreator(SDG sdg, List<String> output){
 		//task cluster
 		output.add("subgraph cluster1 { \n");
 		output.add("node [style=filled];\n");
@@ -70,14 +63,14 @@ public class DOTExporter implements SDGExporter{
 		output.add("color=blue;\n");
 		
 		boolean first = true;
-		for(OperatorBlock ob : sdg){
+		for(SDGNode node : sdg.getSdgNodes()){
 						
-			if(ob.getStateId() != -1){
+			if(node.getStateElement() != null){
 				if(first){
-					output.add(ob.getTE().getOpType().getStateName() +"");
+					output.add(node.getStateElement().getStateName() +"");
 					first = false;
 				}else
-					output.add("->"+ob.getTE().getOpType().getStateName());
+					output.add("->"+node.getStateElement().getStateName());
 			}
 
 		}
@@ -88,45 +81,52 @@ public class DOTExporter implements SDGExporter{
 	}
 	
 	@Override
-	public void export(List<OperatorBlock> sdg, String filename) {
+	public void export(SDG sdg, String filename) {
 		// first write in memory the file content
 		List<String> output = new ArrayList<String>();
 		output.add("digraph G {\n");
 		
 		//pgaref mod
-		this.taskCreator(sdg, output);
-		this.stateCreator(sdg, output);
+		this.taskElementCreator(sdg, output);
+		//TODO: NEEDS FIX
+//		this.stateCreator(sdg, output);
 		
-		for(OperatorBlock ob : sdg){
+		for(SDGNode node : sdg.getSdgNodes()){
 			// Check stateful to paint it differently
-			if(ob.getStateId() != -1){
-				String stateName = ob.getTE().getOpType().getStateName();
+			if(node.getStateElement() != null ){
+				String stateName = node.getStateElement().getStateName();
 				//output.add(""+stateName+" [shape=polygon,sides=4,peripheries=2,color=red,style=bold];\n");
 				output.add(""+ stateName +"[shape=doubleoctagon,color=Gold,style=bold];\n");
-				output.add(stateName+" -> "+ob.getId()+"[style=dotted];\n");
-				output.add(""+ob.getId()+" [color=Turquoise,style=filled];\n");
+				output.add(stateName+" -> "+node.getId()+"[style=dotted];\n");
+				output.add(""+node.getId()+" [color=Turquoise,style=filled];\n");
+			}
+			if(node.isSource()){
+				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
+					String me = node.getName();
+					String down = sdg.getSdgNodes().get(downstream).getName();
+					output.add(me +"  [shape=Mdiamond];\n");
+					output.add(me+" -> "+down+";\n");
+				}
 			}
 			// Check downstream to connect it appropiately
-			if(ob.getDownstreamSize() > 0){
-				for(Stream downstream : ob.getDownstreamOperator()){
-					String me = ""+ob.getId()+"";
-					String down = ""+downstream.getId()+"";
+			else if(node.getTaskElements().values().iterator().next().getDownstreams().size() > 0){
+				for(Integer downstream : node.getTaskElements().values().iterator().next().getDownstreams()){
+					String me = node.getName();
+					String down = sdg.getSdgNodes().get(downstream).getName();
 					output.add(me + " [color=Turquoise,shape=circle];\n" );
 					output.add(me+" -> "+down+";\n");
 				}
 			}
-			else{
-				String me = ""+ob.getId()+"";
-				String down = "sink";
-				output.add(me+" -> "+down+";\n");
-				output.add(down +"  [shape=Mdiamond];\n");
+			else if(node.isSink()){
+				String me = node.getName();
+				output.add(me +"  [shape=Mcircle];\n");
 			}
 			// Use a different shape for merge ops
-			for(TaskElement te : ob.getTEs()){
-				if(te.getAnn() != null && te.getAnn().equals(SDGAnnotation.COLLECTION)){
-					output.add(""+ob.getId()+" [shape=doublecircle,color=black,style=bold];\n");
-				}
-			}
+//			for(TaskElement te : ob.getTEs()){
+//				if(te.getAnn() != null && te.getAnn().equals(SDGAnnotation.COLLECTION)){
+//					output.add(""+ob.getId()+" [shape=doublecircle,color=black,style=bold];\n");
+//				}
+//			}
 		}
 		output.add("}\n");
 		// then write to file

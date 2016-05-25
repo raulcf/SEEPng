@@ -13,23 +13,16 @@ public class WorkflowRepr {
 	private String name;
 	// The input data store, e.g. file, network, kafka, etc
 	private DataStore source;
-	// The schema of the input data
-	@Deprecated // already included in source DataStore
-	private Schema inputSchema;
 	// The output data store, e.g. file, network, kafka, console, etc
 	private DataStore sink;
-	// The schema of the output data
-	@Deprecated // already included in sink DataStore
-	private Schema outputSchema;
 	// Actual code of workflow
 	private CodeRepr code;
 	
-	public WorkflowRepr(String name, DataStore source, Schema inputSchema, DataStore sink, Schema outputSchema){
+	
+	public WorkflowRepr(String name, DataStore source, DataStore sink){
 		this.name = name;
 		this.source = source;
-		this.inputSchema = inputSchema;
 		this.sink = sink;
-		this.outputSchema = outputSchema;
 	}
 	
 	public String getName() {
@@ -47,14 +40,6 @@ public class WorkflowRepr {
 	public void setSource(DataStore source) {
 		this.source = source;
 	}
-	
-	public Schema getInputSchema(){
-		return inputSchema;
-	}
-	
-	public void setInputSchema(Schema inputSchema){
-		this.inputSchema = inputSchema;
-	}
 
 	public DataStore getSink() {
 		return sink;
@@ -62,14 +47,6 @@ public class WorkflowRepr {
 
 	public void setSink(DataStore sink) {
 		this.sink = sink;
-	}
-	
-	public Schema getOutputSchema(){
-		return outputSchema;
-	}
-	
-	public void setOutputSchema(Schema outputSchema){
-		this.outputSchema = outputSchema;
 	}
 	
 	public boolean hasSink(){
@@ -82,5 +59,19 @@ public class WorkflowRepr {
 	
 	public CodeRepr getCode(){
 		return code;
+	}
+	@Override
+	public String toString(){
+		// Synchronization is not a concern here
+		StringBuilder  sb = new StringBuilder();
+		sb.append("\nName: "+ this.name);
+		sb.append("\n->Source: \n" + this.source.getSchema());
+		sb.append("--------------");
+		if(sink != null)
+		sb.append("\n->Sink: \n"+ this.sink.getSchema());
+		sb.append("--------------");
+		sb.append("\n->Code: "+ this.code);
+		return sb.toString();
+		
 	}
 }

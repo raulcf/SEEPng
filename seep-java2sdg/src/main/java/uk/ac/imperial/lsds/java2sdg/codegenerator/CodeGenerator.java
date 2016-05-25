@@ -13,48 +13,49 @@ package uk.ac.imperial.lsds.java2sdg.codegenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGNode;
-import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDGRepr;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.SDG;
+import uk.ac.imperial.lsds.java2sdg.bricks.sdg.TaskElement;
 
 public class CodeGenerator {
 
 	private final static Logger LOG = LoggerFactory.getLogger(CodeGenerator.class.getCanonicalName());
-	
-	public static SDGRepr assemble(SDGRepr sdg){
-		SDGRepr assembledSDG = CodeGenerator.assembleTE(sdg);
+
+	public static SDG assemble(SDG sdg) {
+		SDG assembledSDG = CodeGenerator.assembleTE(sdg);
 		return assembledSDG;
 	}
-	
-	private static SDGRepr assembleTE(SDGRepr sdg){
-		
-		for(SDGNode node : sdg.getSdgNodes()){
+
+	private static SDG assembleTE(SDG sdg) {
+
+		for (SDGNode node : sdg.getSdgNodes()) {
+			LOG.debug("Generating code for SDG Node: {}", node.getName());
 			String builtCode = null;
-			/*  Multi-TE case */
-			if(node.getTaskElements().size() > 1){
-				builtCode = SeepOperatorNewTemplate.getCodeForMultiOp(node.getTaskElements());
+			/* Multi-TE case */
+			if (node.getTaskElements().size() > 1) {
+				LOG.debug("Multi-TE");
+				 builtCode = SeepOpCodeBuilder.getCodeForMultiOp(node.getTaskElements());
 			}
-			/*  Single-TE case */
-			else if (node.getTaskElements().size() == 1){
-				builtCode = SeepOperatorNewTemplate.getCodeForSingleOp(node.getTaskElements().values().iterator().next());
-			}
-			else{
+			/* Single-TE case */
+			else if (node.getTaskElements().size() == 1) {
+				LOG.debug("Single-TE");
+				TaskElement te = node.getTaskElements().values().iterator().next();
+				builtCode = SeepOpCodeBuilder.getCodeForSingleOp(te);
+
+			} else {
 				LOG.error("SDGRepr with empty TaskElement List!");
+				System.exit(-1);
 			}
 			try {
-				if(builtCode == null){
+				if (builtCode == null) {
 					LOG.error("CodeGenerator failed to produce any Code for Node {}", node.getName());
 				}
-				else{
-					System.out.println("CODE PRODUCED: "+ builtCode);
-					/* Maybe add the code to the SDG node here? */
-					//op.setCode(builtCode);
-				}
-			} 
-			catch (Exception e) {
+				node.setBuiltCode(builtCode);
+			} catch (Exception e) {
 				e.printStackTrace();
-				LOG.error("Invalid code assigment: "+e.getMessage());
+				LOG.error("Invalid code assigment: " + e.getMessage());
 			}
 		}
 		return sdg;
 	}
-	
+
 }

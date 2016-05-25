@@ -5,20 +5,16 @@ import uk.ac.imperial.lsds.java2sdg.api.SeepProgram;
 import uk.ac.imperial.lsds.java2sdg.api.SeepProgramConfiguration;
 import uk.ac.imperial.lsds.seep.api.DataStore;
 import uk.ac.imperial.lsds.seep.api.DataStoreType;
-import uk.ac.imperial.lsds.seep.api.annotations.Collection;
-import uk.ac.imperial.lsds.seep.api.annotations.Global;
 import uk.ac.imperial.lsds.seep.api.annotations.Partial;
 import uk.ac.imperial.lsds.seep.api.annotations.Partitioned;
 import uk.ac.imperial.lsds.seep.api.data.Schema;
 import uk.ac.imperial.lsds.seep.api.data.Schema.SchemaBuilder;
 import uk.ac.imperial.lsds.seep.api.data.Type;
-import uk.ac.imperial.lsds.seep.comm.serialization.SerializerType;
 
 public class Fake implements SeepProgram {
 
 	@Partitioned
 	private int iteration;
-	
 	@Partial
 	private List<Double> weights;
 	
@@ -28,38 +24,66 @@ public class Fake implements SeepProgram {
 		SeepProgramConfiguration spc = new SeepProgramConfiguration();
 		
 		// declare train workflow
-		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		
-		DataStore trainSrc = new DataStore(DataStoreType.NETWORK);
-		spc.newWorkflow("train()", trainSrc, sch);
+//		Schema sch = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
+//		DataStore trainSrc = new DataStore(sch, DataStoreType.NETWORK);
+//		spc.newWorkflow("train()", trainSrc);
 		
 		// declare test workflow
-		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "id").build();
-		DataStore testSrc = new DataStore(DataStoreType.NETWORK);
-		DataStore testSnk = new DataStore(DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
-		spc.newWorkflow("test(float data)", testSrc, sch2, testSnk, sch2); // input and output schema are the same
-
+		Schema sch2 = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "ts").newField(Type.STRING, "text").build();
+		DataStore netSrc = new DataStore(sch2, DataStoreType.NETWORK);
+		DataStore netSnk = new DataStore(sch2, DataStoreType.NETWORK); // TODO: CREATE STATIC SINK INSTEAD
+		DataStore fileSnk = new DataStore(sch2, DataStoreType.FILE); // TODO: CREATE STATIC SINK INSTEAD
+		
+		spc.newWorkflow("train(int userId, long ts, String text)", netSrc, netSnk);
+//		spc.newWorkflow("test(int userId, long ts, String text)", netSrc, netSnk);
 		return spc;
 	}
 	
-	public double train(){
-		iteration = 5;
-		List<Double> weights = new ArrayList<Double>();
-		for(int i = 0; i < iteration; i++){
-			weights.add((double) (i*8));
-			@Global
-			double gradient = 4*5;
+	public void train(int userId, long ts, String text) {
+//		iteration = 5;
+		userId = userId + 1;
+		ts = ts +1l;
+		text += "_processed";
+		int count =0;
+		if( (userId % 100000) == 0){
+			System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);
+			System.out.println("If fine?  "+  Boolean.toString(((userId % 100000) == 0)) );
 		}
-		return weights.get(0);
-	}
-	
-	public void test(float data){
-		int a = 0;
-		int b = 1;
-	}
-	
-	@Collection
-	public void merge(List<Integer> numbers){
+		else if( (userId % 110000) == 0){
+			System.out.println("Else_IF is fine? "+ Boolean.toString(((userId % 110000) == 0)) );
+		}
+		else{
+			
+			System.out.println("ELSE fine?"+ Boolean.toString(!( (userId % 110000 == 0) && (userId % 100000 == 0) )));
+		}
 		
+//		System.out.println("ID: "+ userId + " TS: "+ ts + "Txt: "+ text);		
+		List weights = new ArrayList();
+		weights.add(new Double("100"));
+//		System.out.println("GOT: " + weights.get(0));
+		
+		
+//		for (int i = 0; i < iteration; i++) {
+//			weights.add((double) (i * 8));
+//
+//			double gradient = 4 * 5;
+//		}
+//		test(10);
+//		return weights.get(0);
 	}
+
+//	public void test(int userId, long ts, String text) {
+//		userId = userId + 1;
+//		ts = ts +1l;
+//		long whatever = 0l;
+//		int b = 1;
+//		float c = ts +10;
+//		long ts2 = ts + 1;
+//		text = new String(text + "_saying_something");
+//	}
+//
+//	@Collection
+//	public void merge(List<Integer> numbers) {
+//
+//	}
 }

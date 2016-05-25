@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg;
+package uk.ac.imperial.lsds.java2sdg.config;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class CompilerConfig extends Config {
     
 	
 	static{
-		config = new ConfigDef().define(TARGET_OUTPUT, Type.INT, 0, Importance.HIGH, TARGET_OUTPUT_DOC)
+		config = new ConfigDef().define(TARGET_OUTPUT, Type.INT, 2, Importance.HIGH, TARGET_OUTPUT_DOC)
 				.define(OUTPUT_FILE, Type.STRING, Importance.HIGH, OUTPUT_FILE_DOC)
 				.define(INPUT_FILE, Type.STRING, Importance.HIGH, INPUT_FILE_DOC)
 				.define(TE_ANALYZER_TYPE, Type.INT, 0, Importance.HIGH, TE_ANALYZER_TYPE_DOC);
@@ -45,8 +45,8 @@ public class CompilerConfig extends Config {
 		return config.getAllConfigKey();
 	}
 	
-	public static void main(String[] args) {
-        System.out.println(config.toHtmlTable());
-    }
+//	public static void main(String[] args) {
+//        System.out.println(config.toHtmlTable());
+//    }
 	
 }

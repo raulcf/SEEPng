@@ -8,6 +8,7 @@ import org.codehaus.janino.Java.Annotation;
 import org.codehaus.janino.util.Traverser;
 
 import uk.ac.imperial.lsds.java2sdg.bricks.SDGAnnotation;
+import uk.ac.imperial.lsds.java2sdg.utils.AnalysisUtils;
 
 public class AnnotationAnalysis extends Traverser {
 

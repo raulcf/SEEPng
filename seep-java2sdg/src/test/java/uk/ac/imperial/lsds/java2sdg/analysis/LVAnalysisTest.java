@@ -6,10 +6,10 @@ import java.util.Map.Entry;
 import org.codehaus.janino.Java;
 import org.junit.Test;
 
-import uk.ac.imperial.lsds.java2sdg.ConductorUtils;
-import uk.ac.imperial.lsds.java2sdg.Util;
-import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.LivenessInformation;
-import uk.ac.imperial.lsds.java2sdg.analysis.LVAnalysis.VariableLivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.LivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.analysis.LiveVariableAnalysis.VariableLivenessInformation;
+import uk.ac.imperial.lsds.java2sdg.utils.ConductorUtils;
+import uk.ac.imperial.lsds.java2sdg.utils.Util;
 
 public class LVAnalysisTest {
 
@@ -19,7 +19,7 @@ public class LVAnalysisTest {
 		String inputFile = Util.getProjectPath()+"/src/test/java/Fake.java";
 		Java.CompilationUnit compilationUnit = cu.getCompilationUnitFor(inputFile);
 		
-		LivenessInformation map = LVAnalysis.getLVInfo(compilationUnit);
+		LivenessInformation map = LiveVariableAnalysis.getLVInfo(compilationUnit);
 		// FIXME: adapt to new interfaces
 //		for(Entry<String, VariableLivenessInformation> entry : map.entrySet()){
 //			String varName = entry.getKey();

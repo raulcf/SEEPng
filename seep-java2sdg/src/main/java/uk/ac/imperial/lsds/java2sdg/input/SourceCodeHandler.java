@@ -35,6 +35,7 @@ import uk.ac.imperial.lsds.java2sdg.errors.IllegalDriverProgram;
  * @author ra
  *
  */
+@Deprecated
 public class SourceCodeHandler {
 	
 	private final static Logger log = Logger.getLogger(Main.class.getCanonicalName());

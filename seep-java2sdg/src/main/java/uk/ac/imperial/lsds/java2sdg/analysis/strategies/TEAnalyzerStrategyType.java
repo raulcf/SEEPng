@@ -1,4 +1,4 @@
-package uk.ac.imperial.lsds.java2sdg.analysis;
+package uk.ac.imperial.lsds.java2sdg.analysis.strategies;
 
 public enum TEAnalyzerStrategyType {
 	COARSE(0), 							// Simply one TE per workflow
