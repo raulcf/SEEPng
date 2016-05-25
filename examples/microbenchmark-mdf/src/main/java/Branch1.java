@@ -41,18 +41,14 @@ public class Branch1 implements SeepTask {
 		}
 		
 		totalCalls++;
-//		int userId = data.getInt("userId");
-//		long value = data.getLong("value");
 		int userId = data.getInt(idx_userid);
 		long value = data.getLong(idx_value);
 		
-//		System.out.println("bid: " + branchId);
 		
 		value = value / value;
-		
-//		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
-//		api.send(processedData);
+
 		o.setValues(new Object[]{userId, value});
+//		o.setValues(new Object[]{1, 1L});
 		api.send(o);
 	}
 

@@ -53,9 +53,7 @@ public class Adder implements SeepTask {
 			idx_value = data.getIndexFor("value");
 		}
 		totalCalls++;
-		
-//		int userId = data.getInt("userId");
-//		long value = data.getLong("value");
+
 		int userId = data.getInt(idx_userid);
 		long value = data.getLong(idx_value);
 		processed++;
@@ -64,15 +62,12 @@ public class Adder implements SeepTask {
 			System.out.println(adderId + " has started with selectivity " + selectivity);
 			used = true;
 		}
-		
-		//System.out.println(adderId +" processed " + userId);
-		
+				
 		value++;
 		
 		while (((double)sent/(double)processed) < selectivity) {
-//			byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
-//			api.send(processedData);
 			o.setValues(new Object[]{userId, value});
+//			o.setValues(new Object[]{1, 1L});
 			api.send(o);
 			sent++;
 		}

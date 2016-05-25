@@ -43,9 +43,9 @@ public class Evaluator implements SeepTask {
 		arg1.storeEvaluateResults(System.currentTimeMillis()); // a long, as an abstract notion of quality
 		// propagate the results downstream
 		
-//		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
-//		arg1.send(processedData);
+
 		o.setValues(new Object[]{userId, value});
+//		o.setValues(new Object[]{1, 1L});
 		arg1.send(o);
 	}
 
