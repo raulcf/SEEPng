@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
@@ -641,6 +643,28 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private void transferBBToDisk() {
+		WritableByteChannel bc = null;
+		try {
+			// Open file to append buffer
+			bc = Channels.newChannel(new FileOutputStream(cacheFileName, true));
+			
+			int limit = wPtrToBuffer.limit();
+			ByteBuffer limitInt = ByteBuffer.allocate(Integer.BYTES).putInt(limit);
+			bc.write(limitInt);
+			bc.write(wPtrToBuffer);
+			bc.close();
+		}
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void _transferBBToDisk() {
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer

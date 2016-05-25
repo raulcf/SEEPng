@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -75,6 +77,34 @@ public class DiskCacher {
 	}
 	
 	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+		String cacheFileName = getCacheFileName(data.id());
+		
+		// Prepare channel
+		WritableByteChannel bos = Channels.newChannel(new FileOutputStream(cacheFileName));
+		
+		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
+		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
+		
+		while(buffers.hasNext()) {
+			ByteBuffer bb = buffers.next();
+			int limit = bb.limit();
+			ByteBuffer size = ByteBuffer.allocate(Integer.BYTES).putInt(limit);
+			bos.write(size);
+			bos.write(bb);
+		}
+		
+		// close
+		int freedMemory = data.completeTransferToDisk();
+		
+		bos.close();
+		
+		data.setCachedLocation(cacheFileName);
+		LOG.debug("Content is spilled to: {}", cacheFileName);
+		
+		return freedMemory;
+	}
+	
+	public int _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel
