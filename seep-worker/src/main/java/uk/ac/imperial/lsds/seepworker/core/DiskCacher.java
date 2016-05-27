@@ -76,7 +76,7 @@ public class DiskCacher {
 		return cacheFileName;
 	}
 	
-	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+	public int _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel
@@ -104,7 +104,7 @@ public class DiskCacher {
 		return freedMemory;
 	}
 	
-	public int _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel

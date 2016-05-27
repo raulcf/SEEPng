@@ -642,7 +642,7 @@ public class Dataset implements IBuffer, OBuffer {
 		return true;
 	}
 	
-	private void transferBBToDisk() {
+	private void _transferBBToDisk() {
 		WritableByteChannel bc = null;
 		try {
 			// Open file to append buffer
@@ -664,7 +664,7 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 	}
 	
-	private void _transferBBToDisk() {
+	private void transferBBToDisk() {
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
