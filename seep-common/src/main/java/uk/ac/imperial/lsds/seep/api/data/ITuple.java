@@ -223,6 +223,20 @@ public class ITuple {
 		wrapper.position(offset);
 		return wrapper.getDouble();
 	}
+
+	public byte[] getBytes(String fieldName){
+		if(! schema.hasField(fieldName)){
+			throw new SchemaException("Current Schema does not have a field with name '"+fieldName+ "'");
+		}
+		if(! schema.typeCheck(fieldName, Type.BYTES)) {
+			throw new SchemaException("Current Schema cannot typeCheck a field type '" + Type.BYTES + "' with name '"+fieldName+"'");
+		}
+
+		int offset = mapFieldToOffset.get(fieldName);
+		wrapper.position(offset);
+		byte[] bytes = (byte[]) Type.BYTES.read(wrapper);
+		return bytes;
+	}
 	
 	public Object get(String fieldName){
 		if(! schema.hasField(fieldName)){

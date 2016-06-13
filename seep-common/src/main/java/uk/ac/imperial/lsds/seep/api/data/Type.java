@@ -290,26 +290,35 @@ public abstract class Type {
 
 		@Override
 		public Object read(ByteBuffer buffer) {
-			int size = buffer.getInt();
-            ByteBuffer val = buffer.slice();
-            val.limit(size);
-            buffer.position(buffer.position() + size);
-            return val;
+//			int size = buffer.getInt();
+//            ByteBuffer val = buffer.slice();
+//            val.limit(size);
+//            buffer.position(buffer.position() + size);
+//            return val;
+			int length = buffer.getInt();
+			byte[] bytes = new byte[length];
+			buffer.get(bytes);
+			return bytes;
 		}
 
 		@Override
 		public void write(ByteBuffer buffer, Object o) {
-			ByteBuffer arg = (ByteBuffer) o;
-            int pos = arg.position();
-            buffer.putInt(arg.remaining());
-            buffer.put(arg);
-            arg.position(pos);
+//			ByteBuffer arg = (ByteBuffer) o;
+//            int pos = arg.position();
+//            buffer.putInt(arg.remaining());
+//            buffer.put(arg);
+//            arg.position(pos);
+			byte[] bytes = (byte[]) o;
+			buffer.putInt(bytes.length);
+			buffer.put(bytes);
 		}
 
 		@Override
 		public int sizeOf(Object o) {
-			ByteBuffer buffer = (ByteBuffer) o;
-            return Integer.BYTES + buffer.remaining();
+//			ByteBuffer buffer = (ByteBuffer) o;
+//            return Integer.BYTES + buffer.remaining();
+			byte[] bytes = (byte[]) o;
+			return Integer.BYTES + bytes.length;
 		}
 
 		@Override
