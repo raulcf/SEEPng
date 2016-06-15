@@ -8,8 +8,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.kryo.Kryo;
-
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.SeepChooseTask;
@@ -28,7 +26,6 @@ import uk.ac.imperial.lsds.seep.comm.protocol.ProtocolCommandFactory;
 import uk.ac.imperial.lsds.seep.comm.protocol.SeepCommand;
 import uk.ac.imperial.lsds.seep.comm.protocol.StageStatusCommand;
 import uk.ac.imperial.lsds.seep.comm.serialization.KryoFactory;
-import uk.ac.imperial.lsds.seep.core.DatasetMetadata;
 import uk.ac.imperial.lsds.seep.core.DatasetMetadataPackage;
 import uk.ac.imperial.lsds.seep.errors.NotImplementedException;
 import uk.ac.imperial.lsds.seep.scheduler.ScheduleDescription;
@@ -43,8 +40,9 @@ import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleManager;
 import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.SchedulerEngineWorker;
 import uk.ac.imperial.lsds.seepmaster.scheduler.loadbalancing.LoadBalancingStrategyType;
-import uk.ac.imperial.lsds.seepmaster.scheduler.memorymanagement.MemoryManagementPolicyType;
 import uk.ac.imperial.lsds.seepmaster.scheduler.schedulingstrategy.SchedulingStrategyType;
+
+import com.esotericsoftware.kryo.Kryo;
 
 public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 

@@ -101,7 +101,8 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 		Map<Integer, List<RuntimeEvent>> rEvents = tracker.getRuntimeEventsOfLastStageExecution();
 		// STORE EVALUATED RESULTS FOR CURRENT STAGE
 		if( ! finishedStage.getDependants().isEmpty()) {
-			if(finishedStage.getDependants().iterator().next().getStageType() == StageType.CHOOSE_STAGE) {
+			StageType st = finishedStage.getDependants().iterator().next().getStageType();
+			if(st == StageType.CHOOSE_STAGE) {
 				Stage chooseStage = finishedStage.getDependants().iterator().next();
 				int seepChooseTaskId = chooseStage.getWrappedOperators().iterator().next();
 				SeepChooseTask sct = (SeepChooseTask) tracker.getScheduleDescription().getOperatorWithId(seepChooseTaskId).getSeepTask();

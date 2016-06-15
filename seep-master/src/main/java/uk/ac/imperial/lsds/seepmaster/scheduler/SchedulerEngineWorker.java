@@ -79,6 +79,7 @@ public class SchedulerEngineWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("[START JOB]");
+		LOG.info("Scheduling mode: " + this.schedulingStrategy.toString());
 		long scheduleStart = System.nanoTime();
 		while(work) {
 			if(tracker.isScheduledFinished()) {
@@ -190,7 +191,7 @@ public class SchedulerEngineWorker implements Runnable {
 			return;
 		}
 		// Get input type from first operator
-		int srcOpId = s.getWrappedOperators().getLast();
+		int srcOpId = s.getWrappedOperators().getFirst();
 		LogicalOperator src = sd.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
 		
