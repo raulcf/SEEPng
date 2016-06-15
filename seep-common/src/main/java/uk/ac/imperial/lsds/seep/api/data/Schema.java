@@ -82,6 +82,11 @@ public class Schema {
 				return true;
 			}
 		}
+		else if(t.equals(Type.BYTES)) {
+			if (o instanceof byte[]) {
+				return true;
+			}
+		}
 		return false;
 	}
 	
