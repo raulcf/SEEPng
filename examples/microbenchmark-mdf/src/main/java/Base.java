@@ -16,7 +16,6 @@ import uk.ac.imperial.lsds.seep.api.operator.sources.SyntheticSourceConfig;
 
 
 public class Base implements QueryComposer {
-	int operatorId = 0;
 	int connectionId = 0;
 	Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 
@@ -60,13 +59,13 @@ public class Base implements QueryComposer {
 		syncConfig.setProperty(SyntheticSourceConfig.GENERATED_SIZE, size);
 		
 		// source with adder (fixed selectivity)
-		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, syncConfig);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
+		SyntheticSource synSrc = SyntheticSource.newSource(0, syncConfig);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), 1);
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		
 		// We create a choose
-		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), operatorId++);
-		
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), 100);
+		int operatorId = 2;
 		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
 		for(int i = 0; i < fanout; i++) {
 			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i), operatorId++);
@@ -77,7 +76,7 @@ public class Base implements QueryComposer {
 		}
 		
 		// Finally connect choose to sink
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), operatorId++);
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 200);
 		choose.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 		
 		
@@ -85,62 +84,5 @@ public class Base implements QueryComposer {
 		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);
 		return slq;
 	}
-	
-	//@Override
-	public SeepLogicalQuery _compose() {
-		LinkedList <Integer> fanout = new LinkedList <Integer>();
-		LinkedList <Double> selectivity = new LinkedList <Double>();
 
-		//TODO: populate fanout and selectivity properly.
-		fanout.push(200);
-//		fanout.push(2);
-//		fanout.push(2);
-//		selectivity.push(2.0);
-//		selectivity.push(0.8);
-		selectivity.push(0.8);
-		
-		
-		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, null);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
-		synSrc.connectTo(adderOne, schema, connectionId++);
-		
-		
-		LogicalOperator choose = expand(fanout, selectivity, 0, adderOne);
-		
-		//LogicalOperator branchone = queryAPI.newStatelessOperator(new Branch1(), operatorId++);
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), operatorId++);
-		//choose.connectTo(branchone, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-		choose.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-		
-		SeepLogicalQuery slq = queryAPI.build();
-		slq.setExecutionModeHint(QueryExecutionMode.ALL_SCHEDULED);
-		
-		return slq;
-	}
-
-	public LogicalOperator expand (LinkedList <Integer> fanout, LinkedList <Double> selectivity, int location, LogicalOperator parent) {
-		if (fanout.size() <= location || selectivity.size() <= location ||
-				fanout.get(location) < 1 || selectivity.get(location) < 1) {
-			LogicalOperator nullEval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
-			LogicalOperator nullReturn = queryAPI.newChooseOperator(new Choose(), operatorId++);
-			parent.connectTo(nullEval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-			nullEval.connectTo(nullReturn, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-			return nullReturn;
-		}
-		Integer thisfanout = fanout.get(location);
-		Double thisselectivity = selectivity.get(location);
-		LogicalOperator finalChoose = queryAPI.newChooseOperator(new Choose(), operatorId++);
-		for (int x = 0; x < thisfanout; x++) {
-			LogicalOperator child = queryAPI.newStatelessOperator(new Adder(thisselectivity), operatorId++);
-			if (fanout.size() > location+1 && selectivity.size() > location+1) {
-				LogicalOperator childChoose = expand(fanout, selectivity, location+1, child);
-				childChoose.connectTo(finalChoose, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-			} else {
-				LogicalOperator childEval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
-				child.connectTo(childEval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-				childEval.connectTo(finalChoose, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
-			}
-		}
-		return finalChoose;
-	}
 }

@@ -34,6 +34,7 @@ public class Evaluator implements SeepTask {
 			first = false;
 			idx_userid = data.getIndexFor("userId");
 			idx_value = data.getIndexFor("value");
+			System.out.println("Evaluate results ! ");
 		}
 		
 		totalCalls++;
