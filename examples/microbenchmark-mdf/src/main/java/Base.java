@@ -62,10 +62,10 @@ public class Base implements QueryComposer {
 		SyntheticSource synSrc = SyntheticSource.newSource(0, syncConfig);
 		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), 1);
 		synSrc.connectTo(adderOne, schema, connectionId++);
-		
-		// We create a choose
-		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), 100);
 		int operatorId = 2;
+		// We create a choose
+		LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), operatorId++);
+		
 		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
 		for(int i = 0; i < fanout; i++) {
 			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i), operatorId++);
@@ -76,7 +76,7 @@ public class Base implements QueryComposer {
 		}
 		
 		// Finally connect choose to sink
-		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), 200);
+		LogicalOperator snk = queryAPI.newStatelessSink(new Snk(), operatorId++);
 		choose.connectTo(snk, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 		
 		

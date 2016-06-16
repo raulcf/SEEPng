@@ -83,7 +83,7 @@ public class DataReferenceManager {
 		this.rankedDatasets = rankedDatasets;
 		
 		freeDatasets();
-		loadToMemoryEvictedDatasets();
+		//loadToMemoryEvictedDatasets();
 		
 	}
 	

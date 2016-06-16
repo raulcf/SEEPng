@@ -150,6 +150,7 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 				mem = mem + dm.getSize();
 			}
 		}
+		sizeOfThisDataset++;
 		r = mem/sizeOfThisDataset;
 		return r;
 	}
