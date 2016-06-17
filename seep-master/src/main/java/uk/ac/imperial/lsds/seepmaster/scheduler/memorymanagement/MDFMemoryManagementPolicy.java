@@ -88,6 +88,37 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		}
 	}
 	
+	@Override
+	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds) {
+		List<Integer> rankedDatasets = new ArrayList<>();
+		if(! euId_mdf.containsKey(euId)) {
+			return rankedDatasets;
+		}
+		
+		// Now we use the datasets that are alive to prune the datasets in the node
+		removeEvictedDatasets(euId, datasetIds);
+		
+		// Evict datasets based on access patterns
+		removeFinishedDatasets(euId);
+		
+		// We get the datasets in the node, after pruning
+		Map<Integer, Double> datasetId_timestamp = euId_mdf.get(euId);
+		
+		Map<Integer, Double> sorted = sortByValue(datasetId_timestamp);
+		System.out.println("MDF VALUES");
+		for(Double v : sorted.values()) {
+			System.out.print(v+" - ");
+		}
+		System.out.println();
+		
+		
+		// TODO: may break ordering due to keyset returning a set ?
+		for(Integer key : sorted.keySet()) {
+			rankedDatasets.add(key);
+		}
+		return rankedDatasets;
+	}
+	
 	private void markDatasetsAccessed(int euId, int stageId) {
 		Map<Integer, Integer> stageid_currentAccesses = euid_stageid_currentAccesses.get(euId);
 		Stage justFinishedStage = sd.getStageWithId(stageId);
@@ -153,37 +184,6 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		sizeOfThisDataset++;
 		r = mem/sizeOfThisDataset;
 		return r;
-	}
-
-	@Override
-	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds) {
-		List<Integer> rankedDatasets = new ArrayList<>();
-		if(! euId_mdf.containsKey(euId)) {
-			return rankedDatasets;
-		}
-		
-		// Now we use the datasets that are alive to prune the datasets in the node
-		removeEvictedDatasets(euId, datasetIds);
-		
-		// Evict datasets based on access patterns
-		removeFinishedDatasets(euId);
-		
-		// We get the datasets in the node, after pruning
-		Map<Integer, Double> datasetId_timestamp = euId_mdf.get(euId);
-		
-		Map<Integer, Double> sorted = sortByValue(datasetId_timestamp);
-		System.out.println("MDF VALUES");
-		for(Double v : sorted.values()) {
-			System.out.print(v+" - ");
-		}
-		System.out.println();
-		
-		
-		// TODO: may break ordering due to keyset returning a set ?
-		for(Integer key : sorted.keySet()) {
-			rankedDatasets.add(key);
-		}
-		return rankedDatasets;
 	}
 	
 	private void removeFinishedDatasets(int euId) {

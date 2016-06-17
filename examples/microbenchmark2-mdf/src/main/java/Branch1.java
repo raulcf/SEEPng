@@ -49,7 +49,7 @@ public class Branch1 implements SeepTask {
 		
 //		System.out.println("bid: " + branchId);
 		
-		value = value / value;
+		value = value + value;
 		
 //		byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});
 //		byte[] processedData = OTuple.createUnsafe(types, new Object[]{userId, value}, 12);
