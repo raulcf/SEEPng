@@ -16,6 +16,7 @@ public class Adder implements SeepTask {
 	private int processed = 0, sent = 0;
 	private String adderId;
 	private boolean used;
+	private int compfactor;
 	
 	private int totalCalls = 0;
 	
@@ -25,10 +26,11 @@ public class Adder implements SeepTask {
 		used = false;
 	}
 	
-	public Adder(Double sel) {
+	public Adder(Double sel, int compfactor) {
 		selectivity = sel;
 		adderId = UUID.randomUUID().toString();
 		used = false;
+		this.compfactor = compfactor;
 	}
 	
 	@Override
@@ -67,7 +69,10 @@ public class Adder implements SeepTask {
 			used = true;
 		}
 				
-		value++;
+		for(int i = 0; i< compfactor; i++) {
+			value = (long) Math.sqrt((double)(value / 2));
+			Math.pow(value, value);
+		}
 		
 		while (((double)sent/(double)processed) < selectivity) {
 //			byte[] processedData = OTuple.create(schema, new String[]{"userId", "value"},  new Object[]{userId, value});

@@ -24,6 +24,7 @@ public class Base implements QueryComposer {
 	private long isize;
 	private boolean incremental_choose;
 	private int fanout;
+	private int compfactor;
 	
 	public Base(String[] qParams) {
 		String sel = "selectivity";
@@ -31,6 +32,7 @@ public class Base implements QueryComposer {
 		String isize = "isize";
 		String incrementalchoose = "incchoose";
 		String fanout = "fanout";
+		String compfactor = "compfactor";
 		for(int i = 0; i < qParams.length; i++) {
 			String token = qParams[i];
 			if(token.equals(sel)) {
@@ -48,6 +50,9 @@ public class Base implements QueryComposer {
 			else if(token.equalsIgnoreCase(fanout)) {
 				this.fanout = new Integer(qParams[i+1]);
 			}
+			else if(token.equalsIgnoreCase(compfactor)) {
+				this.compfactor = new Integer(qParams[i+1]);
+			}
 		}
 	}
 	
@@ -60,7 +65,7 @@ public class Base implements QueryComposer {
 		
 		// source with adder (fixed selectivity)
 		SyntheticSource synSrc = SyntheticSource.newSource(0, syncConfig);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), 1);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0, compfactor), 1);
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		int operatorId = 2;
 		// We create a choose
@@ -68,7 +73,7 @@ public class Base implements QueryComposer {
 		
 		// explore a number of ops here, branch, that are connected upstream to adder and downstream to choose
 		for(int i = 0; i < fanout; i++) {
-			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i), operatorId++);
+			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i, compfactor), operatorId++);
 			LogicalOperator eval = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
 			adderOne.connectTo(branch, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 			branch.connectTo(eval, connectionId++, new DataStore(schema, DataStoreType.NETWORK));

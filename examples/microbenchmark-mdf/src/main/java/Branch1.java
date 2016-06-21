@@ -14,13 +14,15 @@ public class Branch1 implements SeepTask {
 	private Schema schema = SchemaBuilder.getInstance().newField(Type.INT, "userId").newField(Type.LONG, "value").build();
 	
 	private int branchId;
+	private int compfactor;
 	
 	private int totalCalls = 0;
 	
 	public Branch1() { }
 	
-	public Branch1(int branchId) {
+	public Branch1(int branchId, int compfactor) {
 		this.branchId = branchId;
+		this.compfactor = compfactor;
 	}
 	
 	boolean first = true;
@@ -45,10 +47,12 @@ public class Branch1 implements SeepTask {
 		long value = data.getLong(idx_value);
 		
 		
-		value = value / value;
+		for(int i = 0; i< compfactor; i++) {
+			value = (long) Math.sqrt((double)(value / 2));
+			Math.pow(value, value);
+		}
 
 		o.setValues(new Object[]{userId, value});
-//		o.setValues(new Object[]{1, 1L});
 		api.send(o);
 	}
 
