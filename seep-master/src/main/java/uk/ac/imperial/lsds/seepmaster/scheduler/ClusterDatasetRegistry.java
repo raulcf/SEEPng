@@ -31,10 +31,15 @@ public class ClusterDatasetRegistry {
 	private int totalDatasetsSpilledToDisk = 0;
 	private int totalDiskAccesses = 0;
 	private int totalMemAccesses = 0;
+	private long __time_freeingDatasets = 0;
 	
 	private Map<Integer, Long> dataset_diskAccessedData = new HashMap<>();
 	private Map<Integer, Long> dataset_memAccessedData = new HashMap<>();
 	private List<Double> avMemoryHistoric = new ArrayList<>();
+	
+	public MemoryManagementPolicy getMMP() {
+		return mmp;
+	}
 	
 	public int totalDatasetsGeneratedDuringSchedule() {
 		return this.totalDatasetsGenerated;
@@ -42,6 +47,10 @@ public class ClusterDatasetRegistry {
 	
 	public int totalDatasetsSpilledToDiskDuringSchedule() {
 		return this.totalDatasetsSpilledToDisk;
+	}
+	
+	public long totalTimeFreeingDatasets() {
+		return this.__time_freeingDatasets;
 	}
 	
 	public String getHistoricMemUtilization() {
@@ -104,6 +113,8 @@ public class ClusterDatasetRegistry {
 		avMemoryHistoric.add(clusterAvailableMemory);
 		// Update metrics
 		updateMetrics(all);
+		this.__time_freeingDatasets = this.__time_freeingDatasets + managedDatasets.__time_freeDatasets;
+		// Update datasets for the current node
 		mmp.updateDatasetsForNode(euId, managedDatasets, stageId);
 		this.datasetsPerNode.put(euId, all);
 	}

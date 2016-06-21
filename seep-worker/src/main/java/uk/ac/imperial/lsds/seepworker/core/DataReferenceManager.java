@@ -61,6 +61,9 @@ public class DataReferenceManager {
 	
 	private BufferPool bufferPool;
 	
+	// metrics
+	private long __time_freeDatasets = 0;
+	
 	private DataReferenceManager(WorkerConfig wc) {
 		this.catalogue = new HashMap<>();
 		this.datasets = new HashMap<>();
@@ -104,6 +107,7 @@ public class DataReferenceManager {
 	}
 	
 	private void freeDatasets() {
+		long start = System.currentTimeMillis();
 		// Free datasets that are no longer part of the list of rankedDatasets
 		int totalFreedMemory = 0;
 		Set<Integer> toRemove = new HashSet<>();
@@ -119,6 +123,8 @@ public class DataReferenceManager {
 			catalogue.remove(tr);
 		}
 		LOG.info("Total freed memory: {}", totalFreedMemory);
+		long end = System.currentTimeMillis();
+		__time_freeDatasets = __time_freeDatasets + (end - start);
 	}
 	
 	public DatasetMetadataPackage getManagedDatasetsMetadata(Set<Integer> usedSet) {
@@ -150,7 +156,7 @@ public class DataReferenceManager {
 			}
 		}
 		double availableMemory = bufferPool.getPercAvailableMemory();
-		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets, availableMemory);
+		DatasetMetadataPackage dmp = new DatasetMetadataPackage(oldDatasets, newDatasets, usedDatasets, availableMemory, __time_freeDatasets);
 		
 		return dmp;
 	}

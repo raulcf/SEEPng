@@ -11,4 +11,6 @@ public interface MemoryManagementPolicy {
 	public void updateDatasetsForNode(int euId, DatasetMetadataPackage datasetIds, int stageId);
 	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds);
 	
+	public long __totalUpdateTime();
+	public long __totalRankTime();
 }

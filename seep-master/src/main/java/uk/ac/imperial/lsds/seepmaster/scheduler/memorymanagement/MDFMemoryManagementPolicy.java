@@ -35,6 +35,10 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 	
 	private Map<Integer, Map<Integer, Set<Integer>>> euid_stageid_datasets = new HashMap<>();
 	private Map<Integer, Map<Integer, Integer>> euid_stageid_currentAccesses = new HashMap<>();
+	
+	// Metrics
+	private long __totalUpdateTime = 0;
+	private long __totalRankTime = 0;
 		
 	public MDFMemoryManagementPolicy(ScheduleDescription sd, double dmRatio) {
 		this.sd = sd;
@@ -44,6 +48,7 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 	
 	@Override
 	public void updateDatasetsForNode(int euId, DatasetMetadataPackage datasetsMetadata, int stageId) {
+		long start = System.currentTimeMillis();
 		if(! euid_stageid_currentAccesses.containsKey(euId)) {
 			euid_stageid_currentAccesses.put(euId, stageid_accesses);
 		}
@@ -86,10 +91,13 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		for(Integer datasetId : datasetsOfThisStage) {
 			euId_mdf.get(euId).put(datasetId, precedence);
 		}
+		long end = System.currentTimeMillis();
+		this.__totalUpdateTime = this.__totalUpdateTime + (end - start);
 	}
 	
 	@Override
 	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds) {
+		long start = System.currentTimeMillis();
 		List<Integer> rankedDatasets = new ArrayList<>();
 		if(! euId_mdf.containsKey(euId)) {
 			return rankedDatasets;
@@ -116,6 +124,8 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		for(Integer key : sorted.keySet()) {
 			rankedDatasets.add(key);
 		}
+		long end = System.currentTimeMillis();
+		this.__totalRankTime = this.__totalRankTime + (end - start);
 		return rankedDatasets;
 	}
 	
@@ -248,6 +258,16 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		// FIXME: precedence means that higher should be higher in ranked values. Probably need to multiply * -1 down there, or invert the order
 		st.sorted(Comparator.comparingDouble(e -> e.getValue())).forEachOrdered(e -> result.put(e.getKey(),e.getValue()));
 		return result;
+	}
+
+	@Override
+	public long __totalUpdateTime() {
+		return this.__totalUpdateTime;
+	}
+
+	@Override
+	public long __totalRankTime() {
+		return this.__totalRankTime;
 	}
 
 }
