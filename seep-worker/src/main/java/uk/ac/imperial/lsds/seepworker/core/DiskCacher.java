@@ -108,7 +108,8 @@ public class DiskCacher {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel
-		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(cacheFileName), wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
+		FileOutputStream fos = new FileOutputStream(cacheFileName);
+		BufferedOutputStream bos = new BufferedOutputStream(fos, wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
 		
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
@@ -125,6 +126,7 @@ public class DiskCacher {
 		int freedMemory = data.completeTransferToDisk();
 		
 		bos.flush();
+		fos.getFD().sync();
 		bos.close();
 		
 		data.setCachedLocation(cacheFileName);
