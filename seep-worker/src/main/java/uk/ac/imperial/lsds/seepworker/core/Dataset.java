@@ -668,21 +668,20 @@ public class Dataset implements IBuffer, OBuffer {
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
-			bos = new BufferedOutputStream(new FileOutputStream(cacheFileName, true), bufferPool.getMinimumBufferSize());
+			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
+			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
 			int limit = wPtrToBuffer.limit();
 			byte[] payload = wPtrToBuffer.array();
 			bos.write(limit);
 			bos.write(payload);
 			bos.flush();
+			fos.getFD().sync();
 			bos.close();
-//			bufferPool.returnBuffer(wPtrToBuffer);
 		}
 		catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 		catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
