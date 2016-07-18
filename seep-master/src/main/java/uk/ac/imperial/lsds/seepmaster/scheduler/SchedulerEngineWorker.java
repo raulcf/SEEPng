@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.imperial.lsds.seep.api.DataReference;
 import uk.ac.imperial.lsds.seep.api.DataStore;
+import uk.ac.imperial.lsds.seep.api.DataStoreType;
 import uk.ac.imperial.lsds.seep.api.RuntimeEvent;
 import uk.ac.imperial.lsds.seep.api.operator.LogicalOperator;
 import uk.ac.imperial.lsds.seep.api.operator.UpstreamConnection;
@@ -222,8 +223,10 @@ public class SchedulerEngineWorker implements Runnable {
 			}
 		}
 		// If dataStore was not set above, then there is a real source operator, that we set here
+		// FIXME: if real source operator, then we don't need to set up dataStore, right?
 		if(dataStore == null) {
-			dataStore = src.upstreamConnections().iterator().next().getUpstreamOperator().upstreamConnections().iterator().next().getDataStore();
+			//dataStore = src.downstreamConnections().iterator().next().getDownstreamOperator().upstreamConnections().iterator().next().getDataStore();
+			dataStore = new DataStore(DataStoreType.EMPTY);
 		}
 		
 		int streamId = 0; // only one streamId for sources in scheduled mode	

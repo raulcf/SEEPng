@@ -189,6 +189,12 @@ public class Conductor {
 			// then DataReference can be created here if any difficulty of doing so at master
 			Schema expectedSchema = input.entrySet().iterator().next().getValue().iterator().next().getDataStore().getSchema();
 			// FIXME: assumption, same schema as input -> will change once SINKs have also schemas
+			//int lastOpId = s.getIdOfOperatorBoundingStage();
+			//LogicalOperator lo = task.getLOWithId(lastOpId);
+			LogicalOperator lo = task.__getLastOperator();
+			if(lo.downstreamConnections().size() > 0) {
+				expectedSchema = lo.downstreamConnections().iterator().next().getSchema();
+			}
 			output = createOutputForTask(s, expectedSchema);
 		}
 		coreOutput = CoreOutputFactory.buildCoreOutputFor(wc, drm, output);

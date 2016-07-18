@@ -80,7 +80,16 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void setUp() {
+		taskIterator = tasks.iterator();
+		while(taskIterator.hasNext()) {
+			taskIterator.next().setUp();
+		}
+		taskIterator = tasks.iterator();
 		if(! taskIterator.hasNext()) {
+			taskIterator = tasks.iterator();
+			while(taskIterator.hasNext()) {
+				taskIterator.next().setUp();
+			}
 			taskIterator = tasks.iterator();
 		}
 		if(! opIt.hasNext()) {
@@ -116,24 +125,32 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void processData(ITuple data, API api) {
-		for(int i = 0; i < tasks.size() - 1; i++) {
+		byte[] o = null;
+		Schema lSchema = null;
+ 		for(int i = 0; i < tasks.size() - 1; i++) {
 			SeepTask next = tasks.get(i);
 			next.processData(data, scApi);
-			OTuple o = ((SimpleCollector)scApi).collect();
+			o = ((SimpleCollector)scApi).collectMem();
+			if(o == null) {
+				OTuple temp = ((SimpleCollector)scApi).collect();
+				o = temp.getData();
+			}
 			LogicalOperator nextOp = operators.get(i);
-			if(! sameSchema) {
-				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
-				data = new ITuple(schema);
-				d = new TransporterITuple(schema); // FIXME: can we get schema from OTuple
-			}
+//			if(! sameSchema) {
+				lSchema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+				data = new ITuple(lSchema, o);
+				d = new TransporterITuple(lSchema); // FIXME: can we get schema from OTuple
+//			}
 			if(d == null) {
-				Schema schema = nextOp.downstreamConnections().get(0).getSchema();
-				d = new TransporterITuple(schema);
+				lSchema = nextOp.downstreamConnections().get(0).getSchema();
+				d = new TransporterITuple(lSchema);
 			}
-			Object[] values = o.getValues();
-			d.setValues(values);
+			d.setData(o);
+			data.setData(o);
+			//Object[] values = o.getValues();
+			//d.setValues(values);
 		}
-		
+ 		
 		SeepTask next = tasks.get(tasks.size() -1);
 		next.processData(data, api);
 		
@@ -219,6 +236,15 @@ public class ScheduleTask implements SeepTask {
 		}
 	}
 	
+	public LogicalOperator getLOWithId(int id) {
+		for(LogicalOperator lo : operators) {
+			if(lo.getOperatorId() == id) {
+				return lo;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -231,5 +257,9 @@ public class ScheduleTask implements SeepTask {
 		}
 		sb.append(tasksDescr.toString());
 		return sb.toString();
+	}
+
+	public LogicalOperator __getLastOperator() {
+		return operators.get(operators.size()-1);
 	}
 }

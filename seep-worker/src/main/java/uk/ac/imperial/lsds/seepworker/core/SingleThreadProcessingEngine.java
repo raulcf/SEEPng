@@ -2,7 +2,6 @@ package uk.ac.imperial.lsds.seepworker.core;
 
 import static com.codahale.metrics.MetricRegistry.name;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +57,7 @@ public class SingleThreadProcessingEngine implements ProcessingEngine {
 	@Override
 	public void start() {
 		working = true;
+		//this.task.setUp();
 		this.worker.start();
 	}
 
