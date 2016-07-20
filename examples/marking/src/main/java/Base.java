@@ -195,7 +195,7 @@ public class Base implements QueryComposer {
 			"Select first(timestamp), last(timestamp), well, injector, max(BHP)-min(BHP) as magnitude " + 
 			"From masked.std:groupwin(well).win:length($WIN) " + 
 			"Group by well " + 
-			"Having max(BHP) < ($DIF * min(BHP)) "
+			"Having max(BHP) > ($DIF * min(BHP)) "
 			;
 		
 		String detectionQueryTemplate = 

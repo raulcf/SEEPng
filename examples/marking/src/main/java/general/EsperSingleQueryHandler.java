@@ -245,6 +245,7 @@ public class EsperSingleQueryHandler implements SeepTask {
 		
 		// Only previously defined types are available to ESPER
 		for (String key : this.typesPerStream.get(stream).keySet()) {
+            
             int idx = data.getIndexFor(key);
             Object obj = 1;
             try{
@@ -262,7 +263,8 @@ public class EsperSingleQueryHandler implements SeepTask {
             }
             }
 			item.put(key, obj);
-			//item.put(key, data.get(key));
+            
+		    //item.put(key, data.get(key));
         }
 		
 		//log.debug("Sending item {} with name '{}' to esper engine", item, stream);
