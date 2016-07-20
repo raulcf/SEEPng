@@ -1,5 +1,6 @@
 package general;
 
+import uk.ac.imperial.lsds.seep.errors.SchemaException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -220,13 +221,13 @@ public class EsperSingleQueryHandler implements SeepTask {
 		for (int i = 0; i < fields.length; i++) 
 			objects[i] = out.get(fields[i]);
 				
-		//byte[] processedData = OTuple.create(outSchema, fields, objects);
-		//log.debug("Sending output with values: {}", objects);
-		//api.send(processedData);
-        Type[] types = outSchema.fields();
-        OTuple o = new OTuple(outSchema);
-        o.setValues(objects);
-        api.send(o);
+		byte[] processedData = OTuple.create(outSchema, fields, objects);
+		log.debug("Sending output with values: {}", objects);
+		api.send(processedData);
+        //Type[] types = outSchema.fields();
+        //OTuple o = new OTuple(outSchema);
+        //o.setValues(objects);
+        //api.send(o);
 	}
 
 	@Override
@@ -243,8 +244,26 @@ public class EsperSingleQueryHandler implements SeepTask {
 		Map<String, Object> item = new LinkedHashMap<String, Object>();
 		
 		// Only previously defined types are available to ESPER
-		for (String key : this.typesPerStream.get(stream).keySet()) 
-			item.put(key, data.get(key));
+		for (String key : this.typesPerStream.get(stream).keySet()) {
+            int idx = data.getIndexFor(key);
+            Object obj = 1;
+            try{
+            obj = data.getInt(idx);
+            } catch(SchemaException se) {
+            try{
+            obj = data.getLong(idx);
+            }
+            catch(SchemaException se1) {
+            try{
+            obj = data.getFloat(idx);
+            }
+            catch(SchemaException se2) {
+            }
+            }
+            }
+			item.put(key, obj);
+			//item.put(key, data.get(key));
+        }
 		
 		//log.debug("Sending item {} with name '{}' to esper engine", item, stream);
 			

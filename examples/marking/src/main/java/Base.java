@@ -1,10 +1,13 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import detection.MaxChoose;
 import general.EsperSingleQueryHandler;
 import general.Snk;
 import general.Src;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import marking.CountEvaluator;
+import marking.MinMaxRangeChoose;
 import masking.CountRatioEvaluator;
 import masking.ThresholdChoose;
 import uk.ac.imperial.lsds.seep.api.DataStore;
@@ -47,6 +50,8 @@ public class Base implements QueryComposer {
 		// example:
 		// 2,3,4,5,6,7,8,9,10 1.2f,1.4f,1.6f,1.8f,2.0f,2.2f,2.4f,2.6f 2,3,4,5,6 2,3,4,5,6,7,8,9 0.01f,0.05f,0.1f,0.15f,0.2f,0.25f 2000,4000,8000,16000,48000,96000,192000,384000 0.005f,0.01f,0.02f,0.05f,0.1f,0.15f,0.2f,0.25f 10
 
+		//System.out.println("PARS: " + Arrays.toString(qParams));
+		
 		if (qParams.length == 7) {
 		
 			String[] tokens = qParams[0].split(",");
@@ -94,7 +99,7 @@ public class Base implements QueryComposer {
 		//String inPath = "E:\\clair_30m.out";
         String inPath =
 "/Users/ra/Development/SEEPng/examples/marking/data/clair_30m.out";
-		//String inPath = "/home/matthias/repos/15-MDF-usecase/applications/simple-event-marking-query/data/clair_30m.out";
+		//"/home/matthias/repos/15-MDF-usecase/applications/simple-event-marking-query/data/clair_30m.out";
 		int totalNumberOfInputEvents = 324652 * scaleFactor;
 		
 		/*
@@ -104,8 +109,8 @@ public class Base implements QueryComposer {
 		boolean storeResults = true;
 		//String outPath = "E:\\clair_30m_results.out";
         String outPath =
-"/Users/ra/Development/SEEPng/examples/marking/data/clair_30m_results.out";
-		//String outPath = "/home/matthias/repos/15-MDF-usecase/applications/simple-event-marking-query/data/clair_30m_results.out";
+//"/Users/ra/Development/SEEPng/examples/marking/data/clair_30m_results.out";
+		"/home/matthias/repos/15-MDF-usecase/applications/simple-event-marking-query/data/clair_30m_results.out";
 
 		/* 
 		 * ###########################################################
@@ -267,8 +272,8 @@ public class Base implements QueryComposer {
 		LogicalOperator src          = queryAPI.newStatelessSource(new Src(inPath, scaleFactor), opId++);
 		LogicalOperator snk          = queryAPI.newStatelessSink(new Snk(outPath, storeResults), opId++);
 		LogicalOperator maskingChoose       = queryAPI.newChooseOperator(new ThresholdChoose(0.2f), opId++);
-//		LogicalOperator markingChoose       = queryAPI.newChooseOperator(new MinMaxRangeChoose(scaleFactor), opId++);
-//		LogicalOperator detectionChoose     = queryAPI.newChooseOperator(new MaxChoose(), opId++);
+		LogicalOperator markingChoose       = queryAPI.newChooseOperator(new MinMaxRangeChoose(scaleFactor), opId++);
+		LogicalOperator detectionChoose     = queryAPI.newChooseOperator(new MaxChoose(), opId++);
 
 		LogicalOperator maskingPro = null;
 		for (SeepTask t : maskingTasks) {
@@ -280,27 +285,27 @@ public class Base implements QueryComposer {
 			eval.connectTo(maskingChoose, flowId++, new DataStore(inSchema, DataStoreType.NETWORK));
 		}
 
-		maskingChoose.connectTo(snk, flowId++, new DataStore(inSchema, DataStoreType.NETWORK));
+		//maskingChoose.connectTo(snk, flowId++, new DataStore(inSchema, DataStoreType.NETWORK));
 
-//		for (SeepTask t : markingTasks) {
-//			LogicalOperator markingPro  = queryAPI.newStatelessOperator(t, opId++);
-//			maskingChoose.connectTo(markingPro, flowId++, new DataStore(inSchema, DataStoreType.NETWORK));
-//
-//			LogicalOperator eval = queryAPI.newStatelessOperator(new CountEvaluator(), opId++);
-//			markingPro.connectTo(eval, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
-//			eval.connectTo(markingChoose, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
-//		}
+		for (SeepTask t : markingTasks) {
+			LogicalOperator markingPro  = queryAPI.newStatelessOperator(t, opId++);
+			maskingChoose.connectTo(markingPro, flowId++, new DataStore(inSchema, DataStoreType.NETWORK));
 
-//		for (SeepTask t : detectionTasks) {
-//			LogicalOperator detectionPro  = queryAPI.newStatelessOperator(t, opId++);
-//			markingChoose.connectTo(detectionPro, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
-//
-//			LogicalOperator eval = queryAPI.newStatelessOperator(new CountEvaluator(), opId++);
-//			detectionPro.connectTo(eval, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
-//			eval.connectTo(markingChoose, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
-//		}
-//
-//		detectionChoose.connectTo(snk, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
+			LogicalOperator eval = queryAPI.newStatelessOperator(new CountEvaluator(), opId++);
+			markingPro.connectTo(eval, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
+			eval.connectTo(markingChoose, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
+		}
+
+		for (SeepTask t : detectionTasks) {
+			LogicalOperator detectionPro  = queryAPI.newStatelessOperator(t, opId++);
+			markingChoose.connectTo(detectionPro, flowId++, new DataStore(markedSchema, DataStoreType.NETWORK));
+
+			LogicalOperator eval = queryAPI.newStatelessOperator(new CountEvaluator(), opId++);
+			detectionPro.connectTo(eval, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
+			eval.connectTo(detectionChoose, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
+		}
+
+		detectionChoose.connectTo(snk, flowId++, new DataStore(detectedSchema, DataStoreType.NETWORK));
 
 		
 		SeepLogicalQuery slq = queryAPI.build();
