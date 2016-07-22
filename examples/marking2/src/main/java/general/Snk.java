@@ -19,7 +19,7 @@ public class Snk implements Sink, TaggingSink {
 	final static Logger log = LoggerFactory.getLogger(Snk.class);
 
 	private int count = 0;
-	private int printEvery = 1000000;
+	private int printEvery = 1000;
 	
 	private String dataPath = null;
 	private boolean storeResults = false;
@@ -81,6 +81,7 @@ idx_snkFields.add(idx_flowrate);
         }
 
 		if ((count++) % printEvery == 0) {
+            count = 0;
 			log.debug("SNK: " ); 
 			log.debug("\n\nSink received {} tuples", count);
 		}
