@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: ub
+Build-Jdk: 1.6.0_29
+Specification-Title: abego TreeLayout Core
+Specification-Version: 1.0.1
+Specification-Vendor: abego Software GmbH, Germany
+Implementation-Title: abego TreeLayout Core
+Implementation-Version: 1.0.1
+Implementation-Vendor-Id: org.abego.treelayout
+Implementation-Vendor: abego Software GmbH, Germany
+

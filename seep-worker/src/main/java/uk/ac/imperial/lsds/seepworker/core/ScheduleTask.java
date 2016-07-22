@@ -133,7 +133,15 @@ public class ScheduleTask implements SeepTask {
 			o = ((SimpleCollector)scApi).collectMem();
 			if(o == null) {
 				OTuple temp = ((SimpleCollector)scApi).collect();
-				o = temp.getData();
+                if(temp == null) {
+                    LogicalOperator no = operators.get(i);
+                    Schema st = no.downstreamConnections().get(0).getSchema();
+                    o = OTuple.create(st, st.names(), new
+Object[]{0L,1,2,3f,4f,5f,6,7,8,9,10f,11,12,13f});
+                }
+                else {
+				    o = temp.getData();
+                }
 			}
 			LogicalOperator nextOp = operators.get(i);
 //			if(! sameSchema) {
