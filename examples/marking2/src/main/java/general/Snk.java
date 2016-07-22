@@ -59,6 +59,9 @@ public class Snk implements Sink, TaggingSink {
     int idx_glRate = 0;//data.getIndexFor("glRate");
     int idx_flowrate = 0;//data.getIndexFor("flowrate");
 
+    int c = 0;
+    int t = 10000;
+
 	@Override
 	public void processData(ITuple data, API api) {
 
@@ -80,8 +83,9 @@ idx_snkFields.add(idx_glRate);
 idx_snkFields.add(idx_flowrate); 
         }
 
-		if ((count++) % printEvery == 0) {
-            count = 0;
+        c++;
+		if (c > t) {
+            c = 0;
 			log.debug("SNK: " ); 
 			log.debug("\n\nSink received {} tuples", count);
 		}
