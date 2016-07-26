@@ -23,6 +23,7 @@ public class Base implements QueryComposer {
 	private boolean incremental_choose;
 	private int fanout1;
 	private int fanout2;
+	private int compfactor;
 	
 	public Base(String[] qParams) {
 		String sel = "selectivity";
@@ -31,6 +32,7 @@ public class Base implements QueryComposer {
 		String incrementalchoose = "incchoose";
 		String fanout = "fanout";
 		String fanout2 = "fanout2";
+		String compfactor = "compfactor";
 		for(int i = 0; i < qParams.length; i++) {
 			String token = qParams[i];
 			if(token.equals(sel)) {
@@ -51,6 +53,9 @@ public class Base implements QueryComposer {
 			else if(token.equalsIgnoreCase(fanout2)) {
 				this.fanout2 = new Integer(qParams[i+1]);
 			}
+			else if(token.equalsIgnoreCase(compfactor)) {
+				this.compfactor = new Integer(qParams[i+1]);
+			}
 		}
 	}
 	
@@ -63,20 +68,20 @@ public class Base implements QueryComposer {
 		
 		// source with adder (fixed selectivity)
 		SyntheticSource synSrc = SyntheticSource.newSource(operatorId++, syncConfig);
-		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0), operatorId++);
+		LogicalOperator adderOne = queryAPI.newStatelessOperator(new Adder(1.0, compfactor), operatorId++);
 		synSrc.connectTo(adderOne, schema, connectionId++);
 		
 		// We create a choose
 		LogicalOperator outerChoose = queryAPI.newChooseOperator(new Choose(incremental_choose), operatorId++);
 		
 		for(int i = 0; i < fanout1; i++) {
-			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i), operatorId++);
+			LogicalOperator branch = queryAPI.newStatelessOperator(new Branch1(i, compfactor), operatorId++);
 			adderOne.connectTo(branch, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 			
 			// Choose for internal branch
 			LogicalOperator choose = queryAPI.newChooseOperator(new Choose(incremental_choose), operatorId++);
 			for(int j = 0; j < fanout2; j++) {
-				LogicalOperator branch2 = queryAPI.newStatelessOperator(new Branch1(j), operatorId++);
+				LogicalOperator branch2 = queryAPI.newStatelessOperator(new Branch1(j, compfactor), operatorId++);
 				LogicalOperator eval2 = queryAPI.newStatelessOperator(new Evaluator(), operatorId++);
 				branch.connectTo(branch2, connectionId++, new DataStore(schema, DataStoreType.NETWORK));
 				branch2.connectTo(eval2, connectionId++, new DataStore(schema, DataStoreType.NETWORK));

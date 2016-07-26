@@ -1,5 +1,6 @@
 apply plugin: 'application'
 mainClassName = 'uk.ac.imperial.lsds.seepworker.Main'
+applicationDefaultJvmArgs = ["-Xms1024M", "-Xmx6096M", "-server", "-XX:+UseG1GC"]
 
 dependencies {
 	compile project(':seep-common')

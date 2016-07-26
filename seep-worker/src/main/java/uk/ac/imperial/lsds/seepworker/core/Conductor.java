@@ -197,10 +197,12 @@ public class Conductor {
 		// FIXME: Note this is not reusable!! Can we make NetworkSelector a service rather than a
 		// configure on-demand thing?
 		if (coreInput.requiresConfigureSelectorOfType(DataStoreType.NETWORK)) {
+			/**
 			NetworkSelector ns = DataStoreSelectorFactory.configureNetworkSelector(coreInput, 
 				wc, stageId, myIp, wc.getInt(WorkerConfig.DATA_PORT));
 			ns.initSelector();
 			ns.startSelector();
+			**/
 		}
 		if(coreInput.requiresConfigureSelectorOfType(DataStoreType.FILE) ||
 		   coreOutput.requiresConfigureSelectorOfType(DataStoreType.FILE)) {

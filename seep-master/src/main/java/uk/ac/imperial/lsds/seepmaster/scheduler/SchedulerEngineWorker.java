@@ -49,6 +49,10 @@ public class SchedulerEngineWorker implements Runnable {
 	
 	private boolean work = true;
 	
+	// Metrics
+	private long __time_assignWork;
+	private long __time_postCompletion;
+	
 	public SchedulerEngineWorker(ScheduleDescription sdesc, SchedulingStrategy schedulingStrategy, LoadBalancingStrategy loadBalancingStrategy, int mmpType, double dmRatio, InfrastructureManager inf, Comm comm, Kryo k) {
 		this.scheduleDescription = sdesc;
 		this.schedulingStrategy = schedulingStrategy;
@@ -79,6 +83,7 @@ public class SchedulerEngineWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("[START JOB]");
+		LOG.info("Scheduling mode: " + this.schedulingStrategy.toString());
 		long scheduleStart = System.nanoTime();
 		while(work) {
 			if(tracker.isScheduledFinished()) {
@@ -91,8 +96,16 @@ public class SchedulerEngineWorker implements Runnable {
 				double ratioMemory = (1 - ratio);
 				int ratioMemVSDiskAccessedData = tracker.getClusterDatasetRegistry().percentageOfTotalDataAccessedFromMem();
 				String memUtilization = tracker.getClusterDatasetRegistry().getHistoricMemUtilization();
+				long totalUpdateTime = tracker.getClusterDatasetRegistry().getMMP().__totalUpdateTime();
+				LOG.info("Total time spend updating dataset metadata: {}", totalUpdateTime);
+				long totalRankTime = tracker.getClusterDatasetRegistry().getMMP().__totalRankTime();
+				LOG.info("Total time spend ranking datasets: {}", totalRankTime);
 				LOG.info("Total datasets generated in schedule: {}", totalDatasets);
 				LOG.info("Total datasets spilled during schedule: {}", totalSpilledDatasets);
+				LOG.info("Total time assigning work: {}", this.__time_assignWork);
+				LOG.info("Total time post completion work: {}", this.__time_assignWork);
+				long freeingTime = tracker.getClusterDatasetRegistry().totalTimeFreeingDatasets();
+				LOG.info("Total time freeing datasets: {}", freeingTime);
 				LOG.info("Ratio hit/miss: {}", ratioMemory);
 				LOG.info("Ratio memAccessedData/diskAccessedData: {}", ratioMemVSDiskAccessedData);
 				LOG.info("Historic mem utilization: {}", memUtilization);
@@ -116,7 +129,10 @@ public class SchedulerEngineWorker implements Runnable {
 			Stage nextStage = schedulingStrategy.next(tracker, rEvents);
 			
 			// TODO: (parallel sched) make this receive a list of stages
+			long start = System.nanoTime();
 			List<CommandToNode> schedCommands = loadBalancingStrategy.assignWorkToWorkers(nextStage, inf, tracker);
+			long end = System.nanoTime();
+			this.__time_assignWork =__time_assignWork + (end - start); 
 			commands.addAll(schedCommands); // append scheduling commands to the commands necessary to send to the cluster
 			
 			// FIXME: avoid extracting conns here. They need to be extracted again immediately after
@@ -140,7 +156,10 @@ public class SchedulerEngineWorker implements Runnable {
 			tracker.waitForFinishedStageAndCompleteBookeeping(nextStage);
 			
 			// Call the post processing event
+			start = System.nanoTime();
 			List<Command> postCommands = schedulingStrategy.postCompletion(nextStage, tracker);
+			end = System.nanoTime();
+			this.__time_postCompletion =__time_postCompletion + (end - start); 
 			
 			long stageFinish = System.nanoTime();
 			long totalStageTime = stageFinish - stageStart;
@@ -190,7 +209,7 @@ public class SchedulerEngineWorker implements Runnable {
 			return;
 		}
 		// Get input type from first operator
-		int srcOpId = s.getWrappedOperators().getLast();
+		int srcOpId = s.getWrappedOperators().getFirst();
 		LogicalOperator src = sd.getOperatorWithId(srcOpId);
 		Set<DataReference> refs = new HashSet<>();
 		

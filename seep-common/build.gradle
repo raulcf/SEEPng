@@ -1,3 +1,13 @@
 
 dependencies {
 }
+
+apply plugin: 'maven'
+
+install {
+    repositories.mavenInstaller {
+        pom.version = '1.0'
+        pom.artifactId = 'seep-common'
+        pom.groupId = 'uk.ac.imperial.lsds.seepng'
+    }
+}

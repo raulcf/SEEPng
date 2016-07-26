@@ -19,7 +19,7 @@ import uk.ac.imperial.lsds.seepmaster.scheduler.ScheduleTracker;
 
 public class MDFSchedulingStrategy implements SchedulingStrategy {
 
-	private Map<Integer, List<Object>> evaluatedResults = new HashMap<>();
+	private Map<Integer, Map<Integer, List<Object>>> evaluatedResultsPerChooseStage = new HashMap<>();
 	
 	private Set<Integer> chooseCandidates = new HashSet<>();
 	
@@ -51,7 +51,7 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			tracker.setFinished(nextToSchedule, chosenResultsOfStage);
 			
 			// Reset CHOOSE structures to support next potential choose
-			evaluatedResults = new HashMap<>();
+			evaluatedResultsPerChooseStage = new HashMap<>();
 			chooseCandidates = new HashSet<>();
 			
 			// Call recursively to next so that we give worker a stage to schedule
@@ -101,7 +101,8 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 		Map<Integer, List<RuntimeEvent>> rEvents = tracker.getRuntimeEventsOfLastStageExecution();
 		// STORE EVALUATED RESULTS FOR CURRENT STAGE
 		if( ! finishedStage.getDependants().isEmpty()) {
-			if(finishedStage.getDependants().iterator().next().getStageType() == StageType.CHOOSE_STAGE) {
+			StageType st = finishedStage.getDependants().iterator().next().getStageType();
+			if(st == StageType.CHOOSE_STAGE) {
 				Stage chooseStage = finishedStage.getDependants().iterator().next();
 				int seepChooseTaskId = chooseStage.getWrappedOperators().iterator().next();
 				SeepChooseTask sct = (SeepChooseTask) tracker.getScheduleDescription().getOperatorWithId(seepChooseTaskId).getSeepTask();
@@ -115,7 +116,9 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 						}
 					}
 				}
-				evaluatedResults.put(finishedStage.getStageId(), evalResult);
+				put(seepChooseTaskId, finishedStage.getStageId(), evalResult, evaluatedResultsPerChooseStage);
+				//evaluatedResults.put(finishedStage.getStageId(), evalResult);
+				Map<Integer, List<Object>> evaluatedResults =  evaluatedResultsPerChooseStage.get(seepChooseTaskId);
 				// Evaluate choose and get list of stages whose values are still useful
 				this.chooseCandidates = sct.choose(evaluatedResults);
 				
@@ -136,6 +139,13 @@ public class MDFSchedulingStrategy implements SchedulingStrategy {
 			}
 		}
 		return commands;
+	}
+	
+	private void put(int chooseStageId, int finishedStageId, List<Object> evalResultsOfThisStage, Map<Integer, Map<Integer, List<Object>>> evalResultsPerChooseStage) {
+		if(! evalResultsPerChooseStage.containsKey(chooseStageId)) {
+			evalResultsPerChooseStage.put(chooseStageId, new HashMap<>());
+		}
+		evalResultsPerChooseStage.get(chooseStageId).put(finishedStageId, evalResultsOfThisStage);
 	}
 
 }

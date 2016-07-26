@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
@@ -640,18 +642,17 @@ public class Dataset implements IBuffer, OBuffer {
 		return true;
 	}
 	
-	private void transferBBToDisk() {
-		BufferedOutputStream bos = null;
+	private void _transferBBToDisk() {
+		WritableByteChannel bc = null;
 		try {
 			// Open file to append buffer
-			bos = new BufferedOutputStream(new FileOutputStream(cacheFileName, true), bufferPool.getMinimumBufferSize());
+			bc = Channels.newChannel(new FileOutputStream(cacheFileName, true));
+			
 			int limit = wPtrToBuffer.limit();
-			byte[] payload = wPtrToBuffer.array();
-			bos.write(limit);
-			bos.write(payload);
-			bos.flush();
-			bos.close();
-//			bufferPool.returnBuffer(wPtrToBuffer);
+			ByteBuffer limitInt = ByteBuffer.allocate(Integer.BYTES).putInt(limit);
+			bc.write(limitInt);
+			bc.write(wPtrToBuffer);
+			bc.close();
 		}
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -659,6 +660,28 @@ public class Dataset implements IBuffer, OBuffer {
 		} 
 		catch (IOException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void transferBBToDisk() {
+		BufferedOutputStream bos = null;
+		try {
+			// Open file to append buffer
+			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
+			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
+			int limit = wPtrToBuffer.limit();
+			byte[] payload = wPtrToBuffer.array();
+			bos.write(limit);
+			bos.write(payload);
+			bos.flush();
+			fos.getFD().sync();
+			bos.close();
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

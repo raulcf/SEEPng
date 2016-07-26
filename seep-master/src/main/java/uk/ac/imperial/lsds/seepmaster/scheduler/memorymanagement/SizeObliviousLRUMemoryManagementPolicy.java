@@ -25,12 +25,17 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 	
 	private int maxTimestamp = 0;
 	
+	// Metrics
+	private long __totalUpdateTime = 0;
+	private long __totalRankTime = 0;
+	
 	public SizeObliviousLRUMemoryManagementPolicy() {
 		euId_lru = new HashMap<>();
 	}
 	
 	@Override
 	public void updateDatasetsForNode(int euId, DatasetMetadataPackage datasetsMetadata, int stageId) {
+		long start = System.currentTimeMillis();
 		Set<DatasetMetadata> usedDatasets = datasetsMetadata.usedDatasets;
 		Set<DatasetMetadata> allDatasets = datasetsMetadata.oldDatasets;
 		allDatasets.addAll(datasetsMetadata.newDatasets);
@@ -39,6 +44,8 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 			int datasetId = datasetMetadata.getDatasetId();
 			touchDataset(euId, datasetId);
 		}
+		long end = System.currentTimeMillis();
+		this.__totalUpdateTime = this.__totalUpdateTime + (end - start);
 	}
 	
 	private void registerDatasets(int euId, Set<DatasetMetadata> allDatasets) {
@@ -78,6 +85,7 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 
 	@Override
 	public List<Integer> rankDatasetsForNode(int euId, Set<Integer> datasetIds) {
+		long start = System.currentTimeMillis();
 		List<Integer> rankedDatasets = new ArrayList<>();
 		if(! euId_lru.containsKey(euId)) {
 			return rankedDatasets;
@@ -100,6 +108,8 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 		for(Integer key : sorted.keySet()) {
 			rankedDatasets.add(key);
 		}
+		long end = System.currentTimeMillis();
+		this.__totalRankTime = this.__totalRankTime + (end - start);
 		return rankedDatasets;
 	}
 	
@@ -128,6 +138,16 @@ public class SizeObliviousLRUMemoryManagementPolicy implements MemoryManagementP
 		Stream <Entry<Integer, Integer>> st = map.entrySet().stream();
 		st.sorted(Comparator.comparing(e -> e.getValue())).forEachOrdered(e -> result.put(e.getKey(),e.getValue()));
 		return result;
+	}
+
+	@Override
+	public long __totalUpdateTime() {
+		return this.__totalUpdateTime;
+	}
+
+	@Override
+	public long __totalRankTime() {
+		return this.__totalRankTime;
 	}
 
 }

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
 
-import sun.misc.Unsafe;
 import uk.ac.imperial.lsds.seep.metrics.SeepMetrics;
 import uk.ac.imperial.lsds.seepworker.WorkerConfig;
 
@@ -29,6 +28,8 @@ public class BufferPool {
 	// released immediately. However, effectively, the total memory available would be
 	// the total_memory_available - usedMemory
 	final private Counter usedMemory;
+	//keep track of all memory which was allocated for better bounds checking.
+	final private Counter allocatedMemory;
 	
 	public static BufferPool __TEMPORAL_FAKE() {
 		return new BufferPool(-666);
@@ -40,6 +41,7 @@ public class BufferPool {
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		LOG.warn("TEMPORAL-> dangling buffer pools");
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "total", "mem"));
+		allocatedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "allocated", "mem"));
 		preAllocatePoolOfBuffers();
 	}
 	
@@ -48,6 +50,7 @@ public class BufferPool {
 		this.totalMemAvailableToBufferPool = wc.getLong(WorkerConfig.BUFFERPOOL_MAX_MEM_AVAILABLE);
 		this.allocatedBuffers = new ArrayDeque<ByteBuffer>();
 		usedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "event", "mem"));
+		allocatedMemory = SeepMetrics.REG.counter(name(BufferPool.class, "allocated", "mem"));
 		preAllocatePoolOfBuffers();
 		LOG.info("Created new Buffer Pool with availableMemory of {} and minBufferSize of: {}", this.totalMemAvailableToBufferPool, this.minBufferSize);
 	}
@@ -70,11 +73,13 @@ public class BufferPool {
 		if(allocatedBuffers.size() > 0) {
 			ByteBuffer bb = allocatedBuffers.pop();
 			bb.clear();
+			allocatedMemory.inc(minBufferSize);
 			usedMemory.inc(minBufferSize);
 			return bb;
 		}
 		else {
 			if(enoughMemoryAvailable()){
+				allocatedMemory.inc(minBufferSize);
 				usedMemory.inc(minBufferSize);
 				return allocateByteBuffer();
 			}
@@ -102,7 +107,7 @@ public class BufferPool {
 	
 	private boolean enoughMemoryAvailable() {
 		// Any headroom should have been incorporated on bufferPool creation (e.g. aprox. constant mem usage on steady state)
-		if(usedMemory.getCount() + minBufferSize > totalMemAvailableToBufferPool) {
+		if(allocatedMemory.getCount() + minBufferSize > totalMemAvailableToBufferPool) {
 			return false;
 		}
 		return true;
@@ -123,7 +128,9 @@ public class BufferPool {
 	
 	private void preAllocatePoolOfBuffers() {
 		LOG.info("Creating buffer pool... Pooling buffers");
-		while((allocatedBuffers.size() * this.minBufferSize) + this.minBufferSize < this.totalMemAvailableToBufferPool) {
+		while(allocatedMemory.getCount() + this.minBufferSize < this.totalMemAvailableToBufferPool) {
+			usedMemory.inc(minBufferSize);
+			allocatedMemory.inc(minBufferSize);
 			ByteBuffer n = this.allocateByteBuffer();
 			this.returnBuffer(n);
 		}
