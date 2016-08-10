@@ -221,6 +221,18 @@ public class Conductor {
 
 		SeepState state = null;
 		
+		for(Set<DataReference> inputdrset : input.values()) {
+			for (DataReference inputdr : inputdrset) {
+				LOG.info("Stage {} input Dataset {}", stageId, inputdr.getId());
+			}
+		}
+		
+		for(Set<DataReference> outputdrset : output.values()) {
+			for (DataReference outputdr : outputdrset) {
+				LOG.info("Stage {} output Dataset {}", stageId, outputdr.getId());
+			}
+		}
+		
 		// probably pass to the callback here all info to talk with master
 		ProcessingEngine engine = ProcessingEngineFactory.buildComposedTaskProcessingEngine(wc, 
 				s.getStageId(), task, state, coreInput, 

@@ -114,9 +114,13 @@ public class DataReferenceManager {
 		for(Integer dId : datasets.keySet()) {
 			if(! rankedDatasets.contains(dId)) {
 				// Eliminate dataset
+				LOG.info("Marked Dataset for removal: {}", dId);
 				totalFreedMemory = totalFreedMemory + datasets.get(dId).freeDataset();
 				toRemove.add(dId);
 			}
+		}
+		for (int index = 0; index < rankedDatasets.size(); index++) {
+			LOG.info("Dataset {} ranked {}, is in mem? {}", rankedDatasets.get(index), index, datasetIsInMem(rankedDatasets.get(index)));
 		}
 		for(Integer tr : toRemove){
 			datasets.remove(tr);
@@ -357,14 +361,15 @@ public class DataReferenceManager {
 		return synthetic;
 	}
 	
-	public List<Integer> spillDatasetsToDisk(int datasetId) {
+	public List<Integer> spillDatasetsToDisk(Integer datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
 		List<Integer> spilledDatasets = new ArrayList<>();
 		
 		try {
 			if(rankedDatasets == null) {
-				sendDatasetToDisk(datasetId);
-				spilledDatasets.add(datasetId);
+				if (datasetId != null) {
+					sendDatasetToDisk(datasetId);
+				}
 			}
 			else {
 				List<Integer> candidatesToSpill = new ArrayList<>();
@@ -376,9 +381,14 @@ public class DataReferenceManager {
 						candidatesToSpill.add(i);
 						sendDatasetToDisk(i);
 						spilledDatasets.add(i);
-						candidate.freeDataset();
+						if (candidate.freeDataset() > 0) {
+							return spilledDatasets;
+						}
 					}
 				}
+			}
+			if (datasetId != null) {
+				sendDatasetToDisk(datasetId);
 			}
 		}
 		catch (IOException io) {
