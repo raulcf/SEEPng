@@ -154,6 +154,7 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 			int newAccesses = currentAccesses - 1;
 			stageid_currentAccesses.put(uid, newAccesses);
 		}
+		euid_stageid_currentAccesses.put(euId,  stageid_currentAccesses);
 	}
 	
 	private double computeRecomputeCostFor(int stageId) {
