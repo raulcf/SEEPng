@@ -64,6 +64,7 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		for (DatasetMetadata dm : datasetsMetadata.newDatasets) {
 			if (!dataset_expected_count.containsKey(dm.getDatasetId())) {
 				dataset_expected_count.put(dm.getDatasetId(), stageid_accesses.get(stageId));
+				//System.out.println("Stage " + stageId + ", dataset " + dm.getDatasetId() + ", accesses " + stageid_accesses.get(stageId));
 			}
 		}
 		
