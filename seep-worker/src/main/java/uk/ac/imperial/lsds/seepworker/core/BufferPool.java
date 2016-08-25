@@ -73,7 +73,7 @@ public class BufferPool {
 		if(allocatedBuffers.size() > 0) {
 			ByteBuffer bb = allocatedBuffers.pop();
 			bb.clear();
-			allocatedMemory.inc(minBufferSize);
+			//allocatedMemory.inc(minBufferSize);
 			usedMemory.inc(minBufferSize);
 			return bb;
 		}

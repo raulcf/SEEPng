@@ -241,7 +241,11 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		if(this.wPtrToBuffer != null) {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(wPtrToBuffer);
+			this.wPtrToBuffer = null;
 		}
+		/*if(this.rPtrToBuffer != null) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(rPtrToBuffer);
+		}*/
 		
 		return totalFreedMemory;
 	}
@@ -260,9 +264,13 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
-			String name = drm.createDatasetOnDisk(id);
-			this.setCachedLocation(name);
-			bb = bufferPool.getCacheBuffer();
+			if (drm.spillDatasetsToDisk(null).size() == 0) {
+				String name = drm.createDatasetOnDisk(id);
+				this.setCachedLocation(name);
+				bb = bufferPool.getCacheBuffer();
+			} else {
+				bb = obtainInitialNewWPtrBuffer();
+			}
 		}
 		return bb;
 	}
@@ -272,8 +280,12 @@ public class Dataset implements IBuffer, OBuffer {
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
 			try {
-				drm.sendDatasetToDisk(id);
-				bb = bufferPool.getCacheBuffer();
+				if (drm.spillDatasetsToDisk(id).size() == 0) {
+					drm.sendDatasetToDisk(id);
+					bb = bufferPool.getCacheBuffer();
+				} else {
+					bb = obtainNewWPtrBuffer();
+				}
 			} 
 			catch (IOException e) {
 				e.printStackTrace();
@@ -425,9 +437,11 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 			t.assignBuffer(rPtrToBuffer);
 		}
-		int size = rPtrToBuffer.getInt();
-		int currentPosition = rPtrToBuffer.position();
-		t.setBufferPtr(currentPosition);
+		if (rPtrToBuffer.hasRemaining()) {
+			int size = rPtrToBuffer.getInt();
+			int currentPosition = rPtrToBuffer.position();
+			t.setBufferPtr(currentPosition);
+		}
 		return t;
 	}
 			
