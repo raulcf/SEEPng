@@ -241,7 +241,11 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		if(this.wPtrToBuffer != null) {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(wPtrToBuffer);
+			this.wPtrToBuffer = null;
 		}
+		/*if(this.rPtrToBuffer != null) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(rPtrToBuffer);
+		}*/
 		
 		return totalFreedMemory;
 	}
@@ -433,9 +437,11 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 			t.assignBuffer(rPtrToBuffer);
 		}
-		int size = rPtrToBuffer.getInt();
-		int currentPosition = rPtrToBuffer.position();
-		t.setBufferPtr(currentPosition);
+		if (rPtrToBuffer.hasRemaining()) {
+			int size = rPtrToBuffer.getInt();
+			int currentPosition = rPtrToBuffer.position();
+			t.setBufferPtr(currentPosition);
+		}
 		return t;
 	}
 			
