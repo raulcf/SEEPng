@@ -49,7 +49,6 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 	@Override
 	public void updateDatasetsForNode(int euId, DatasetMetadataPackage datasetsMetadata, int stageId) {
 		long start = System.currentTimeMillis();
-		System.out.println("***" + euId + ":" + stageId);
 		if(! euId_mdf.containsKey(euId)) {
 			euId_mdf.put(euId, new HashMap<Integer, Double>());
 		}

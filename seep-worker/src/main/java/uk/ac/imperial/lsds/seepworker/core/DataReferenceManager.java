@@ -143,7 +143,7 @@ public class DataReferenceManager {
 			long estimatedCreationCost = d.creationCost();
 			int diskAccess = d.getDiskAccess();
 			if(diskAccess != 0) {
-				System.out.println();
+				System.out.println("DISK ACCESS");
 			}
 			int memAccess = d.getMemAccess();
 			DatasetMetadata dm = new DatasetMetadata(id, size, inMem, estimatedCreationCost, diskAccess, memAccess);
@@ -308,12 +308,13 @@ public class DataReferenceManager {
 		
 		// Filling dataset with data (may or may not spill to disk)
 		long numTuples = sizeOfDataToGenerate / tupleSizeWithOverhead;
+		System.out.println("TUPLENUM: " + numTuples);
 		int totalWritten = 0;
 		OTuple o = new OTuple(s);
 		for (int i = 0; i < numTuples; i++) {
 //			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
 //			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
-			o.setValues(s.randomValues());
+			o.setValues(s.defaultValues());//s.randomValues());
 			totalWritten += o.getTupleSize() + TupleInfo.TUPLE_SIZE_OVERHEAD;
 			d.write(o, null);
 //			d.write(srcData, null);

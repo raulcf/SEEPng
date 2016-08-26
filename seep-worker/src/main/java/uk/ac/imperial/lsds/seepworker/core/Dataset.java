@@ -51,6 +51,8 @@ public class Dataset implements IBuffer, OBuffer {
 	private int diskAccess;
 	private int memAccess;
 	
+	private byte[] readInt = new byte[Integer.BYTES];
+	
 	public static Dataset newDatasetOnDisk(DataReference dataRef,
 			BufferPool bufferPool, DataReferenceManager drm) {
 		return new Dataset(dataRef, bufferPool, drm, true);
@@ -352,13 +354,11 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
+					int limit = is.read(readInt);
 					if(limit == -1) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
@@ -379,6 +379,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[Math.min(bufferPool.getMinimumBufferSize(), ByteBuffer.wrap(readInt).getInt())];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -399,7 +400,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -408,7 +409,8 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
+							System.out.println("aaaa"+cacheFilePosition);
 							is.close();
 						}
 					} // else
@@ -481,13 +483,11 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
+					int limit = is.read(readInt);
 					if(limit == -1) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
@@ -509,6 +509,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[Math.min(bufferPool.getMinimumBufferSize(), ByteBuffer.wrap(readInt).getInt())];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -530,7 +531,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -539,7 +540,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
 							is.close();
 						}
 					} // else

@@ -117,8 +117,8 @@ public class DiskCacher {
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
 			byte[] payload = bb.array();
-			int limit = bb.limit();
-			bos.write(limit);
+			//Integer limit = bb.limit();
+			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(bb.limit()).array());
 			bos.write(payload, 0, payload.length);
 		}
 		
