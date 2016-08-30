@@ -114,13 +114,16 @@ public class DiskCacher {
 		
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
+		byte[] payload = new byte[wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE)];
 		
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
+			if (payload.length != bb.limit() - bb.arrayOffset()) {
+				payload = new byte[bb.limit() - bb.arrayOffset()];
+			}
 			//byte[] payload = bb.array();
-			byte[] payload = Arrays.copyOfRange(bb.array(), bb.arrayOffset(), bb.limit());
-			//Integer limit = bb.limit();
-			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(bb.limit()).array());
+			bb.get(payload, bb.arrayOffset(), bb.remaining());
+			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
 			bos.write(payload, 0, payload.length);
 		}
 		
