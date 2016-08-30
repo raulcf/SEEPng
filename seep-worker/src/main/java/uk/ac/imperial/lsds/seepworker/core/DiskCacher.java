@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -116,7 +117,8 @@ public class DiskCacher {
 		
 		while(buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
-			byte[] payload = bb.array();
+			//byte[] payload = bb.array();
+			byte[] payload = Arrays.copyOfRange(bb.array(), bb.arrayOffset(), bb.limit());
 			//Integer limit = bb.limit();
 			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(bb.limit()).array());
 			bos.write(payload, 0, payload.length);

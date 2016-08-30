@@ -11,6 +11,7 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -410,7 +411,6 @@ public class Dataset implements IBuffer, OBuffer {
 								System.out.println("H");
 							}
 							cacheFilePosition = is.getChannel().position(); // 4 limit size
-							System.out.println("aaaa"+cacheFilePosition);
 							is.close();
 						}
 					} // else
@@ -642,7 +642,8 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -685,9 +686,8 @@ public class Dataset implements IBuffer, OBuffer {
 			// Open file to append buffer
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
-			int limit = wPtrToBuffer.limit();
-			byte[] payload = wPtrToBuffer.array();
-			bos.write(limit);
+			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
+			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(wPtrToBuffer.limit()).array());
 			bos.write(payload);
 			bos.flush();
 			fos.getFD().sync();
