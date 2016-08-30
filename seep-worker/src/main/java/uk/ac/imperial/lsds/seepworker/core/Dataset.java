@@ -615,7 +615,8 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -662,6 +663,7 @@ public class Dataset implements IBuffer, OBuffer {
 		WritableByteChannel bc = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			bc = Channels.newChannel(new FileOutputStream(cacheFileName, true));
 			
 			int limit = wPtrToBuffer.limit();
@@ -684,6 +686,7 @@ public class Dataset implements IBuffer, OBuffer {
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
 			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
