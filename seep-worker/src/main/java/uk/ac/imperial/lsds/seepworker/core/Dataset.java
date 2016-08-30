@@ -687,7 +687,7 @@ public class Dataset implements IBuffer, OBuffer {
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
 			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
-			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(wPtrToBuffer.limit()).array());
+			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
 			bos.write(payload);
 			bos.flush();
 			fos.getFD().sync();
