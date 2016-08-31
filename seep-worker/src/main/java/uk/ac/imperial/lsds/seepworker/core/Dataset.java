@@ -152,7 +152,7 @@ public class Dataset implements IBuffer, OBuffer {
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
 		}
-		freedMemory += wPtrToBuffer.remaining();
+		freedMemory += wPtrToBuffer.position();
 		transferBBToDisk();
 		wPtrToBuffer.clear();
 		return freedMemory;
