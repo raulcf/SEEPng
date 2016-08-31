@@ -126,15 +126,15 @@ public class DiskCacher {
 			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
 			bos.write(payload, 0, payload.length);
 		}
+		bos.flush();
+		fos.getFD().sync();
+		bos.close();
+		data.setCachedLocation(cacheFileName);
 		
 		// close
 		int freedMemory = data.completeTransferToDisk();
 		
-		bos.flush();
-		fos.getFD().sync();
-		bos.close();
 		
-		data.setCachedLocation(cacheFileName);
 		LOG.debug("Content is spilled to: {}", cacheFileName);
 		
 		return freedMemory;

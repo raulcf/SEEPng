@@ -152,6 +152,9 @@ public class Dataset implements IBuffer, OBuffer {
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
 		}
+		freedMemory += wPtrToBuffer.remaining();
+		transferBBToDisk();
+		wPtrToBuffer.clear();
 		return freedMemory;
 	}
 	
@@ -360,7 +363,8 @@ public class Dataset implements IBuffer, OBuffer {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
 					int limit = is.read(readInt);
-					if(limit == -1) {
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -380,7 +384,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
-						byte[] d = new byte[Math.min(bufferPool.getMinimumBufferSize(), ByteBuffer.wrap(readInt).getInt())];
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -488,7 +492,8 @@ public class Dataset implements IBuffer, OBuffer {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
 					int limit = is.read(readInt);
-					if(limit == -1) {
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -509,7 +514,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
-						byte[] d = new byte[Math.min(bufferPool.getMinimumBufferSize(), ByteBuffer.wrap(readInt).getInt())];
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -690,7 +695,7 @@ public class Dataset implements IBuffer, OBuffer {
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
 			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
-			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
+			bos.write(ByteBuffer.wrap(readInt).putInt(payload.length).array());
 			bos.write(payload);
 			bos.flush();
 			fos.getFD().sync();
