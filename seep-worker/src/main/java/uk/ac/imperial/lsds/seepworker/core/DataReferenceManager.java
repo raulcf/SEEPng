@@ -313,7 +313,7 @@ public class DataReferenceManager {
 		for (int i = 0; i < numTuples; i++) {
 //			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
 //			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
-			o.setValues(s.randomValues());
+			o.setValues(s.defaultValues());//s.randomValues());
 			totalWritten += o.getTupleSize() + TupleInfo.TUPLE_SIZE_OVERHEAD;
 			d.write(o, null);
 //			d.write(srcData, null);

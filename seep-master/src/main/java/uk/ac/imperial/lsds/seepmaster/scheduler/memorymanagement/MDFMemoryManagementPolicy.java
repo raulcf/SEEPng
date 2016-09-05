@@ -80,7 +80,9 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 				if (euId_mdf.get(euId).containsKey(dm.getDatasetId())) {
 					euId_mdf.get(euId).put(dm.getDatasetId(), euId_mdf.get(euId).get(dm.getDatasetId())*(decrement));
 				} else {
-					System.out.println("DATASET " + dm.getDatasetId() + " NOT CONTAINED");
+					//Source dataset. This will mark it for removal immediately, which only works because all 
+					// workers run their first stages in parallel.
+					dataset_expected_count.put(dm.getDatasetId(), 1);
 				}
 				dataset_access_count.put(dm.getDatasetId(), dataset_access_count.get(dm.getDatasetId())+1);
 			} else {
@@ -185,7 +187,7 @@ public class MDFMemoryManagementPolicy implements MemoryManagementPolicy {
 		
 		// Check those datasets that must be evicted
 		for(Integer e : dataset_access_count.keySet()) {
-			if (dataset_access_count.get(e) == dataset_expected_count.get(e)) {
+			if (dataset_access_count.get(e) >= dataset_expected_count.get(e)) {
 				toEvict.add(e);
 			}
 		}

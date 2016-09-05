@@ -11,6 +11,7 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,6 +51,8 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	private int diskAccess;
 	private int memAccess;
+	
+	private byte[] readInt = new byte[Integer.BYTES];
 	
 	public static Dataset newDatasetOnDisk(DataReference dataRef,
 			BufferPool bufferPool, DataReferenceManager drm) {
@@ -148,6 +151,11 @@ public class Dataset implements IBuffer, OBuffer {
 			ByteBuffer bb = readerIterator.next();
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
+		}
+		if (wPtrToBuffer != null && wPtrToBuffer.position() > 0) {
+			freedMemory += wPtrToBuffer.position();
+			transferBBToDisk();
+			wPtrToBuffer.clear();
 		}
 		return freedMemory;
 	}
@@ -352,14 +360,13 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
-					if(limit == -1) {
+					int limit = is.read(readInt);
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -379,6 +386,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -399,7 +407,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -408,7 +416,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
 							is.close();
 						}
 					} // else
@@ -481,14 +489,13 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
-					if(limit == -1) {
+					int limit = is.read(readInt);
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -509,6 +516,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -530,7 +538,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -539,7 +547,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
 							is.close();
 						}
 					} // else
@@ -614,7 +622,8 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -641,7 +650,8 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
+				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -660,6 +670,7 @@ public class Dataset implements IBuffer, OBuffer {
 		WritableByteChannel bc = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			bc = Channels.newChannel(new FileOutputStream(cacheFileName, true));
 			
 			int limit = wPtrToBuffer.limit();
@@ -682,11 +693,11 @@ public class Dataset implements IBuffer, OBuffer {
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
-			int limit = wPtrToBuffer.limit();
-			byte[] payload = wPtrToBuffer.array();
-			bos.write(limit);
+			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
+			bos.write(ByteBuffer.wrap(readInt).putInt(payload.length).array());
 			bos.write(payload);
 			bos.flush();
 			fos.getFD().sync();
