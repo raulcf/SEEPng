@@ -249,10 +249,11 @@ public class DataReferenceManager {
 		return name;
 	}
 	
-	public void sendDatasetToDisk(int datasetId) throws IOException {
+	public int sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
 		int freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
 		LOG.info("Cached to disk, id -> {}, freedMemory -> {}", datasetId, freedMemory);
+		return freedMemory;
 	}
 	
 	public void retrieveDatasetFromDisk(int datasetId) {
@@ -361,34 +362,30 @@ public class DataReferenceManager {
 		return synthetic;
 	}
 	
-	public List<Integer> spillDatasetsToDisk(Integer datasetId) {
+	public int spillDatasetsToDisk(Integer datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
-		List<Integer> spilledDatasets = new ArrayList<>();
+		int freedMemory = 0;
 		
 		try {
 			if(rankedDatasets == null) {
 				if (datasetId != null) {
-					sendDatasetToDisk(datasetId);
+					freedMemory = sendDatasetToDisk(datasetId);
 				}
 			}
 			else {
-				List<Integer> candidatesToSpill = new ArrayList<>();
 				for(Integer i : rankedDatasets) { 
 					// We find the first dataset in the list that is in memory and send it to disk
 					// TODO: is one enough? how to know?
 					if(this.datasetIsInMem(i)) {
-						Dataset candidate = datasets.get(i);
-						candidatesToSpill.add(i);
-						sendDatasetToDisk(i);
-						spilledDatasets.add(i);
-						if (candidate.freeDataset() > 0) {
-							return spilledDatasets;
+						freedMemory = sendDatasetToDisk(i);
+						if (freedMemory > 0) {
+							return freedMemory;
 						}
 					}
 				}
 			}
 			if (datasetId != null) {
-				sendDatasetToDisk(datasetId);
+				freedMemory = sendDatasetToDisk(datasetId);
 			}
 		}
 		catch (IOException io) {
@@ -396,7 +393,7 @@ public class DataReferenceManager {
 			io.printStackTrace();
 		}
 		
-		return spilledDatasets;
+		return freedMemory;
 	}
 	
 	public void printCatalogue() {

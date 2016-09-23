@@ -120,10 +120,6 @@ public class Dataset implements IBuffer, OBuffer {
 	 * @return
 	 */
 	public Iterator<ByteBuffer> prepareForTransferToDisk() {
-		if(!(this.buffers.size() > 0)) {
-			System.out.println("NO DATA TO SPILL");
-			System.exit(-1);
-		}
 		readerIterator = this.buffers.iterator();
 		return readerIterator;
 	}
@@ -139,23 +135,21 @@ public class Dataset implements IBuffer, OBuffer {
 	 * @return
 	 */
 	public int completeTransferToDisk() {
-		if(!(this.buffers.size() > 0)) {
-			System.out.println("NO DATA TO SPILL");
-			System.exit(-1);
-		}
-		
 		readerIterator = this.buffers.iterator();
 		
 		int freedMemory = 0;
-		while(readerIterator.hasNext()) {
+		while(readerIterator != null && readerIterator.hasNext()) {
 			ByteBuffer bb = readerIterator.next();
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
 		}
-		if (wPtrToBuffer != null && wPtrToBuffer.position() > 0) {
-			freedMemory += wPtrToBuffer.position();
-			transferBBToDisk();
-			wPtrToBuffer.clear();
+		if (wPtrToBuffer != null) {
+			if (wPtrToBuffer.position() > 0) {
+				freedMemory += wPtrToBuffer.position();
+				transferBBToDisk();
+			} else {
+				wPtrToBuffer.clear();
+			}
 		}
 		return freedMemory;
 	}
@@ -272,7 +266,7 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
-			if (drm.spillDatasetsToDisk(null).size() == 0) {
+			if (drm.spillDatasetsToDisk(null) == 0) {
 				String name = drm.createDatasetOnDisk(id);
 				this.setCachedLocation(name);
 				bb = bufferPool.getCacheBuffer();
@@ -288,7 +282,7 @@ public class Dataset implements IBuffer, OBuffer {
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
 			try {
-				if (drm.spillDatasetsToDisk(id).size() == 0) {
+				if (drm.spillDatasetsToDisk(id) == 0) {
 					drm.sendDatasetToDisk(id);
 					bb = bufferPool.getCacheBuffer();
 				} else {
@@ -622,8 +616,6 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
-				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -650,8 +642,6 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				//this.wPtrToBuffer = bufferPool.getCacheBuffer();
-				this.wPtrToBuffer.clear();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -690,6 +680,9 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private void transferBBToDisk() {
+		if (wPtrToBuffer.position() == 0) {
+			return;
+		}
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
@@ -702,6 +695,8 @@ public class Dataset implements IBuffer, OBuffer {
 			bos.flush();
 			fos.getFD().sync();
 			bos.close();
+			fos.close();
+			wPtrToBuffer.clear();
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();

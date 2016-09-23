@@ -86,7 +86,7 @@ public class DiskCacher {
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
 		
-		while(buffers.hasNext()) {
+		while(buffers != null && buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
 			int limit = bb.limit();
 			ByteBuffer size = ByteBuffer.allocate(Integer.BYTES).putInt(limit);
@@ -107,21 +107,24 @@ public class DiskCacher {
 	
 	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = getCacheFileName(data.id());
+		if (filenames.containsKey(data.id())) {
+			return 0;
+		}
+		filenames.put(data.id(), cacheFileName);
 		
 		// Prepare channel
-		FileOutputStream fos = new FileOutputStream(cacheFileName);
+		FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 		BufferedOutputStream bos = new BufferedOutputStream(fos, wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
 		
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
 		byte[] payload = new byte[wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE)];
 		
-		while(buffers.hasNext()) {
+		while(buffers != null && buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
 			if (payload.length != bb.limit() - bb.arrayOffset()) {
 				payload = new byte[bb.limit() - bb.arrayOffset()];
 			}
-			//byte[] payload = bb.array();
 			bb.get(payload, bb.arrayOffset(), bb.remaining());
 			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
 			bos.write(payload, 0, payload.length);
@@ -129,6 +132,7 @@ public class DiskCacher {
 		bos.flush();
 		fos.getFD().sync();
 		bos.close();
+		fos.close();
 		data.setCachedLocation(cacheFileName);
 		
 		// close
