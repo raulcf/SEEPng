@@ -282,7 +282,7 @@ public class Dataset implements IBuffer, OBuffer {
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
 			try {
-				if (drm.spillDatasetsToDisk(id) == 0) { //.size() == 0) {
+				if (drm.spillDatasetsToDisk(id) == 0) {
 					drm.sendDatasetToDisk(id);
 					bb = bufferPool.getCacheBuffer();
 				} else {

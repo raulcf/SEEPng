@@ -362,10 +362,8 @@ public class DataReferenceManager {
 		return synthetic;
 	}
 	
-//	public List<Integer> spillDatasetsToDisk(Integer datasetId) {
 	public int spillDatasetsToDisk(Integer datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
-		//List<Integer> spilledDatasets = new ArrayList<>();
 		int freedMemory = 0;
 		
 		try {
@@ -375,16 +373,12 @@ public class DataReferenceManager {
 				}
 			}
 			else {
-				//List<Integer> candidatesToSpill = new ArrayList<>();
 				for(Integer i : rankedDatasets) { 
 					// We find the first dataset in the list that is in memory and send it to disk
 					// TODO: is one enough? how to know?
 					if(this.datasetIsInMem(i)) {
-						//Dataset candidate = datasets.get(i);
-						//candidatesToSpill.add(i);
 						freedMemory = sendDatasetToDisk(i);
-						//spilledDatasets.add(i);
-						if (freedMemory > 0) { //if (candidate.freeDataset() > 0) {
+						if (freedMemory > 0) {
 							return freedMemory;
 						}
 					}
