@@ -106,10 +106,10 @@ public class DiskCacher {
 	}
 	
 	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
-		String cacheFileName = getCacheFileName(data.id());
 		if (filenames.containsKey(data.id())) {
 			return 0;
 		}
+		String cacheFileName = getCacheFileName(data.id());
 		filenames.put(data.id(), cacheFileName);
 		
 		// Prepare channel
