@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class DiskCacher {
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
 		
-		while(buffers.hasNext()) {
+		while(buffers != null && buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
 			int limit = bb.limit();
 			ByteBuffer size = ByteBuffer.allocate(Integer.BYTES).putInt(limit);
@@ -105,31 +106,39 @@ public class DiskCacher {
 	}
 	
 	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+		if (filenames.containsKey(data.id())) {
+			return 0;
+		}
 		String cacheFileName = getCacheFileName(data.id());
+		filenames.put(data.id(), cacheFileName);
 		
 		// Prepare channel
-		FileOutputStream fos = new FileOutputStream(cacheFileName);
+		FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 		BufferedOutputStream bos = new BufferedOutputStream(fos, wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE));
 		
 		// Basically get buffers from Dataset and write them in chunks, and ordered to disk
 		Iterator<ByteBuffer> buffers = data.prepareForTransferToDisk();
+		byte[] payload = new byte[wc.getInt(WorkerConfig.BUFFERPOOL_MIN_BUFFER_SIZE)];
 		
-		while(buffers.hasNext()) {
+		while(buffers != null && buffers.hasNext()) {
 			ByteBuffer bb = buffers.next();
-			byte[] payload = bb.array();
-			int limit = bb.limit();
-			bos.write(limit);
+			if (payload.length != bb.limit() - bb.arrayOffset()) {
+				payload = new byte[bb.limit() - bb.arrayOffset()];
+			}
+			bb.get(payload, bb.arrayOffset(), bb.remaining());
+			bos.write(ByteBuffer.allocate(Integer.BYTES).putInt(payload.length).array());
 			bos.write(payload, 0, payload.length);
 		}
+		bos.flush();
+		fos.getFD().sync();
+		bos.close();
+		fos.close();
+		data.setCachedLocation(cacheFileName);
 		
 		// close
 		int freedMemory = data.completeTransferToDisk();
 		
-		bos.flush();
-		fos.getFD().sync();
-		bos.close();
 		
-		data.setCachedLocation(cacheFileName);
 		LOG.debug("Content is spilled to: {}", cacheFileName);
 		
 		return freedMemory;

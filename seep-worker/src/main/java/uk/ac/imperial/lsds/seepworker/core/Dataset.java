@@ -11,6 +11,7 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,6 +51,8 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	private int diskAccess;
 	private int memAccess;
+	
+	private byte[] readInt = new byte[Integer.BYTES];
 	
 	public static Dataset newDatasetOnDisk(DataReference dataRef,
 			BufferPool bufferPool, DataReferenceManager drm) {
@@ -117,10 +120,6 @@ public class Dataset implements IBuffer, OBuffer {
 	 * @return
 	 */
 	public Iterator<ByteBuffer> prepareForTransferToDisk() {
-		if(!(this.buffers.size() > 0)) {
-			System.out.println("NO DATA TO SPILL");
-			System.exit(-1);
-		}
 		readerIterator = this.buffers.iterator();
 		return readerIterator;
 	}
@@ -136,18 +135,21 @@ public class Dataset implements IBuffer, OBuffer {
 	 * @return
 	 */
 	public int completeTransferToDisk() {
-		if(!(this.buffers.size() > 0)) {
-			System.out.println("NO DATA TO SPILL");
-			System.exit(-1);
-		}
-		
 		readerIterator = this.buffers.iterator();
 		
 		int freedMemory = 0;
-		while(readerIterator.hasNext()) {
+		while(readerIterator != null && readerIterator.hasNext()) {
 			ByteBuffer bb = readerIterator.next();
 			freedMemory += bufferPool.returnBuffer(bb);
 			readerIterator.remove();
+		}
+		if (wPtrToBuffer != null) {
+			if (wPtrToBuffer.position() > 0) {
+				freedMemory += wPtrToBuffer.position();
+				transferBBToDisk();
+			} else {
+				wPtrToBuffer.clear();
+			}
 		}
 		return freedMemory;
 	}
@@ -241,7 +243,11 @@ public class Dataset implements IBuffer, OBuffer {
 		}
 		if(this.wPtrToBuffer != null) {
 			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(wPtrToBuffer);
+			this.wPtrToBuffer = null;
 		}
+		/*if(this.rPtrToBuffer != null) {
+			totalFreedMemory = totalFreedMemory + bufferPool.returnBuffer(rPtrToBuffer);
+		}*/
 		
 		return totalFreedMemory;
 	}
@@ -260,9 +266,13 @@ public class Dataset implements IBuffer, OBuffer {
 		
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
-			String name = drm.createDatasetOnDisk(id);
-			this.setCachedLocation(name);
-			bb = bufferPool.getCacheBuffer();
+			if (drm.spillDatasetsToDisk(null) == 0) {
+				String name = drm.createDatasetOnDisk(id);
+				this.setCachedLocation(name);
+				bb = bufferPool.getCacheBuffer();
+			} else {
+				bb = obtainInitialNewWPtrBuffer();
+			}
 		}
 		return bb;
 	}
@@ -272,8 +282,12 @@ public class Dataset implements IBuffer, OBuffer {
 		ByteBuffer bb = bufferPool.borrowBuffer();
 		if(bb == null) {
 			try {
-				drm.sendDatasetToDisk(id);
-				bb = bufferPool.getCacheBuffer();
+				if (drm.spillDatasetsToDisk(id) == 0) {
+					drm.sendDatasetToDisk(id);
+					bb = bufferPool.getCacheBuffer();
+				} else {
+					bb = obtainNewWPtrBuffer();
+				}
 			} 
 			catch (IOException e) {
 				e.printStackTrace();
@@ -340,14 +354,13 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
-					if(limit == -1) {
+					int limit = is.read(readInt);
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -367,6 +380,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -387,7 +401,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -396,7 +410,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
 							is.close();
 						}
 					} // else
@@ -425,9 +439,11 @@ public class Dataset implements IBuffer, OBuffer {
 			}
 			t.assignBuffer(rPtrToBuffer);
 		}
-		int size = rPtrToBuffer.getInt();
-		int currentPosition = rPtrToBuffer.position();
-		t.setBufferPtr(currentPosition);
+		if (rPtrToBuffer.hasRemaining()) {
+			int size = rPtrToBuffer.getInt();
+			int currentPosition = rPtrToBuffer.position();
+			t.setBufferPtr(currentPosition);
+		}
 		return t;
 	}
 			
@@ -467,14 +483,13 @@ public class Dataset implements IBuffer, OBuffer {
 			// DISK
 			else {
 				diskAccess++;
-				int minBufSize = bufferPool.getMinimumBufferSize();
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(cacheFileName);
 					is.getChannel().position(cacheFilePosition);
-					byte[] d = new byte[minBufSize];
-					int limit = is.read();
-					if(limit == -1) {
+					int limit = is.read(readInt);
+					int size = ByteBuffer.wrap(readInt).getInt();
+					if(limit == -1 || size == 0) {
 						// if the write buffer still contains data
 						if(wPtrToBuffer != null) {
 							if(wPtrToBuffer.position() != 0) {
@@ -495,6 +510,7 @@ public class Dataset implements IBuffer, OBuffer {
 						}
 					}
 					else {
+						byte[] d = new byte[size];
 						int read = is.read(d);
 						if(read == -1) {
 							// if the write buffer still contains data
@@ -516,7 +532,7 @@ public class Dataset implements IBuffer, OBuffer {
 								return null;
 							}
 						}
-						else if (read != minBufSize) {
+						else if (read != d.length) {
 							System.out.println("Problem reading smaller buffer chunk (Dataset.consumeData)");
 							System.exit(-1);
 						}
@@ -525,7 +541,7 @@ public class Dataset implements IBuffer, OBuffer {
 							if(rPtrToBuffer.limit() == 0) {
 								System.out.println("H");
 							}
-							cacheFilePosition += minBufSize + 1; // 4 limit size
+							cacheFilePosition = is.getChannel().position(); // 4 limit size
 							is.close();
 						}
 					} // else
@@ -600,7 +616,6 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -627,7 +642,6 @@ public class Dataset implements IBuffer, OBuffer {
 			// When buffer is full, then we check whether this dataset is in memory or not
 			if (!cacheFileName.equals("")) { // disk
 				transferBBToDisk();
-				this.wPtrToBuffer = bufferPool.getCacheBuffer();
 			}
 			else { // memory
 				wPtrToBuffer.flip();
@@ -646,6 +660,7 @@ public class Dataset implements IBuffer, OBuffer {
 		WritableByteChannel bc = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			bc = Channels.newChannel(new FileOutputStream(cacheFileName, true));
 			
 			int limit = wPtrToBuffer.limit();
@@ -665,18 +680,23 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private void transferBBToDisk() {
+		if (wPtrToBuffer.position() == 0) {
+			return;
+		}
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer
+			wPtrToBuffer.flip();
 			FileOutputStream fos = new FileOutputStream(cacheFileName, true);
 			bos = new BufferedOutputStream(fos, bufferPool.getMinimumBufferSize());
-			int limit = wPtrToBuffer.limit();
-			byte[] payload = wPtrToBuffer.array();
-			bos.write(limit);
+			byte[] payload = Arrays.copyOfRange(wPtrToBuffer.array(), wPtrToBuffer.arrayOffset(), wPtrToBuffer.limit());
+			bos.write(ByteBuffer.wrap(readInt).putInt(payload.length).array());
 			bos.write(payload);
 			bos.flush();
 			fos.getFD().sync();
 			bos.close();
+			fos.close();
+			wPtrToBuffer.clear();
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();

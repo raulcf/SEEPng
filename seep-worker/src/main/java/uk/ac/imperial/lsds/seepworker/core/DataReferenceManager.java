@@ -114,9 +114,13 @@ public class DataReferenceManager {
 		for(Integer dId : datasets.keySet()) {
 			if(! rankedDatasets.contains(dId)) {
 				// Eliminate dataset
+				LOG.info("Marked Dataset for removal: {}", dId);
 				totalFreedMemory = totalFreedMemory + datasets.get(dId).freeDataset();
 				toRemove.add(dId);
 			}
+		}
+		for (int index = 0; index < rankedDatasets.size(); index++) {
+			LOG.info("Dataset {} ranked {}, is in mem? {}", rankedDatasets.get(index), index, datasetIsInMem(rankedDatasets.get(index)));
 		}
 		for(Integer tr : toRemove){
 			datasets.remove(tr);
@@ -245,10 +249,11 @@ public class DataReferenceManager {
 		return name;
 	}
 	
-	public void sendDatasetToDisk(int datasetId) throws IOException {
+	public int sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
 		int freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
 		LOG.info("Cached to disk, id -> {}, freedMemory -> {}", datasetId, freedMemory);
+		return freedMemory;
 	}
 	
 	public void retrieveDatasetFromDisk(int datasetId) {
@@ -309,7 +314,7 @@ public class DataReferenceManager {
 		for (int i = 0; i < numTuples; i++) {
 //			byte[] srcData = OTuple.create(s, s.names(), s.randomValues());
 //			byte[] srcData = OTuple.createUnsafe(s.fields(), s.randomValues(), size);
-			o.setValues(s.randomValues());
+			o.setValues(s.defaultValues());//s.randomValues());
 			totalWritten += o.getTupleSize() + TupleInfo.TUPLE_SIZE_OVERHEAD;
 			d.write(o, null);
 //			d.write(srcData, null);
@@ -357,28 +362,30 @@ public class DataReferenceManager {
 		return synthetic;
 	}
 	
-	public List<Integer> spillDatasetsToDisk(int datasetId) {
+	public int spillDatasetsToDisk(Integer datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
-		List<Integer> spilledDatasets = new ArrayList<>();
+		int freedMemory = 0;
 		
 		try {
 			if(rankedDatasets == null) {
-				sendDatasetToDisk(datasetId);
-				spilledDatasets.add(datasetId);
+				if (datasetId != null) {
+					freedMemory = sendDatasetToDisk(datasetId);
+				}
 			}
 			else {
-				List<Integer> candidatesToSpill = new ArrayList<>();
 				for(Integer i : rankedDatasets) { 
 					// We find the first dataset in the list that is in memory and send it to disk
 					// TODO: is one enough? how to know?
 					if(this.datasetIsInMem(i)) {
-						Dataset candidate = datasets.get(i);
-						candidatesToSpill.add(i);
-						sendDatasetToDisk(i);
-						spilledDatasets.add(i);
-						candidate.freeDataset();
+						freedMemory = sendDatasetToDisk(i);
+						if (freedMemory > 0) {
+							return freedMemory;
+						}
 					}
 				}
+			}
+			if (datasetId != null) {
+				freedMemory = sendDatasetToDisk(datasetId);
 			}
 		}
 		catch (IOException io) {
@@ -386,7 +393,7 @@ public class DataReferenceManager {
 			io.printStackTrace();
 		}
 		
-		return spilledDatasets;
+		return freedMemory;
 	}
 	
 	public void printCatalogue() {
