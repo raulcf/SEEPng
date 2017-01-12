@@ -326,6 +326,9 @@ public class ScheduledQueryManager implements QueryManager, ScheduleManager {
 					if(uc.getUpstreamOperator().getSeepTask() instanceof SeepChooseTask) {
 						finishesStage = true;
 					}
+					if (isSource((SeepLogicalOperator) uc.getUpstreamOperator())) {
+						finishesStage = true;
+					}
 				}
 			}
 			

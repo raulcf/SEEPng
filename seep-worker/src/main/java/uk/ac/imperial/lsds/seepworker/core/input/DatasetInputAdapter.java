@@ -17,14 +17,15 @@ public class DatasetInputAdapter implements InputAdapter {
 	
 	private int streamId;
 	private Dataset dataset;
-	private ZCITuple iTuple;
-	
+	//private ZCITuple iTuple;
+	private ITuple iTuple;
+
 	public DatasetInputAdapter(WorkerConfig wc, int streamId, Dataset dataset) {
 		this.streamId = streamId;
 		this.dataset = dataset;
 		Schema expectedSchema = this.dataset.getSchemaForDataset();
-		//this.iTuple = new ITuple(expectedSchema);
-		this.iTuple = new ZCITuple(expectedSchema);
+		this.iTuple = new ITuple(expectedSchema);
+		//this.iTuple = new ZCITuple(expectedSchema);
 	}
 	
 	@Override
@@ -45,13 +46,13 @@ public class DatasetInputAdapter implements InputAdapter {
 	
 	@Override
 	public ITuple pullDataItem(int timeout) {
-		ITuple i = dataset.consumeData_zerocopy(iTuple);
-		return i;
-//		byte[] data = dataset.consumeData();
-//		if(data == null) return null;
-//		iTuple.setData(data);
-//		iTuple.setStreamId(streamId);
-//		return iTuple;
+//		ITuple i = dataset.consumeData_zerocopy(iTuple);
+//		return i;
+		byte[] data = dataset.consumeData();
+		if(data == null) return null;
+		iTuple.setData(data);
+		iTuple.setStreamId(streamId);
+		return iTuple;
 	}
 	
 	public ITuple _pullDataItem(int timeout) {
