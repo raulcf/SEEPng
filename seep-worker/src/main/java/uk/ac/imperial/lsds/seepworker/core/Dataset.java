@@ -134,10 +134,10 @@ public class Dataset implements IBuffer, OBuffer {
 	 * Call this method after moving a dataset buffers to disk
 	 * @return
 	 */
-	public int completeTransferToDisk() {
+	public long completeTransferToDisk() {
 		readerIterator = this.buffers.iterator();
 		
-		int freedMemory = 0;
+		long freedMemory = 0;
 		while(readerIterator != null && readerIterator.hasNext()) {
 			ByteBuffer bb = readerIterator.next();
 			freedMemory += bufferPool.returnBuffer(bb);
@@ -680,9 +680,9 @@ public class Dataset implements IBuffer, OBuffer {
 	}
 	
 	private void transferBBToDisk() {
-		if (wPtrToBuffer.position() == 0) {
+		/*if (wPtrToBuffer.position() == 0) {
 			return;
-		}
+		}*/
 		BufferedOutputStream bos = null;
 		try {
 			// Open file to append buffer

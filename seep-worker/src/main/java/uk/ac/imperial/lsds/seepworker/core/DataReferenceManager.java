@@ -249,9 +249,9 @@ public class DataReferenceManager {
 		return name;
 	}
 	
-	public int sendDatasetToDisk(int datasetId) throws IOException {
+	public long sendDatasetToDisk(int datasetId) throws IOException {
 		LOG.info("Caching Dataset to disk, id -> {}", datasetId);
-		int freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
+		long freedMemory = cacher.cacheToDisk(datasets.get(datasetId));
 		LOG.info("Cached to disk, id -> {}, freedMemory -> {}", datasetId, freedMemory);
 		return freedMemory;
 	}
@@ -362,9 +362,9 @@ public class DataReferenceManager {
 		return synthetic;
 	}
 	
-	public int spillDatasetsToDisk(Integer datasetId) {
+	public long spillDatasetsToDisk(Integer datasetId) {
 		LOG.info("Worker node runs out of memory while writing to dataset: {}", datasetId);
-		int freedMemory = 0;
+		long freedMemory = 0;
 		
 		try {
 			if(rankedDatasets == null) {

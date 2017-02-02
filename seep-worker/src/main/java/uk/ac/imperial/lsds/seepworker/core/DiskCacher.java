@@ -77,7 +77,7 @@ public class DiskCacher {
 		return cacheFileName;
 	}
 	
-	public int _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+	public long _cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		String cacheFileName = getCacheFileName(data.id());
 		
 		// Prepare channel
@@ -95,7 +95,7 @@ public class DiskCacher {
 		}
 		
 		// close
-		int freedMemory = data.completeTransferToDisk();
+		long freedMemory = data.completeTransferToDisk();
 		
 		bos.close();
 		
@@ -105,7 +105,7 @@ public class DiskCacher {
 		return freedMemory;
 	}
 	
-	public int cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
+	public long cacheToDisk(Dataset data) throws FileNotFoundException, IOException {
 		if (filenames.containsKey(data.id())) {
 			return 0;
 		}
@@ -136,7 +136,7 @@ public class DiskCacher {
 		data.setCachedLocation(cacheFileName);
 		
 		// close
-		int freedMemory = data.completeTransferToDisk();
+		long freedMemory = data.completeTransferToDisk();
 		
 		
 		LOG.debug("Content is spilled to: {}", cacheFileName);
