@@ -127,40 +127,32 @@ public class ScheduleTask implements SeepTask {
 	public void processData(ITuple data, API api) {
 		byte[] o = null;
 		Schema lSchema = null;
- 		for(int i = 0; i < tasks.size() - 1; i++) {
+		boolean tasksProducedEmptyResult = false;
+		
+		for(int i = 0; i < tasks.size() - 1; i++) {
+ 			// reset the collector to make sure that we do not get old tuples as a result
+ 			((SimpleCollector)scApi).reset();
 			SeepTask next = tasks.get(i);
 			next.processData(data, scApi);
 			o = ((SimpleCollector)scApi).collectMem();
+			/*
+			 * if the task has not produced any output for this input tuple, there is no need for 
+			 * further processing as part of the pipeline
+			 */
 			if(o == null) {
-				OTuple temp = ((SimpleCollector)scApi).collect();
-                if(temp == null) {
-                    LogicalOperator no = operators.get(i);
-                    Schema st = no.downstreamConnections().get(0).getSchema();
-                    o = OTuple.create(st, st.names(), new
-Object[]{0L,1,2,3f,4f,5f,6,7,8,9,10f,11,12,13f});
-                }
-                else {
-				    o = temp.getData();
-                }
+				tasksProducedEmptyResult = true;
+				break;
 			}
 			LogicalOperator nextOp = operators.get(i);
-//			if(! sameSchema) {
-				lSchema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
-				data = new ITuple(lSchema, o);
-				d = new TransporterITuple(lSchema); // FIXME: can we get schema from OTuple
-//			}
-			if(d == null) {
-				lSchema = nextOp.downstreamConnections().get(0).getSchema();
-				d = new TransporterITuple(lSchema);
-			}
-			d.setData(o);
+			lSchema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
+			data = new ITuple(lSchema, o);
 			data.setData(o);
-			//Object[] values = o.getValues();
-			//d.setValues(values);
 		}
  		
-		SeepTask next = tasks.get(tasks.size() -1);
-		next.processData(data, api);
+ 		if (!tasksProducedEmptyResult) {
+			SeepTask next = tasks.get(tasks.size() -1);
+			next.processData(data, api);
+ 		}
 		
 //		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
 //		// Check whether there are tasks ahead

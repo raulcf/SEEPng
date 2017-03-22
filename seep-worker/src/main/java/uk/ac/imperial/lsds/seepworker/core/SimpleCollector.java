@@ -22,6 +22,12 @@ public class SimpleCollector implements API {
 		this.rEvents = new ArrayList<>();
 	}
 	
+	public void reset() {
+		this.mem = null;
+		this.o   = null;
+	}
+
+	
 	@Override
 	public int id() {
 		// TODO Auto-generated method stub
