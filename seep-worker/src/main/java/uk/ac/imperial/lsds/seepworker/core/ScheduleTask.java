@@ -116,10 +116,20 @@ public class ScheduleTask implements SeepTask {
 	
 	@Override
 	public void processData(ITuple data, API api) {
+		OTuple o = null;
+		Schema lSchema = null;
+		boolean taskProducedEmptResult = false;
+		
 		for(int i = 0; i < tasks.size() - 1; i++) {
+			((SimpleCollector)scApi).reset();
 			SeepTask next = tasks.get(i);
 			next.processData(data, scApi);
-			OTuple o = ((SimpleCollector)scApi).collect();
+			o = ((SimpleCollector)scApi).collect();
+			
+			if(o == null || o.getData() == null) {
+				taskProducedEmptResult = true;
+				break;
+			}
 			LogicalOperator nextOp = operators.get(i);
 			if(! sameSchema) {
 				Schema schema = nextOp.downstreamConnections().get(0).getSchema(); // 0 cause there's only 1
@@ -134,8 +144,10 @@ public class ScheduleTask implements SeepTask {
 			d.setValues(values);
 		}
 		
-		SeepTask next = tasks.get(tasks.size() -1);
-		next.processData(data, api);
+		if (!taskProducedEmptResult) {
+			SeepTask next = tasks.get(tasks.size() -1);
+			next.processData(data, api);
+		}
 		
 //		SeepTask next = taskIterator.next(); // Get first, and possibly only task here
 //		// Check whether there are tasks ahead

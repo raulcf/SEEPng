@@ -147,5 +147,10 @@ public class SimpleCollector implements API {
 //		evaluationResults = RuntimeEventFactory.makeEvaluateResults(obj);
 		//this.rEvents.add(re);
 	}
+	
+	public void reset() {
+		this.o = null;
+		this.mem = null;
+	}
 
 }
