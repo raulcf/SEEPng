@@ -33,6 +33,7 @@ public class Dataset implements IBuffer, OBuffer {
 	private DataReferenceManager drm;
 	private DataReference dataReference;
 	private BufferPool bufferPool;
+	private int lastZeroCopySize = 0;
 	
 	private Queue<ByteBuffer> buffers;
 	private Iterator<ByteBuffer> readerIterator;
@@ -320,6 +321,9 @@ public class Dataset implements IBuffer, OBuffer {
 	
 	public ITuple consumeData_zerocopy(ZCITuple t) {
 		// Try to read from rPtrToBuffer
+		if (rPtrToBuffer != null && rPtrToBuffer.hasRemaining()) {
+			rPtrToBuffer.position(lastZeroCopySize);
+		}
 		if(rPtrToBuffer == null || rPtrToBuffer.remaining() == 0) {
 			// MEMORY
 			if (cacheFileName.equals("")) {
@@ -442,6 +446,7 @@ public class Dataset implements IBuffer, OBuffer {
 		if (rPtrToBuffer.hasRemaining()) {
 			int size = rPtrToBuffer.getInt();
 			int currentPosition = rPtrToBuffer.position();
+			lastZeroCopySize = currentPosition + size;
 			t.setBufferPtr(currentPosition);
 		}
 		return t;

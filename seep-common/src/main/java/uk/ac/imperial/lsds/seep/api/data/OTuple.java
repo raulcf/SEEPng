@@ -28,6 +28,7 @@ public class OTuple {
 	
 	public void setValues(Object[] values) {
 		this.values = values;
+		data = getBytes();
 	}
 	
 	public Object[] getValues() {
@@ -35,10 +36,16 @@ public class OTuple {
 	}
 	
 	public int getTupleSize() {
-		return fixedSchemaSize;
+		if (!schema.isVariableSize()) {
+			return fixedSchemaSize;
+		}
+		return getData().length;
 	}
 	
 	public byte[] getData(){
+		if (data == null) {
+			data = getBytes();
+		}
 		return data;
 	}
 	
@@ -77,7 +84,11 @@ public class OTuple {
 	
 	public void writeValues(ByteBuffer bb) {
 		Type[] types = schema.fields();
-		bb.putInt(this.fixedSchemaSize);
+		if (schema.isVariableSize()) {
+			bb.putInt(getData().length);
+		} else {
+			bb.putInt(this.fixedSchemaSize);
+		}
 		for(int i = 0; i < values.length; i++) {
 			Type t = types[i];
 			t.write(bb, values[i]);
